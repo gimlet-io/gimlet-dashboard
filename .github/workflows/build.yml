@@ -49,3 +49,8 @@ jobs:
       run: make build-backend
       env:
         VERSION: ${{ steps.sha_or_tag.outputs.version }}
+
+    - name: Build Agent
+      run: make build-agent
+      env:
+        VERSION: ${{ steps.sha_or_tag.outputs.version }}

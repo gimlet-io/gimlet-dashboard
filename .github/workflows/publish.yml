@@ -58,13 +58,6 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload release binaries
-      uses: alexellis/upload-assets@0.2.2
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        asset_paths: '["./bin/gimlet*"]'
-
     - name: Update README on main branch with new version
       env:
         VERSION: ${{ steps.sha_or_tag.outputs.version }}
