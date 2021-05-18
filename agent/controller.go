@@ -39,7 +39,7 @@ type Controller struct {
 }
 
 // NewController creates a new Controller.
-func NewController(name string, listWatcher *cache.ListWatch, objType rntme.Object, eventHandler func(cache.Indexer, string) error) *Controller {
+func NewController(name string, listWatcher cache.ListerWatcher, objType rntme.Object, eventHandler func(cache.Indexer, string) error) *Controller {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that

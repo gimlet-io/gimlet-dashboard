@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/agent"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/fields"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
@@ -14,12 +15,12 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"path"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 func main() {
@@ -31,32 +32,46 @@ func main() {
 		panic(err.Error())
 	}
 
-	podListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "pods", v1.NamespaceDefault, fields.Everything())
-	podController := agent.NewController("pod", podListWatcher, &v1.Pod{}, func(indexer cache.Indexer, key string) error {
-		obj, exists, err := indexer.GetByKey(key)
-		if err != nil {
-			log.Errorf("Fetching object with key %s from store failed with %v", key, err)
-			return err
-		}
+	podController := agent.PodController(clientset)
 
-		if !exists {
-			// Below we will warm up our cache with a Pod, so that we will see a delete for one pod
-			fmt.Printf("Pod %s does not exist anymore\n", key)
-		} else {
-			// Note that you also have to check the uid if you have a local controlled resource, which
-			// is dependent on the actual instance, to detect that a Pod was recreated with the same name
-			fmt.Printf("Sync/Add/Update for Pod %s\n", obj.(*v1.Pod).GetName())
-		}
-		return nil
-	})
-
-	// Now let's start the controller
 	stop := make(chan struct{})
 	defer close(stop)
 	go podController.Run(1, stop)
 
-	// Wait forever
-	select {}
+	p := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{Name: "my-pod"},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "web",
+					Image: "nginx:1.12",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          "http",
+							Protocol:      v1.ProtocolTCP,
+							ContainerPort: 80,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	go func() {
+		_, err = clientset.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
+		if err != nil {
+			log.Error(err)
+		}
+		time.Sleep(3*time.Second)
+
+		err = clientset.CoreV1().Pods("default").Delete(context.TODO(), p.Name, metav1.DeleteOptions{})
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+
+	//select{}
+	time.Sleep(30 * time.Second)
 }
 
 func k8sConfig() (*rest.Config, error) {
