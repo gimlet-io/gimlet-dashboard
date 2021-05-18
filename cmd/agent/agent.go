@@ -17,7 +17,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/client-go/util/workqueue"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -33,41 +32,28 @@ func main() {
 	}
 
 	podListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "pods", v1.NamespaceDefault, fields.Everything())
-	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	podController := agent.NewController("pod", podListWatcher, &v1.Pod{}, func(indexer cache.Indexer, key string) error {
+		obj, exists, err := indexer.GetByKey(key)
+		if err != nil {
+			log.Errorf("Fetching object with key %s from store failed with %v", key, err)
+			return err
+		}
 
-	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
-	// whenever the cache is updated, the pod key is added to the workqueue.
-	// Note that when we finally process the item from the workqueue, we might see a newer version
-	// of the Pod than the version which was responsible for triggering the update.
-	indexer, informer := cache.NewIndexerInformer(podListWatcher, &v1.Pod{}, 0, cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err == nil {
-				queue.Add(key)
-			}
-		},
-		UpdateFunc: func(old interface{}, new interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(new)
-			if err == nil {
-				queue.Add(key)
-			}
-		},
-		DeleteFunc: func(obj interface{}) {
-			// IndexerInformer uses a delta queue, therefore for deletes we have to use this
-			// key function.
-			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			if err == nil {
-				queue.Add(key)
-			}
-		},
-	}, cache.Indexers{})
-
-	controller := agent.NewController(queue, indexer, informer)
+		if !exists {
+			// Below we will warm up our cache with a Pod, so that we will see a delete for one pod
+			fmt.Printf("Pod %s does not exist anymore\n", key)
+		} else {
+			// Note that you also have to check the uid if you have a local controlled resource, which
+			// is dependent on the actual instance, to detect that a Pod was recreated with the same name
+			fmt.Printf("Sync/Add/Update for Pod %s\n", obj.(*v1.Pod).GetName())
+		}
+		return nil
+	})
 
 	// Now let's start the controller
 	stop := make(chan struct{})
 	defer close(stop)
-	go controller.Run(1, stop)
+	go podController.Run(1, stop)
 
 	// Wait forever
 	select {}
