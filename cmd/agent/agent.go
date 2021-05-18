@@ -1,28 +1,79 @@
 package main
 
 import (
-	"context"
 	"flag"
+	"fmt"
+	"github.com/gimlet-io/gimlet-dashboard/agent"
 	log "github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
-	"path/filepath"
-	"time"
-
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"k8s.io/client-go/util/workqueue"
+	"path"
+	"path/filepath"
+	"runtime"
 )
 
 func main() {
-	var config *rest.Config
+	configLogger()
 
-	// creates the in-cluster config
+	config, err := k8sConfig()
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	podListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "pods", v1.NamespaceDefault, fields.Everything())
+	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+
+	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
+	// whenever the cache is updated, the pod key is added to the workqueue.
+	// Note that when we finally process the item from the workqueue, we might see a newer version
+	// of the Pod than the version which was responsible for triggering the update.
+	indexer, informer := cache.NewIndexerInformer(podListWatcher, &v1.Pod{}, 0, cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(obj)
+			if err == nil {
+				queue.Add(key)
+			}
+		},
+		UpdateFunc: func(old interface{}, new interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(new)
+			if err == nil {
+				queue.Add(key)
+			}
+		},
+		DeleteFunc: func(obj interface{}) {
+			// IndexerInformer uses a delta queue, therefore for deletes we have to use this
+			// key function.
+			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+			if err == nil {
+				queue.Add(key)
+			}
+		},
+	}, cache.Indexers{})
+
+	controller := agent.NewController(queue, indexer, informer)
+
+	// Now let's start the controller
+	stop := make(chan struct{})
+	defer close(stop)
+	go controller.Run(1, stop)
+
+	// Wait forever
+	select {}
+}
+
+func k8sConfig() (*rest.Config, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Infof("In-cluster-config didn't work (%s), loading kubeconfig if available", err.Error())
@@ -41,19 +92,17 @@ func main() {
 			panic(err.Error())
 		}
 	}
+	return config, err
+}
 
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
+func configLogger() {
+	log.SetReportCaller(true)
+	customFormatter := &log.TextFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			filename := path.Base(f.File)
+			return "", fmt.Sprintf("[%s:%d]", filename, f.Line)
+		},
 	}
-
-	for {
-		pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		log.Infof("There are %d pods in the cluster\n", len(pods.Items))
-		time.Sleep(10 * time.Second)
-	}
+	customFormatter.FullTimestamp = true
+	log.SetFormatter(customFormatter)
 }
