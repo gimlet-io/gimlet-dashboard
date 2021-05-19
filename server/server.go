@@ -1,6 +1,8 @@
 package server
 
 import (
+	"encoding/json"
+	"github.com/gimlet-io/gimlet-dashboard/api"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -61,4 +63,47 @@ func register(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func state(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+
+	var stacks []api.Stack
+	err := json.NewDecoder(r.Body).Decode(&stacks)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
+	agent := agentHub.Agents[name]
+	if agent == nil {
+		time.Sleep(1 * time.Second) // Agenthub has a race condition. Registration is not done when the client sends the state
+		agent = agentHub.Agents[name]
+	}
+
+	stackPointers := []*api.Stack{}
+	for _, s := range stacks {
+		copy := s // needed as the address of s is constant in the for loop
+		stackPointers = append(stackPointers, &copy)
+	}
+	agent.Stacks = stackPointers
+
+	//envs := []*api.Env{{
+	//	Name:            name,
+	//	Stacks:          stackPointers,
+	//}}
+
+	//clientHub := c.MustGet("hub").(*ws.ClientHub)
+	//jsonString, _ := json.Marshal(map[string]interface{}{
+	//	"event": "stacks",
+	//	"envs":  envs,
+	//})
+	//clientHub.Broadcast <- jsonString
+
+	//alertManager := c.MustGet("alertManager").(*alerts.Manager)
+	//alertManager.TrackStacks(name, stackPointers)
 }

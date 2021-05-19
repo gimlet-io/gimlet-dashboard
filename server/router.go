@@ -3,14 +3,12 @@ package server
 import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
-	"time"
-
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/jwtauth/v5"
 )
 
 var agentAuth *jwtauth.JWTAuth
@@ -21,7 +19,7 @@ func SetupRouter(
 ) *chi.Mux {
 	agentAuth = jwtauth.New("HS256", []byte(config.JWTSecret), nil)
 	_, tokenString, _ := agentAuth.Encode(map[string]interface{}{"user_id": "gimlet-agent"})
-	log.Infof("ConnectedAgent JWT is %s\n", tokenString)
+	log.Infof("Agent JWT is %s\n", tokenString)
 
 	r := chi.NewRouter()
 
@@ -30,7 +28,6 @@ func SetupRouter(
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.NoCache)
-	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Use(middleware.WithValue("agentHub", agentHub))
 
@@ -47,6 +44,7 @@ func SetupRouter(
 		r.Use(mustAgent)
 
 		r.Get("/agent/register", register)
+		r.Post("/agent/state", state)
 	})
 
 	filesDir := http.Dir("./web/build")

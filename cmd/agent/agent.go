@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path"
@@ -199,11 +200,15 @@ func sendState(agent *agent.Agent, gimletHost string, agentKey string) {
 		return
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/agent/state/%s?token=%s", gimletHost, agent.Name, agentKey), bytes.NewBuffer(stacksString))
+	params := url.Values{}
+	params.Add("name", agent.Name)
+	reqUrl := fmt.Sprintf("%s/agent/state?%s", gimletHost, params.Encode())
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewBuffer(stacksString))
 	if err != nil {
 		log.Errorf("could not create http request: %v", err)
 		return
 	}
+	req.Header.Set("Authorization", "BEARER " + agentKey)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := httpClient()
