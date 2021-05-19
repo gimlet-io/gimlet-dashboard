@@ -6,7 +6,8 @@ require (
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/go-chi/cors v1.2.0
-	github.com/go-chi/jwtauth/v5 v5.0.1 // indirect
+	github.com/go-chi/jwtauth/v5 v5.0.1
+	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/joho/godotenv v1.3.0
