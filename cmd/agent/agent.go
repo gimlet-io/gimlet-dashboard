@@ -22,20 +22,11 @@ import (
 	"os"
 	"os/signal"
 	"path"
-	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
 	"time"
 )
-
-var (
-	re *regexp.Regexp
-)
-
-func init() {
-	re = regexp.MustCompile(`token=[A-Za-z0-9-]*(&)?`)
-}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -162,9 +153,9 @@ func serverCommunication(agent *agent.Agent, config config.Config) {
 	for {
 		done := make(chan bool)
 
-		events, err := register(fmt.Sprintf("%s/agent/register/%s?token=%s", config.Host, agent.Name, config.AgentKey))
+		events, err := register(config.Host, agent.Name, agent.Namespace, config.AgentKey)
 		if err != nil {
-			log.Errorf("could not connect to Gimlet: %s", re.ReplaceAllString(err.Error(), `token=***&`))
+			log.Errorf("could not connect to Gimlet: %s", err.Error())
 			time.Sleep(time.Second * 3)
 			continue
 		}
@@ -190,6 +181,7 @@ func serverCommunication(agent *agent.Agent, config config.Config) {
 		}(events)
 
 		<-done
+		time.Sleep(time.Second * 3)
 		log.Info("Disconnected from Gimlet")
 	}
 }

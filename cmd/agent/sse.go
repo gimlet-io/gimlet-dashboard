@@ -6,10 +6,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"net/http"
+	"net/url"
 )
 
-func register(URL string) (chan map[string]interface{}, error) {
-	resp, err := httpClient().Get(URL)
+func register(host string, name string, namespace string, token string) (chan map[string]interface{}, error) {
+	params := url.Values{}
+	params.Add("name", name)
+	if namespace != "" {
+		params.Add("namespace", namespace)
+	}
+
+	reqUrl := fmt.Sprintf("%s/agent/register?%s", host, params.Encode())
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", reqUrl, nil)
+	req.Header.Set("Authorization", "BEARER " + token)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
