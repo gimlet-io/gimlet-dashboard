@@ -19,11 +19,8 @@ func PodController(clientset kubernetes.Interface) *Controller {
 		}
 
 		if !exists {
-			// Below we will warm up our cache with a Pod, so that we will see a delete for one pod
 			fmt.Printf("Pod %s does not exist anymore\n", key)
 		} else {
-			// Note that you also have to check the uid if you have a local controlled resource, which
-			// is dependent on the actual instance, to detect that a Pod was recreated with the same name
 			fmt.Printf("Sync/Add/Update for Pod %s\n", obj.(*v1.Pod).GetName())
 		}
 		return nil

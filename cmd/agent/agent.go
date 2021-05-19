@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/agent"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/agent/config"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
@@ -17,61 +16,81 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"os"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"runtime"
-	"time"
+	"strings"
+	"syscall"
 )
 
 func main() {
-	configLogger()
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Warnf("could not load .env file, relying on env vars")
+	}
 
-	config, err := k8sConfig()
-	clientset, err := kubernetes.NewForConfig(config)
+	config, err := config.Environ()
+	if err != nil {
+		log.Fatalln("main: invalid configuration")
+	}
+
+	initLogger(config)
+	if log.IsLevelEnabled(log.TraceLevel) {
+		log.Traceln(config.String())
+	}
+
+	if config.Host == "" {
+		panic(fmt.Errorf("please provide the HOST variable"))
+	}
+	if config.AgentKey == "" {
+		panic(fmt.Errorf("please provide the AGENT_KEY variable"))
+	}
+	if config.Env == "" {
+		panic(fmt.Errorf("please provide the ENV variable"))
+	}
+
+	envName, namespace, err := parseEnvString(config.Env)
+	if err != nil {
+		panic(fmt.Errorf("invalid ENV variable. Format is env1=ns1,env2=ns2"))
+	}
+
+	if namespace != "" {
+		log.Infof("Initializing %s agent in %s namespace scope", envName, namespace)
+	} else {
+		log.Infof("Initializing %s agent in cluster scope", envName)
+	}
+
+	k8sConfig, err := k8sConfig()
+	clientset, err := kubernetes.NewForConfig(k8sConfig)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	podController := agent.PodController(clientset)
 
-	stop := make(chan struct{})
-	defer close(stop)
-	go podController.Run(1, stop)
+	stopCh := make(chan struct{})
+	defer close(stopCh)
 
-	p := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "my-pod"},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "web",
-					Image: "nginx:1.12",
-					Ports: []v1.ContainerPort{
-						{
-							Name:          "http",
-							Protocol:      v1.ProtocolTCP,
-							ContainerPort: 80,
-						},
-					},
-				},
-			},
-		},
-	}
+	go podController.Run(1, stopCh)
 
+	signals := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	// This goroutine executes a blocking receive for signals.
+	// When it gets one it’ll print it out and then notify the program that it can finish.
 	go func() {
-		_, err = clientset.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
-		if err != nil {
-			log.Error(err)
-		}
-		time.Sleep(3*time.Second)
-
-		err = clientset.CoreV1().Pods("default").Delete(context.TODO(), p.Name, metav1.DeleteOptions{})
-		if err != nil {
-			log.Error(err)
-		}
+		sig := <-signals
+		log.Info(sig)
+		done <- true
 	}()
 
-	//select{}
-	time.Sleep(30 * time.Second)
+	log.Info("Initialized")
+	<-done
+	log.Info("Exiting")
 }
 
 func k8sConfig() (*rest.Config, error) {
@@ -96,8 +115,10 @@ func k8sConfig() (*rest.Config, error) {
 	return config, err
 }
 
-func configLogger() {
+// helper function configures the logging.
+func initLogger(c config.Config) {
 	log.SetReportCaller(true)
+
 	customFormatter := &log.TextFormatter{
 		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 			filename := path.Base(f.File)
@@ -106,4 +127,23 @@ func configLogger() {
 	}
 	customFormatter.FullTimestamp = true
 	log.SetFormatter(customFormatter)
+
+	if c.Logging.Debug {
+		log.SetLevel(log.DebugLevel)
+	}
+	if c.Logging.Trace {
+		log.SetLevel(log.TraceLevel)
+	}
+}
+
+func parseEnvString(envString string) (string, string, error) {
+	if strings.Contains(envString, "=") {
+		parts := strings.Split(envString, "=")
+		if len(parts) != 2 {
+			return "", "", fmt.Errorf("")
+		}
+		return parts[0], parts[1], nil
+	} else {
+		return envString, "", nil
+	}
 }
