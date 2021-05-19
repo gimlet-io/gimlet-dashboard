@@ -39,3 +39,13 @@ build-frontend:
 
 test-frontend:
 	(cd web/; npm install; npm run test)
+
+start-local-env:
+	docker-compose -f fixtures/k3s/docker-compose.yml up -d
+
+stop-local-env:
+	docker-compose -f fixtures/k3s/docker-compose.yml stop
+
+clean-local-env:
+	docker-compose -f fixtures/k3s/docker-compose.yml down
+	docker volume rm k3s_k3s-gimlet

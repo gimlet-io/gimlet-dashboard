@@ -1,12 +1,14 @@
 package main
 
 import (
-	"flag"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/agent"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/agent/config"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
@@ -15,15 +17,25 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"path"
-	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 )
+
+var (
+	re *regexp.Regexp
+)
+
+func init() {
+	re = regexp.MustCompile(`token=[A-Za-z0-9-]*(&)?`)
+}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -62,13 +74,21 @@ func main() {
 		log.Infof("Initializing %s agent in cluster scope", envName)
 	}
 
-	k8sConfig, err := k8sConfig()
+	k8sConfig, err := k8sConfig(config)
 	clientset, err := kubernetes.NewForConfig(k8sConfig)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	podController := agent.PodController(clientset)
+
+	agent := &agent.Agent{
+		Name:      envName,
+		Namespace: namespace,
+		Client:    clientset,
+	}
+
+	go serverCommunication(agent, config)
 
 	stopCh := make(chan struct{})
 	defer close(stopCh)
@@ -93,26 +113,16 @@ func main() {
 	log.Info("Exiting")
 }
 
-func k8sConfig() (*rest.Config, error) {
-	config, err := rest.InClusterConfig()
+func k8sConfig(config config.Config) (*rest.Config, error) {
+	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
-		log.Infof("In-cluster-config didn't work (%s), loading kubeconfig if available", err.Error())
-
-		var kubeconfig *string
-		if home := homedir.HomeDir(); home != "" {
-			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		} else {
-			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		}
-		flag.Parse()
-
-		// use the current context in kubeconfig
-		config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		log.Infof("In-cluster-config didn't work (%s), loading from path in KUBECONFIG if set", err.Error())
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", config.KubeConfig)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
-	return config, err
+	return k8sConfig, err
 }
 
 // helper function configures the logging.
@@ -145,5 +155,91 @@ func parseEnvString(envString string) (string, string, error) {
 		return parts[0], parts[1], nil
 	} else {
 		return envString, "", nil
+	}
+}
+
+func serverCommunication(agent *agent.Agent, config config.Config) {
+	for {
+		done := make(chan bool)
+
+		events, err := register(fmt.Sprintf("%s/agent/register/%s?token=%s", config.Host, agent.Name, config.AgentKey))
+		if err != nil {
+			log.Errorf("could not connect to Gimlet: %s", re.ReplaceAllString(err.Error(), `token=***&`))
+			time.Sleep(time.Second * 3)
+			continue
+		}
+
+		log.Info("Connected to Gimlet")
+		go sendState(agent, config.Host, config.AgentKey)
+
+		go func(events chan map[string]interface{}) {
+			for {
+				e, more := <-events
+				if more {
+					log.Debugf("event received: %v", e)
+					switch e["action"] {
+					case "refetch":
+						go sendState(agent, config.Host, config.AgentKey)
+					}
+				} else {
+					log.Info("event stream closed")
+					done <- true
+					return
+				}
+			}
+		}(events)
+
+		<-done
+		log.Info("Disconnected from Gimlet")
+	}
+}
+
+func sendState(agent *agent.Agent, gimletHost string, agentKey string) {
+	stacks, err := agent.Services("")
+	if err != nil {
+		log.Errorf("could not get state from k8s apiServer: %v", err)
+		return
+	}
+
+	stacksString, err := json.Marshal(stacks)
+	if err != nil {
+		log.Errorf("could not serialize k8s state: %v", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/agent/state/%s?token=%s", gimletHost, agent.Name, agentKey), bytes.NewBuffer(stacksString))
+	if err != nil {
+		log.Errorf("could not create http request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := httpClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Errorf("could not send k8s state: %d - %v", resp.StatusCode, string(body))
+		return
+	}
+
+	log.Debug("init state sent")
+}
+
+func httpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout:   20 * time.Second,
+			ResponseHeaderTimeout: 20 * time.Second,
+			ExpectContinueTimeout: 10 * time.Second,
+		},
 	}
 }
