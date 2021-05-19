@@ -15,10 +15,10 @@ test-backend:
 	$(DOCKER_RUN) go test -race -timeout 60s $(shell go list ./... )
 
 build-backend:
-	$(DOCKER_RUN) CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o build/gimlet github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
+	$(DOCKER_RUN) CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o build/gimlet-dashboard github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
 
 build-agent:
-	$(DOCKER_RUN) CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o build/gimlet github.com/gimlet-io/gimlet-dashboard/cmd/agent
+	$(DOCKER_RUN) CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o build/gimlet-agent github.com/gimlet-io/gimlet-dashboard/cmd/agent
 
 dist:
 	mkdir -p bin
