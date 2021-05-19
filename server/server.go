@@ -43,13 +43,14 @@ func register(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
 	agentHub.Register <- a
 
-	//broadcastAgentConnectedEvent(c, a)
+	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
+	broadcastAgentConnectedEvent(clientHub, a)
 
 	for {
 		select {
 		case <-r.Context().Done():
 			agentHub.Unregister <- a
-			//broadcastAgentDisconnectedEvent(c, a.Name)
+			broadcastAgentDisconnectedEvent(clientHub, a.Name)
 			return
 		case <-time.After(time.Second * 30):
 			io.WriteString(w, ": ping\n\n")
@@ -63,6 +64,22 @@ func register(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func broadcastAgentConnectedEvent(clientHub *ClientHub, a *ConnectedAgent) {
+	jsonString, _ := json.Marshal(map[string]interface{}{
+		"event": "agentConnected",
+		"agent": a,
+	})
+	clientHub.Broadcast <- jsonString
+}
+
+func broadcastAgentDisconnectedEvent(clientHub *ClientHub, name string) {
+	jsonString, _ := json.Marshal(map[string]interface{}{
+		"event": "agentDisconnected",
+		"agent": name,
+	})
+	clientHub.Broadcast <- jsonString
 }
 
 func state(w http.ResponseWriter, r *http.Request) {
@@ -92,18 +109,15 @@ func state(w http.ResponseWriter, r *http.Request) {
 	}
 	agent.Stacks = stackPointers
 
-	//envs := []*api.Env{{
-	//	Name:            name,
-	//	Stacks:          stackPointers,
-	//}}
+	envs := []*api.Env{{
+		Name:   name,
+		Stacks: stackPointers,
+	}}
 
-	//clientHub := c.MustGet("hub").(*ws.ClientHub)
-	//jsonString, _ := json.Marshal(map[string]interface{}{
-	//	"event": "stacks",
-	//	"envs":  envs,
-	//})
-	//clientHub.Broadcast <- jsonString
-
-	//alertManager := c.MustGet("alertManager").(*alerts.Manager)
-	//alertManager.TrackStacks(name, stackPointers)
+	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
+	jsonString, _ := json.Marshal(map[string]interface{}{
+		"event": "stacks",
+		"envs":  envs,
+	})
+	clientHub.Broadcast <- jsonString
 }

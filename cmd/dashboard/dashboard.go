@@ -37,7 +37,10 @@ func main() {
 	agentHub := server.NewAgentHub(config)
 	go agentHub.Run()
 
-	r := server.SetupRouter(config, agentHub)
+	clientHub := server.NewClientHub()
+	go clientHub.Run()
+
+	r := server.SetupRouter(config, agentHub, clientHub)
 	http.ListenAndServe(":9000", r)
 }
 

@@ -16,6 +16,7 @@ var agentAuth *jwtauth.JWTAuth
 func SetupRouter(
 	config config.Config,
 	agentHub *AgentHub,
+	clientHub *ClientHub,
 ) *chi.Mux {
 	agentAuth = jwtauth.New("HS256", []byte(config.JWTSecret), nil)
 	_, tokenString, _ := agentAuth.Encode(map[string]interface{}{"user_id": "gimlet-agent"})
@@ -30,6 +31,7 @@ func SetupRouter(
 	r.Use(middleware.NoCache)
 
 	r.Use(middleware.WithValue("agentHub", agentHub))
+	r.Use(middleware.WithValue("clientHub", clientHub))
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9000", "http://127.0.0.1:9000"},
