@@ -2,10 +2,12 @@ import React from 'react';
 import './App.css';
 import Nav from "./components/nav/Nav";
 import Services from "./components/services/Services";
+import StreamingBackend from "./streamingBackend";
 
 function App() {
   return (
       <div className="min-h-screen bg-white">
+        <StreamingBackend />
         <Nav />
 
         <div className="py-10">

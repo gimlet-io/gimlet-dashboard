@@ -49,6 +49,10 @@ func SetupRouter(
 		r.Post("/agent/state", state)
 	})
 
+	r.Get("/ws/", func(w http.ResponseWriter, r *http.Request) {
+		ServeWs(clientHub, w, r)
+	})
+
 	filesDir := http.Dir("./web/build")
 	fileServer(r, "/", filesDir)
 
