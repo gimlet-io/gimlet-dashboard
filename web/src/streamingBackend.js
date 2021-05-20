@@ -11,8 +11,6 @@ if (typeof window !== 'undefined') {
 }
 
 export default class StreamingBackend extends Component {
-  private ws: WebSocket | undefined;
-
   componentDidMount() {
     this.ws = new WebSocket(URL + '/ws/');
     this.ws.onopen = this.onOpen;
@@ -30,7 +28,7 @@ export default class StreamingBackend extends Component {
     console.log('connected');
   };
 
-  onClose = (evt: any) => {
+  onClose = (evt) => {
     console.log('disconnected: ' + evt.code + ': ' + evt.reason);
     const ws = new WebSocket(URL + '/ws/');
     ws.onopen = this.onOpen;
@@ -41,8 +39,8 @@ export default class StreamingBackend extends Component {
     });
   }
 
-  onMessage = (evt: any) => {
-    evt.data.split('\n').forEach((line: string) => {
+  onMessage = (evt) => {
+    evt.data.split('\n').forEach((line) => {
       const message = JSON.parse(line);
       console.log(message);
     });

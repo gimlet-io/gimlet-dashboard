@@ -1,7 +1,7 @@
 import React from 'react';
-import './Services.css';
+import './services.css';
 
-function classNames(...classes: string[]) {
+function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
@@ -56,21 +56,7 @@ function Services() {
   )
 }
 
-type ServiceProps = {
-  name: string
-  repo: string
-  deployments: {
-    name: string; namespace: string; env: string; sha: string; message: string; gitopsSha: string;
-    pods: {
-      name: string; namespace: string; status: string; statusDescription: string;
-    }[];
-  }[];
-  ingresses: {
-    name: string; namespace: string; url: string
-  }[];
-}
-
-function Service(service: ServiceProps) {
+function Service(service) {
   return (
     <div className="w-full flex items-center justify-between p-6 space-x-6">
       <div className="flex-1 truncate">
@@ -106,7 +92,7 @@ function Service(service: ServiceProps) {
   )
 }
 
-function Pod(pod: { name: string; status: string }) {
+function Pod(pod) {
   let color;
   let pulsar;
   switch (pod.status) {

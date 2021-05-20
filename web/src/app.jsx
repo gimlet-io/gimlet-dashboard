@@ -1,7 +1,7 @@
 import React from 'react';
-import './App.css';
-import Nav from "./components/nav/Nav";
-import Services from "./components/services/Services";
+import './app.css';
+import Nav from "./components/nav/nav";
+import Services from "./components/services/services";
 import StreamingBackend from "./streamingBackend";
 
 function App() {

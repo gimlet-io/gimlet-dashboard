@@ -1,5 +1,5 @@
 import React, {Fragment, useState} from 'react';
-import './Nav.css';
+import './nav.css';
 import {Disclosure, Menu, Transition} from '@headlessui/react'
 import {BellIcon, MenuIcon, XIcon} from '@heroicons/react/outline'
 import logo from './logo.svg';
@@ -19,7 +19,7 @@ const userNavigation = [
   {name: 'Sign out', href: '#'},
 ]
 
-function classNames(...classes: string[]) {
+function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
