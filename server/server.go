@@ -50,7 +50,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-r.Context().Done():
 			agentHub.Unregister <- a
-			broadcastAgentDisconnectedEvent(clientHub, a.Name)
+			broadcastAgentDisconnectedEvent(clientHub, a)
 			return
 		case <-time.After(time.Second * 30):
 			io.WriteString(w, ": ping\n\n")
@@ -67,17 +67,17 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 func broadcastAgentConnectedEvent(clientHub *ClientHub, a *ConnectedAgent) {
-	jsonString, _ := json.Marshal(map[string]interface{}{
-		"event": "agentConnected",
-		"agent": a,
+	jsonString, _ := json.Marshal(AgentConnectedEvent{
+		StreamingEvent: StreamingEvent{Event: AgentConnectedEventString},
+		Agent:          *a,
 	})
 	clientHub.Broadcast <- jsonString
 }
 
-func broadcastAgentDisconnectedEvent(clientHub *ClientHub, name string) {
-	jsonString, _ := json.Marshal(map[string]interface{}{
-		"event": "agentDisconnected",
-		"agent": name,
+func broadcastAgentDisconnectedEvent(clientHub *ClientHub, a *ConnectedAgent) {
+	jsonString, _ := json.Marshal(AgentDisconnectedEvent{
+		StreamingEvent: StreamingEvent{Event: AgentDisconnectedEventString},
+		Agent:          *a,
 	})
 	clientHub.Broadcast <- jsonString
 }
@@ -115,9 +115,9 @@ func state(w http.ResponseWriter, r *http.Request) {
 	}}
 
 	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
-	jsonString, _ := json.Marshal(map[string]interface{}{
-		"event": "stacks",
-		"envs":  envs,
+	jsonString, _ := json.Marshal(EnvsUpdatedEvent{
+		StreamingEvent: StreamingEvent{Event: EnvsUpdatedEventString},
+		Envs:           envs,
 	})
 	clientHub.Broadcast <- jsonString
 }

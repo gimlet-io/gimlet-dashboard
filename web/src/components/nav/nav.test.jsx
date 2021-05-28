@@ -1,9 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Nav from './Nav';
+import Nav from './nav';
 
 test('renders learn react link', () => {
-  render(<Nav />);
+  const location = {
+    pathname: '/services'
+  }
+  render(<Nav location={location} />);
   const linkElement = screen.getByText('Services');
   expect(linkElement).toBeInTheDocument();
 });

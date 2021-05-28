@@ -1,8 +1,9 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment} from 'react';
 import './nav.css';
 import {Disclosure, Menu, Transition} from '@headlessui/react'
 import {BellIcon, MenuIcon, XIcon} from '@heroicons/react/outline'
 import logo from './logo.svg';
+import {useHistory} from "react-router-dom";
 
 const user = {
   name: 'Tom Cook',
@@ -11,9 +12,9 @@ const user = {
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 }
 const navigation = [
-  {name: 'Environments', href: '#'},
-  {name: 'Services', href: '#'},
-  {name: 'Settings', href: '#'},
+  {name: 'Environments', href: '/environments'},
+  {name: 'Services', href: '/services'},
+  {name: 'Settings', href: '/settings'},
 ]
 const userNavigation = [
   {name: 'Sign out', href: '#'},
@@ -23,9 +24,8 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-function Nav() {
-
-  const [current, setCurrent] = useState('Services');
+function Nav(props) {
+  const history = useHistory();
 
   return (
     <Disclosure as="nav" className="bg-white border-b border-gray-200">
@@ -48,11 +48,11 @@ function Nav() {
                 </div>
                 <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                   {navigation.map((item) => {
-                    const selected = current === item.name;
+                    const selected = props.location.pathname === item.href;
                     return (
-                      <a
+                      <button
                         key={item.name}
-                        href={item.href}
+                        href="#"
                         className={classNames(
                           selected
                             ? 'border-indigo-500 text-gray-900'
@@ -61,12 +61,12 @@ function Nav() {
                         )}
                         aria-current={selected ? 'page' : undefined}
                         onClick={() => {
-                          setCurrent(item.name);
+                          history.push(item.href);
                           return true
                         }}
                       >
                         {item.name}
-                      </a>
+                      </button>
                     )
                   })
                   }
@@ -107,15 +107,19 @@ function Nav() {
                           {userNavigation.map((item) => (
                             <Menu.Item key={item.name}>
                               {({active}) => (
-                                <a
-                                  href={item.href}
+                                <button
+                                  href="#"
                                   className={classNames(
                                     active ? 'bg-gray-100' : '',
                                     'block px-4 py-2 text-sm text-gray-700'
                                   )}
+                                  onClick={() => {
+                                    history.push(item.href);
+                                    return true
+                                  }}
                                 >
                                   {item.name}
-                                </a>
+                                </button>
                               )}
                             </Menu.Item>
                           ))}
@@ -143,11 +147,11 @@ function Nav() {
           <Disclosure.Panel className="sm:hidden">
             <div className="pt-2 pb-3 space-y-1">
               {navigation.map((item) => {
-                const selected = current === item.name;
+                const selected = props.location.pathname === item.href;
                 return (
-                  <a
+                  <button
                     key={item.name}
-                    href={item.href}
+                    href="#"
                     className={classNames(
                       selected
                         ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
@@ -156,12 +160,12 @@ function Nav() {
                     )}
                     aria-current={selected ? 'page' : undefined}
                     onClick={() => {
-                      setCurrent(item.name);
+                      history.push(item.href);
                       return true
                     }}
                   >
                     {item.name}
-                  </a>
+                  </button>
                 )
               })}
             </div>

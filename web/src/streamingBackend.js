@@ -43,6 +43,7 @@ export default class StreamingBackend extends Component {
     evt.data.split('\n').forEach((line) => {
       const message = JSON.parse(line);
       console.log(message);
+      this.props.store.dispatch({type: 'streaming', payload: message});
     });
   }
 }
