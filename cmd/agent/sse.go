@@ -20,7 +20,10 @@ func register(host string, name string, namespace string, token string) (chan ma
 	reqUrl := fmt.Sprintf("%s/agent/register?%s", host, params.Encode())
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", reqUrl, nil)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Set("Authorization", "BEARER " + token)
 	resp, err := client.Do(req)
 	if err != nil {

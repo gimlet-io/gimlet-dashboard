@@ -8,8 +8,8 @@ export function agentDisconnected(state, event) {
   return state;
 }
 
-export function envsUpdated(state, event) {
-  event.envs.forEach((env) => {
+export function envsUpdated(state, envs) {
+  envs.forEach((env) => {
     state.envs[env.name] = env;
   });
   state.envs.loaded = true;

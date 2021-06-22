@@ -49,6 +49,14 @@ func SetupRouter(
 		r.Post("/agent/state", state)
 	})
 
+	r.Group(func(r chi.Router) {
+		//r.Use(jwtauth.Verifier(agentAuth))
+		//r.Use(jwtauth.Authenticator)
+		//r.Use(mustAgent)
+
+		r.Get("/api/envs", envs)
+	})
+
 	r.Get("/ws/", func(w http.ResponseWriter, r *http.Request) {
 		ServeWs(clientHub, w, r)
 	})
