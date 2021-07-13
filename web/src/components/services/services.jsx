@@ -1,59 +1,47 @@
-import React from 'react';
+import React, {Component} from 'react';
 import './services.css';
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+export default class Services extends Component {
+  constructor(props) {
+    super(props);
 
-const services = [
-  {
-    name: 'Service-demo',
-    repo: 'laszlocph/service-demo',
-    deployments: [
-      {
-        name: 'service-demo',
-        namespace: 'staging',
-        env: 'staging',
-        sha: 'wgwergrghij2345hj23i4u5hb3y4uhb5uy43',
-        message: 'Merge pull request #78 from laszlocph/service-demo Cool new feature',
-        gitopsSha: 'gewrgkre0ger30343h4erhrhfgdwegewrg324',
-        pods: [
-          {
-            name: 'service-demo-xyz123',
-            namespace: 'staging',
-            status: 'Running',
-            statusDescription: '',
-          },
-          {
-            name: 'service-demo-fsg456',
-            namespace: 'staging',
-            status: 'Running',
-            statusDescription: '',
-          },
-        ]
-      }
-    ],
-    ingresses: [
-      {
-        name: 'service-demo-xyz123',
-        namespace: 'staging',
-        url: 'service-demo.laszlo.cloud'
-      }
-    ]
-  },
-]
+    // default state
+    this.state = {
+      envs: {}
+    }
 
-function Services() {
-  return (
-    <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {services.map((service) => (
-        <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
-          <Service {...service}/>
-        </li>
-      ))}
+    // handling API and streaming state changes
+    this.props.store.subscribe(() => {
+      let reduxState = this.props.store.getState();
 
-    </ul>
-  )
+      this.setState({envs: reduxState.envs});
+    });
+  }
+
+  render() {
+    const {envs} = this.state;
+
+    if (!envs.loaded) {
+      return (
+        <p>loading</p>
+      )
+    }
+
+    return (
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {envs['staging'].stacks.map((service) => {
+          console.log(service);
+          return (
+            <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+              <Service {...service}/>
+            </li>
+          )
+        })}
+      </ul>
+    );
+
+  }
+
 }
 
 function Service(service) {
@@ -82,7 +70,7 @@ function Service(service) {
                 </p>
               </p>
               {deployment.pods.map((pod) => (
-                <Pod name={pod.name} status={pod.status}/>
+                <Pod pod={pod}/>
               ))}
             </div>
           )
@@ -92,7 +80,9 @@ function Service(service) {
   )
 }
 
-function Pod(pod) {
+function Pod(props) {
+  const {pod} = props;
+
   let color;
   let pulsar;
   switch (pod.status) {
@@ -119,7 +109,7 @@ function Pod(pod) {
   return (
     <span className="inline-block w-4 mr-1 mt-2">
       <svg viewBox="0 0 1 1"
-           className={classNames('fill-current', color, pulsar)}>
+           className={`fill-current ${color}, ${pulsar}`}>
         <g>
           <title>{pod.name} - {pod.status}</title>
           <rect width="1" height="1"/>
@@ -128,5 +118,3 @@ function Pod(pod) {
     </span>
   );
 }
-
-export default Services;
