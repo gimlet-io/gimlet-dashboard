@@ -25,3 +25,5 @@ yarn-error.log*
 
 bin/
 build/
+
+fixtures/k3s/kubeconfig.yaml
