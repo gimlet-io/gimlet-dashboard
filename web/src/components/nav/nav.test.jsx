@@ -4,9 +4,9 @@ import Nav from './nav';
 
 test('renders learn react link', () => {
   const location = {
-    pathname: '/services'
+    pathname: '/repositories'
   }
   render(<Nav location={location} />);
-  const linkElement = screen.getByText('Services');
+  const linkElement = screen.getByText('Repositories');
   expect(linkElement).toBeInTheDocument();
 });
