@@ -50,9 +50,9 @@ func SetupRouter(
 	})
 
 	r.Group(func(r chi.Router) {
-		//r.Use(jwtauth.Verifier(agentAuth))
-		//r.Use(jwtauth.Authenticator)
-		//r.Use(mustAgent)
+		r.Use(jwtauth.Verifier(agentAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Use(mustAgent)
 
 		r.Get("/api/envs", envs)
 	})
