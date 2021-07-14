@@ -7,7 +7,7 @@ import {ACTION_TYPE_ENVS, rootReducer} from './redux/redux';
 import {BrowserRouter as Router, Redirect, Route, Switch, withRouter} from "react-router-dom";
 import GimletClient from "./client/client";
 import Environments from "./views/environments/environments";
-import Services from "./views/services/services";
+import Repositories from "./views/repositories/repositories";
 
 
 function App() {
@@ -47,11 +47,11 @@ function App() {
         <div className="py-10">
           <Switch>
             <Route path="/environments">
-              <Environments store={store} />
+              <Environments store={store}/>
             </Route>
 
-            <Route path="/services">
-              <Services store={store} />
+            <Route path="/repositories">
+              <Repositories store={store}/>
             </Route>
 
             <Route path="/settings">

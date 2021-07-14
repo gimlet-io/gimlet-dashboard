@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import ServiceList from "../../components/serviceList/serviceList";
+import ServiceCard from "../../components/serviceCard/serviceCard";
 
 export default class Environments extends Component {
   constructor(props) {
@@ -35,12 +35,21 @@ export default class Environments extends Component {
               <div>
                 {Object.keys(envs).map((envName) => {
                   const env = envs[envName];
+                  const renderedServices = env.stacks.map((service) => {
+                    return (
+                      <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+                        <ServiceCard service={service}/>
+                      </li>
+                    )
+                  })
+
                   return (
                     <div>
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
-                      <ServiceList
-                        services={env.stacks}
-                      />
+
+                      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {renderedServices}
+                      </ul>
                     </div>
                   )
                 })

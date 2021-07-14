@@ -13,7 +13,7 @@ const user = {
 }
 const navigation = [
   {name: 'Environments', href: '/environments'},
-  {name: 'Services', href: '/services'},
+  {name: 'Repositories', href: '/repositories'},
   {name: 'Settings', href: '/settings'},
 ]
 const userNavigation = [
