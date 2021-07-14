@@ -105,6 +105,7 @@ func state(w http.ResponseWriter, r *http.Request) {
 	stackPointers := []*api.Stack{}
 	for _, s := range stacks {
 		copy := s // needed as the address of s is constant in the for loop
+		copy.Env = name // making the service aware of its env
 		stackPointers = append(stackPointers, &copy)
 	}
 	agent.Stacks = stackPointers

@@ -1,12 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import './app.css';
 import Nav from "./components/nav/nav";
-import Services from "./components/services/services";
 import StreamingBackend from "./streamingBackend";
 import {createStore} from 'redux';
 import {ACTION_TYPE_ENVS, rootReducer} from './redux/redux';
 import {BrowserRouter as Router, Redirect, Route, Switch, withRouter} from "react-router-dom";
 import GimletClient from "./client/client";
+import Environments from "./views/environments/environments";
+import Services from "./views/services/services";
 
 
 function App() {
@@ -46,26 +47,11 @@ function App() {
         <div className="py-10">
           <Switch>
             <Route path="/environments">
-              <header>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <h1 className="text-3xl font-bold leading-tight text-gray-900">Environments</h1>
-                </div>
-              </header>
-              <main>
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                  <div className="px-4 py-8 sm:px-0">
-                    <Services
-                      store={store}
-                    />
-                  </div>
-                </div>
-              </main>
+              <Environments store={store} />
             </Route>
 
             <Route path="/services">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold leading-tight text-gray-900">Services</h1>
-              </div>
+              <Services store={store} />
             </Route>
 
             <Route path="/settings">

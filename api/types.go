@@ -55,6 +55,7 @@ type Env struct {
 
 type Stack struct {
 	Repo       string      `json:"repo"`
+	Env        string      `json:"env"`
 	Service    *Service    `json:"service"`
 	Deployment *Deployment `json:"deployment,omitempty"`
 	Ingresses  []*Ingress  `json:"ingresses,omitempty"`

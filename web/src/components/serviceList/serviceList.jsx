@@ -1,61 +1,31 @@
 import React, {Component} from 'react';
-import './services.css';
+import './serviceList.css';
 import * as PropTypes from "prop-types";
 
-export default class Services extends Component {
-  constructor(props) {
-    super(props);
-
-    // default state
-    let reduxState = this.props.store.getState();
-    this.state = {
-      envs: reduxState.envs
-    }
-
-    // handling API and streaming state changes
-    this.props.store.subscribe(() => {
-      let reduxState = this.props.store.getState();
-
-      this.setState({envs: reduxState.envs});
-    });
-  }
-
+export default class ServiceList extends Component {
   render() {
-    const {envs} = this.state;
+    const {services} = this.props;
+
+    const renderedServices = services.map((service) => {
+      return (
+        <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+          <Service
+            service={service}
+          />
+        </li>
+      )
+    })
 
     return (
-      <div>
-        {Object.keys(envs).map((envName) => {
-          const env = envs[envName];
-          const renderedServices = env.stacks.map((service) => {
-            return (
-              <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
-                <Service
-                  env={env.name}
-                  service={service}
-                />
-              </li>
-            )
-          })
-
-          return (
-            <div>
-              <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
-              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {renderedServices}
-              </ul>
-            </div>
-          )
-        })
-        }
-      </div>
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {renderedServices}
+      </ul>
     );
   }
 }
 
-function Service(props)
-{
-  const {env, service} = props;
+function Service(props) {
+  const {service} = props;
 
   return (
     <div className="w-full flex items-center justify-between p-6 space-x-6">
@@ -64,7 +34,7 @@ function Service(props)
           <h3 className="text-gray-900 text-sm font-bold truncate">{service.repo}</h3>
         </div>
         <Deployment
-          env={env}
+          envName={service.env}
           deployment={service.deployment}
         />
       </div>
@@ -72,15 +42,14 @@ function Service(props)
   )
 }
 
-function Deployment(props)
-{
-  const {env, deployment} = props;
+function Deployment(props) {
+  const {envName, deployment} = props;
 
   return <div>
     <p className="text-xs">{deployment.namespace}/{deployment.name}
       <span
         className="flex-shrink-0 inline-block px-2 py-0.5 mx-1 text-green-800 text-xs font-medium bg-green-100 rounded-full">
-        {env}
+        {envName}
       </span>
     </p>
     <p className="mb-1">
@@ -101,13 +70,12 @@ function Deployment(props)
 }
 
 Deployment.propTypes =
-{
-  deployment: PropTypes.any,
-}
+  {
+    deployment: PropTypes.any,
+  }
 ;
 
-function Pod(props)
-{
+function Pod(props) {
   const {pod} = props;
 
   let color;

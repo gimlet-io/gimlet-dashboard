@@ -12,6 +12,9 @@ func envs(w http.ResponseWriter, r *http.Request) {
 
 	var envs []*api.Env
 	for _, a := range agentHub.Agents {
+		for _, stack := range a.Stacks {
+			stack.Env = a.Name
+		}
 		envs = append(envs, &api.Env{
 			Name: a.Name,
 			Stacks: a.Stacks,
