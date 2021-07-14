@@ -11,9 +11,7 @@ export const initialState = {
   settings: {
     agents: []
   },
-  envs: {
-    loaded: false,
-  }
+  envs: {}
 };
 
 export function rootReducer(state = initialState, action) {

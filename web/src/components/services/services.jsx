@@ -23,47 +23,64 @@ export default class Services extends Component {
   render() {
     const {envs} = this.state;
 
-    if (!envs.loaded) {
-      return (
-        <p>loading</p>
-      )
-    }
-
     return (
-      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {envs['staging'].stacks.map((service) => {
+      <div>
+        {Object.keys(envs).map((envName) => {
+          const env = envs[envName];
+          const renderedServices = env.stacks.map((service) => {
+            return (
+              <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+                <Service
+                  env={env.name}
+                  service={service}
+                />
+              </li>
+            )
+          })
+
           return (
-            <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
-              <Service {...service}/>
-            </li>
+            <div>
+              <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
+              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {renderedServices}
+              </ul>
+            </div>
           )
-        })}
-      </ul>
+        })
+        }
+      </div>
     );
   }
 }
 
-function Service(service) {
+function Service(props)
+{
+  const {env, service} = props;
+
   return (
     <div className="w-full flex items-center justify-between p-6 space-x-6">
       <div className="flex-1 truncate">
         <div className="flex items-center space-x-3">
-          <h3 className="text-gray-900 text-sm font-medium truncate">{service.repo}</h3>
+          <h3 className="text-gray-900 text-sm font-bold truncate">{service.repo}</h3>
         </div>
-        <Deployment deployment={service.deployment}/>
+        <Deployment
+          env={env}
+          deployment={service.deployment}
+        />
       </div>
     </div>
   )
 }
 
-function Deployment(props) {
-  const {deployment} = props;
+function Deployment(props)
+{
+  const {env, deployment} = props;
 
   return <div>
     <p className="text-xs">{deployment.namespace}/{deployment.name}
       <span
         className="flex-shrink-0 inline-block px-2 py-0.5 mx-1 text-green-800 text-xs font-medium bg-green-100 rounded-full">
-        {deployment.env}
+        {env}
       </span>
     </p>
     <p className="mb-1">
@@ -83,11 +100,14 @@ function Deployment(props) {
   </div>;
 }
 
-Deployment.propTypes = {
+Deployment.propTypes =
+{
   deployment: PropTypes.any,
-};
+}
+;
 
-function Pod(props) {
+function Pod(props)
+{
   const {pod} = props;
 
   let color;
