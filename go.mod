@@ -21,6 +21,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/russross/meddler v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.7.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.21.1
