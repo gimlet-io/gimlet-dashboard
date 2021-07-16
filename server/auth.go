@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"github.com/drone/go-scm/scm"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/httputil"
 	"github.com/gimlet-io/gimlet-dashboard/server/token"
@@ -34,7 +35,23 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	scmUser, _, err := git.Users.Find(gitContext)
 	if err != nil {
 		log.Errorf("cannot find git user: %s", err)
-		http.Error(w, http.StatusText(404), 404)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	orgList, _, err := git.Organizations.List(gitContext, scm.ListOptions{
+		Size: 50,
+	})
+	if err != nil {
+		log.Errorf("cannot get user organizations: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	config, _ := ctx.Value("config").(*config.Config)
+	member := validateOrganizationMembership(orgList, config.Github.Org, scmUser.Login)
+
+	if !member {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
 
@@ -54,6 +71,19 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.RedirectHandler("/"+token.AppState, 303).ServeHTTP(w, r)
+}
+
+func validateOrganizationMembership(orgList []*scm.Organization, org string, userName string) bool {
+	if org == userName { // allowing single user installations
+		return true
+	}
+
+	for _, organization := range orgList {
+		if org == organization.Name {
+			return true
+		}
+	}
+	return false
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {

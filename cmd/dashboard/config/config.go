@@ -48,6 +48,7 @@ type Github struct {
 	ClientSecret string `envconfig:"GITHUB_CLIENT_SECRET"`
 	SkipVerify   bool   `envconfig:"GITHUB_SKIP_VERIFY"`
 	Debug        bool   `envconfig:"GITHUB_DEBUG"`
+	Org          string `envconfig:"GITHUB_ORG"`
 }
 
 type Database struct {

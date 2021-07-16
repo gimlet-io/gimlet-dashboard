@@ -44,6 +44,7 @@ func SetupRouter(
 	r.Use(middleware.WithValue("store", store))
 	r.Use(middleware.WithValue("git", git))
 	r.Use(middleware.WithValue("refresher", refresher))
+	r.Use(middleware.WithValue("config", config))
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9000", "http://127.0.0.1:9000"},
@@ -101,7 +102,7 @@ func githubOAuthRoutes(config *config.Config, r *chi.Mux) {
 	loginMiddleware := &github.Config{
 		ClientID:     config.Github.ClientID,
 		ClientSecret: config.Github.ClientSecret,
-		Scope:        []string{"user:email"},
+		Scope:        []string{"user:email,read:org"},
 		Dumper:       dumper,
 	}
 	r.Handle("/auth", loginMiddleware.Handler(
