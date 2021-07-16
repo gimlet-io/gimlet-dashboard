@@ -7,10 +7,10 @@ import (
 
 // ConnectedAgent represents a connected k8s cluster
 type ConnectedAgent struct {
-	Name          string       `json:"name"`
-	Namespace     string       `json:"namespace"`
-	EventChannel  chan []byte  `json:"-"`
-	Stacks        []*api.Stack `json:"-"`
+	Name         string       `json:"name"`
+	Namespace    string       `json:"namespace"`
+	EventChannel chan []byte  `json:"-"`
+	Stacks       []*api.Stack `json:"-"`
 }
 
 // AgentHub is the central registry of all connected agents
@@ -23,10 +23,10 @@ type AgentHub struct {
 	// Unregister requests from agents.
 	Unregister chan *ConnectedAgent
 
-	config     config.Config
+	config *config.Config
 }
 
-func NewAgentHub(config config.Config) *AgentHub {
+func NewAgentHub(config *config.Config) *AgentHub {
 	return &AgentHub{
 		Register:   make(chan *ConnectedAgent),
 		Unregister: make(chan *ConnectedAgent),

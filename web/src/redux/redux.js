@@ -2,6 +2,7 @@ import * as eventHandlers from './eventHandlers';
 
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
+export const ACTION_TYPE_USER = 'user';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -20,6 +21,8 @@ export function rootReducer(state = initialState, action) {
       return processStreamingEvent(state, action.payload)
     case ACTION_TYPE_ENVS:
       return eventHandlers.envsUpdated(state, action.payload)
+    case ACTION_TYPE_USER:
+      return eventHandlers.user(state, action.payload)
     default:
       console.log('Could not process redux event: ' + JSON.stringify(action));
       return state;

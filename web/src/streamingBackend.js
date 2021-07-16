@@ -13,6 +13,10 @@ if (typeof window !== 'undefined') {
 
 export default class StreamingBackend extends Component {
   componentDidMount() {
+    if (this.props.location.pathname === '/login') {
+      return;
+    }
+
     this.ws = new WebSocket(URL + '/ws/');
     this.ws.onopen = this.onOpen;
     this.ws.onmessage = this.onMessage;
