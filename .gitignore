@@ -27,3 +27,5 @@ bin/
 build/
 
 fixtures/k3s/kubeconfig.yaml
+
+gimlet-dashboard.sqlite

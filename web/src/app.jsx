@@ -35,9 +35,9 @@ export default class App extends Component {
   render() {
     const {store, gimletClient} = this.state;
 
-    const NavBar = withRouter(props => <Nav {...props}/>);
+    const NavBar = withRouter(props => <Nav {...props} store={store}/>);
     const APIBackendWithLocation = withRouter(
-      props => <APIBackend {...props} store={store} gimletClient={gimletClient} />
+      props => <APIBackend {...props} store={store} gimletClient={gimletClient}/>
     );
     const StreamingBackendWithLocation = withRouter(props => <StreamingBackend {...props} store={store}/>);
 
@@ -65,6 +65,9 @@ export default class App extends Component {
               <Route path="/login">
                 <button
                   type="button"
+                  onClick={() => {
+                    window.location.replace("/auth");
+                  }}
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md
                  text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                   focus:ring-indigo-500">

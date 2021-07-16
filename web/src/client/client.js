@@ -16,6 +16,8 @@ export default class GimletClient {
 
   URL = () => this.url;
 
+  getUser = () => this.get('/api/user');
+
   getEnvs = () => this.get('/api/envs');
 
   get = (path) => fetch(this.url + path, {

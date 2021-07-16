@@ -14,3 +14,8 @@ export function envsUpdated(state, envs) {
   });
   return state;
 }
+
+export function user(state, user) {
+  state.user = user;
+  return state;
+}
