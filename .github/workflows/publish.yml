@@ -97,4 +97,4 @@ jobs:
         platforms: linux/amd64
         push: true
         tags: |
-          ghcr.io/gimlet-agent:${{ steps.sha_or_tag.outputs.version }}
+          ghcr.io/${{ github.repository }}:agent-${{ steps.sha_or_tag.outputs.version }}
