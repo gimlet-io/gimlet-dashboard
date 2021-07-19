@@ -14,7 +14,7 @@ ADD docker/known_hosts /etc/ssh/ssh_known_hosts
 RUN mkdir /var/lib/gimlet-dashboard
 WORKDIR /var/lib/gimlet-dashboard
 
-COPY --chown=gimlet-dashboard:gimlet-dashboard bin/gimlet-dashboard .
+COPY --chown=gimlet-dashboard:gimlet-dashboard bin/gimlet-dashboard-linux-x86_64 gimlet-dashboard
 COPY --chown=gimlet-dashboard:gimlet-dashboard web/build ./web/build/
 
 USER gimlet-dashboard
@@ -23,4 +23,4 @@ RUN git config --global user.name "Gimlet Dashboard"
 RUN git config --global user.email "gimlet-dashboard@gimlet.io"
 
 EXPOSE 9000
-CMD ["/bin/gimlet-dashboard"]
+CMD ["/var/lib/gimlet-dashboard"]
