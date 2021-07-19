@@ -30,8 +30,6 @@ spec:
       repository: ghcr.io/gimlet-io/gimlet-dashboard
       tag: latest
       pullPolicy: Always
-    command: |
-      while true; do date; sleep 2; done
     probe:
       enabled: true
       path: /health

@@ -12,7 +12,7 @@ RUN addgroup -S gimlet-dashboard && adduser -S gimlet-dashboard -G gimlet-dashbo
 ADD docker/known_hosts /etc/ssh/ssh_known_hosts
 
 RUN mkdir /var/lib/gimlet-dashboard
-WORKDIR /var/lib/gimlet-dashboard
+WORKDIR /gimlet-dashboard
 
 RUN ls -la
 RUN pwd
@@ -22,10 +22,12 @@ COPY --chown=gimlet-dashboard:gimlet-dashboard web/build ./web/build/
 RUN ls -la
 RUN pwd
 
+RUN ls -la ./web/build
+
 USER gimlet-dashboard
 
 RUN git config --global user.name "Gimlet Dashboard"
 RUN git config --global user.email "gimlet-dashboard@gimlet.io"
 
 EXPOSE 9000
-CMD ["/var/lib/gimlet-dashboard/gimlet-dashboard"]
+CMD ["/gimlet-dashboard/gimlet-dashboard"]
