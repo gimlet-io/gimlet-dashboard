@@ -19,6 +19,9 @@ RUN pwd
 COPY --chown=gimlet-dashboard:gimlet-dashboard bin/gimlet-dashboard-linux-x86_64 gimlet-dashboard
 COPY --chown=gimlet-dashboard:gimlet-dashboard web/build ./web/build/
 
+RUN ls -la
+RUN pwd
+
 USER gimlet-dashboard
 
 RUN git config --global user.name "Gimlet Dashboard"
