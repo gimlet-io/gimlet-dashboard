@@ -23,4 +23,4 @@ RUN git config --global user.name "Gimlet Dashboard"
 RUN git config --global user.email "gimlet-dashboard@gimlet.io"
 
 EXPOSE 9000
-CMD ["/var/lib/gimlet-dashboard"]
+CMD ["/var/lib/gimlet-dashboard/gimlet-dashboard"]
