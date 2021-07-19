@@ -14,15 +14,8 @@ ADD docker/known_hosts /etc/ssh/ssh_known_hosts
 RUN mkdir /var/lib/gimlet-dashboard
 WORKDIR /gimlet-dashboard
 
-RUN ls -la
-RUN pwd
 COPY --chown=gimlet-dashboard:gimlet-dashboard bin/gimlet-dashboard-linux-x86_64 gimlet-dashboard
 COPY --chown=gimlet-dashboard:gimlet-dashboard web/build ./web/build/
-
-RUN ls -la
-RUN pwd
-
-RUN ls -la ./web/build
 
 USER gimlet-dashboard
 

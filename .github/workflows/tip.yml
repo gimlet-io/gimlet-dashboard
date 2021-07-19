@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - 'main'
-      - 'deployment'
 
 jobs:
   build:
@@ -38,7 +37,7 @@ jobs:
       run: make build-frontend
 
     - name: Dist
-      run: make fast-dist && ls -la && ls -la bin/ && ls -la web/ && ls -la web/build/
+      run: make fast-dist
       env:
         VERSION: ${{ steps.sha_or_tag.outputs.version }}
 
