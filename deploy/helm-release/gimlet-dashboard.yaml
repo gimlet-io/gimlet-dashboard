@@ -45,8 +45,11 @@ spec:
       host: gimlet-dashboard.staging.laszlo.cloud
       tlsEnabled: true
     vars:
-      HOST: gimlet-dashboard.staging.laszlo.cloud
-      JWT_SECRET: b705994a2da74b3e325a47c22410e797f2aa77fd6b635df3be01e104124f9bc3
+      HOST: << url where the dash is hosted >>
+      JWT_SECRET: << openssl rand -hex 32 >>
+      GITHUB_CLIENT_ID: << Github Client ID >>
+      GITHUB_CLIENT_SECRET: << Github Client secret >>
+      GITHUB_ORG: << Github Org to authorize >>
     debugSidecarEnabled: true
     resources:
       requests:
