@@ -22,5 +22,5 @@ WORKDIR /var/lib/gimlet-dashboard
 RUN git config --global user.name "Gimlet Dashboard"
 RUN git config --global user.email "gimlet-dashboard@gimlet.io"
 
-EXPOSE 8888
+EXPOSE 9000
 CMD ["/bin/gimlet-dashboard"]
