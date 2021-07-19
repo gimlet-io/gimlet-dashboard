@@ -53,6 +53,10 @@ func SetupRouter(
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	agentRoutes(r)
 	userRoutes(r)
 	githubOAuthRoutes(config, r)
