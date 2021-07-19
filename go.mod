@@ -19,6 +19,7 @@ require (
 	github.com/laszlocph/go-login v1.0.4-0.20200901120411-b6d05e420c8a // indirect
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
+	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/russross/meddler v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0 // indirect
@@ -27,4 +28,5 @@ require (
 	k8s.io/api v0.21.1
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1
+	sigs.k8s.io/structured-merge-diff/v4 v4.1.0 // indirect
 )

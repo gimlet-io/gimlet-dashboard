@@ -10,7 +10,9 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/server"
 	oauth22 "github.com/gimlet-io/gimlet-dashboard/server/oauth2"
 	"github.com/gimlet-io/gimlet-dashboard/store"
+	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httputil"
@@ -50,6 +52,10 @@ func main() {
 	store := store.New(config.Database.Driver, config.Database.Config)
 
 	git, refresher := gitClient(config)
+
+	metricsRouter := chi.NewRouter()
+	metricsRouter.Get("/metrics", promhttp.Handler().ServeHTTP)
+	go http.ListenAndServe(":9001", metricsRouter)
 
 	r := server.SetupRouter(config, agentHub, clientHub, store, git, refresher)
 	http.ListenAndServe(":9000", r)
