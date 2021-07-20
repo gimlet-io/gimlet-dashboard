@@ -9,6 +9,7 @@ import GimletClient from "./client/client";
 import Environments from "./views/environments/environments";
 import Repositories from "./views/repositories/repositories";
 import APIBackend from "./apiBackend";
+import Profile from "./views/profile/profile";
 
 
 export default class App extends Component {
@@ -50,7 +51,7 @@ export default class App extends Component {
           <Redirect to="/repositories"/>
         </Route>
 
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-gray-100">
           <NavBar/>
           <div className="py-10">
             <Switch>
@@ -60,6 +61,10 @@ export default class App extends Component {
 
               <Route path="/repositories">
                 <Repositories store={store}/>
+              </Route>
+
+              <Route path="/profile">
+                <Profile store={store}/>
               </Route>
 
               <Route path="/login">
