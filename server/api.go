@@ -25,7 +25,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 func envs(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
 
-	var envs []*api.Env
+	envs := []*api.Env{}
 	for _, a := range agentHub.Agents {
 		for _, stack := range a.Stacks {
 			stack.Env = a.Name
