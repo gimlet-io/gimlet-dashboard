@@ -29,7 +29,6 @@ export default class Environments extends Component {
       const env = envs[envName];
       filteredEnvs[env.name] = {name: env.name, stacks: env.stacks};
       if (search.filter !== '') {
-        console.log('filtering')
         filteredEnvs[env.name].stacks = env.stacks.filter((service) => {
           return service.service.name.includes(search.filter) ||
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
@@ -38,7 +37,6 @@ export default class Environments extends Component {
       }
     }
 
-    console.log(filteredEnvs)
     return (
       <div>
         <header>

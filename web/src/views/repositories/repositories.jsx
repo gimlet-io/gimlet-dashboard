@@ -8,7 +8,8 @@ export default class Repositories extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      repositories: this.mapToRepositories(reduxState.envs)
+      repositories: this.mapToRepositories(reduxState.envs),
+      search: reduxState.search
     }
 
     // handling API and streaming state changes
@@ -16,6 +17,7 @@ export default class Repositories extends Component {
       let reduxState = this.props.store.getState();
 
       this.setState({repositories: this.mapToRepositories(reduxState.envs)});
+      this.setState({search: reduxState.search});
     });
   }
 
@@ -38,16 +40,31 @@ export default class Repositories extends Component {
   }
 
   render() {
-    const {repositories} = this.state;
+    const {repositories, search} = this.state;
 
-    let repoNames = Object.keys(repositories);
-    repoNames.sort();
-    const repoCards = repoNames.map(repoName => {
+    let filteredRepositories = {};
+    for (const repoName of Object.keys(repositories)) {
+      filteredRepositories[repoName] = repositories[repoName];
+      if (search.filter !== '') {
+        filteredRepositories[repoName] = filteredRepositories[repoName].filter((service) => {
+          return service.service.name.includes(search.filter) ||
+            (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
+            (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
+        })
+        if (filteredRepositories[repoName].length === 0) {
+          delete filteredRepositories[repoName];
+        }
+      }
+    }
+
+    const filteredRepoNames = Object.keys(filteredRepositories);
+    filteredRepoNames.sort();
+    const repoCards = filteredRepoNames.map(repoName => {
       return (
         <li key={repoName} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
           <RepoCard
             name={repoName}
-            services={repositories[repoName]}
+            services={filteredRepositories[repoName]}
           />
         </li>
       )
@@ -64,7 +81,7 @@ export default class Repositories extends Component {
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {repoCards}
+                {repoCards.length > 0 ? repoCards : (<p className="text-xs text-gray-800">No service matches the search</p>)}
               </ul>
             </div>
           </div>
