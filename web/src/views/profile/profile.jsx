@@ -46,7 +46,7 @@ export default class Profile extends Component {
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Ricardo Cooper</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
                 <p className="text-sm font-medium text-gray-500">{user.login}</p>
               </div>
             </div>

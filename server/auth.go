@@ -98,6 +98,7 @@ func getOrCreateUser(store *store.Store, scmUser *scm.User, token *login.Token) 
 		case sql.ErrNoRows:
 			user = &model.User{
 				Login:        scmUser.Login,
+				Name:         scmUser.Name,
 				Email:        scmUser.Email,
 				AccessToken:  token.Access,
 				RefreshToken: token.Refresh,
@@ -115,6 +116,7 @@ func getOrCreateUser(store *store.Store, scmUser *scm.User, token *login.Token) 
 			return nil, err
 		}
 	} else {
+		user.Name = scmUser.Name // Remove this 2 releases from now
 		user.AccessToken = token.Access
 		user.RefreshToken = token.Refresh
 		user.Expires = token.Expires.Unix()

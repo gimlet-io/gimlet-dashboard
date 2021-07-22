@@ -15,13 +15,7 @@
 package ddl
 
 const createTableUsers = "create-table-users"
-const createTableComponentStates = "create-table-componentStates"
-const addPrefsColumnToUsersTable = "add-prefs-column-to-users-table"
-const addComponentStateMapToComponentStateTable = "add-component-state-map-to-component-state-table"
-const addWrittenGitopsReposToUsersTable = "add-written-gitops-repos-to-users-table"
-const addInstallationsToUsersTable = "add-installations-to-users-table"
-const dropComponentStateFromComponentStateTable = "drop-component-state-from-component-state-table"
-const dropGitComponentStateFromComponentStateTable = "drop-git-component-state-from-component-state-table"
+const addNameColumnToUsersTable = "add-name-column-to-users-table"
 
 type migration struct {
 	name string
@@ -44,6 +38,10 @@ secret        TEXT,
 UNIQUE(login)
 );
 `,
+		},
+		{
+			name: addNameColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN name TEXT default '';`,
 		},
 	},
 	"postgres": {},

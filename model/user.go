@@ -10,6 +10,9 @@ type User struct {
 	// required: true
 	Login string `json:"login"  meddler:"login"`
 
+	// Name is the full name for this user
+	Name string `json:"name"  meddler:"name"`
+
 	// Login is the username for this user
 	// required: true
 	Email string `json:"-"  meddler:"email"`
