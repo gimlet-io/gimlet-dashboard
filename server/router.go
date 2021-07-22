@@ -72,7 +72,7 @@ func SetupRouter(
 	fileServer(r, "/login", filesDir)
 	fileServer(r, "/repositories", filesDir)
 	fileServer(r, "/services", filesDir)
-
+	fileServer(r, "/profile", filesDir)
 	return r
 }
 
