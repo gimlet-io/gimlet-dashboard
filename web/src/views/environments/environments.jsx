@@ -8,7 +8,8 @@ export default class Environments extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      envs: reduxState.envs
+      envs: reduxState.envs,
+      search: reduxState.search
     }
 
     // handling API and streaming state changes
@@ -16,12 +17,28 @@ export default class Environments extends Component {
       let reduxState = this.props.store.getState();
 
       this.setState({envs: reduxState.envs});
+      this.setState({search: reduxState.search});
     });
   }
 
   render() {
-    const {envs} = this.state;
+    let {envs, search} = this.state;
 
+    let filteredEnvs = {};
+    for (const envName of Object.keys(envs)) {
+      const env = envs[envName];
+      filteredEnvs[env.name] = {name: env.name, stacks: env.stacks};
+      if (search.filter !== '') {
+        console.log('filtering')
+        filteredEnvs[env.name].stacks = env.stacks.filter((service) => {
+          return service.service.name.includes(search.filter) ||
+            (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
+            (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
+        })
+      }
+    }
+
+    console.log(filteredEnvs)
     return (
       <div>
         <header>
@@ -33,8 +50,8 @@ export default class Environments extends Component {
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <div>
-                {Object.keys(envs).map((envName) => {
-                  const env = envs[envName];
+                {Object.keys(filteredEnvs).map((envName) => {
+                  const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
                     return (
                       <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
@@ -48,7 +65,7 @@ export default class Environments extends Component {
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
 
                       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {renderedServices}
+                        {renderedServices.length > 0 ? renderedServices : (<p className="text-xs text-gray-800">No service matches the search</p>)}
                       </ul>
                     </div>
                   )

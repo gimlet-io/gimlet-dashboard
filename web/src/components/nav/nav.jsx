@@ -3,6 +3,7 @@ import './nav.css';
 import {Disclosure, Menu, Transition} from '@headlessui/react'
 import {MenuIcon, XIcon} from '@heroicons/react/outline'
 import logo from './logo.svg';
+import {ACTION_TYPE_SEARCH} from "../../redux/redux";
 
 const navigation = [
   {name: 'Environments', href: '/environments'},
@@ -38,6 +39,7 @@ export default class Nav extends Component {
 
   render() {
     const {user} = this.state;
+    const {store} = this.props;
 
     const loggedIn = user !== undefined;
     if (!loggedIn) {
@@ -105,7 +107,10 @@ export default class Nav extends Component {
                       </div>
                       <input id="search" name="search"
                              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                             placeholder="Search" type="search"/>
+                             placeholder="Search" type="search" onChange={(e) => store.dispatch({
+                        type: ACTION_TYPE_SEARCH,
+                        payload: {filter: e.target.value}
+                      })}/>
                     </div>
                   </div>
                 </div>

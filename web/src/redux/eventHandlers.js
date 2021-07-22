@@ -24,3 +24,8 @@ export function gimletd(state, gimletd) {
   state.gimletd = gimletd;
   return state;
 }
+
+export function search(state, search) {
+  state.search = search;
+  return state;
+}
