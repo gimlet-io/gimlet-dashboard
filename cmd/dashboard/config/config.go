@@ -35,6 +35,7 @@ type Config struct {
 	JWTSecret string `envconfig:"JWT_SECRET"`
 	Github    Github
 	Database  Database
+	GimletD    GimletD
 }
 
 // Logging provides the logging configuration.
@@ -54,4 +55,9 @@ type Github struct {
 type Database struct {
 	Driver string `envconfig:"DATABASE_DRIVER"`
 	Config string `envconfig:"DATABASE_CONFIG"`
+}
+
+type GimletD struct {
+	URL   string `envconfig:"GIMLETD_URL"`
+	TOKEN string `envconfig:"GIMLETD_TOKEN"`
 }

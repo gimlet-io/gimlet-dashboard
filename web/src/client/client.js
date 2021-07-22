@@ -20,18 +20,18 @@ export default class GimletClient {
 
   getEnvs = () => this.get('/api/envs');
 
+  getGimletD = () => this.get('/api/gimletd');
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })
     .then(response => {
       if (!response.ok  && window !== undefined) {
-        console.log('rejecting')
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();
     })
     .catch((error) => {
-      console.log('catching')
       this.onError(error);
       throw error;
     });

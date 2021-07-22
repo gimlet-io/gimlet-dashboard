@@ -3,9 +3,13 @@ package server
 import (
 	"encoding/json"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/gimlet-io/gimletd/client"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"net/http"
+	"strings"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +26,50 @@ func user(w http.ResponseWriter, r *http.Request) {
 	w.Write(userString)
 }
 
+func gimletd(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := ctx.Value("user").(*model.User)
+	config := ctx.Value("config").(*config.Config)
+
+	if config.GimletD.URL == "" ||
+		config.GimletD.TOKEN == "" {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: config.GimletD.TOKEN,
+		},
+	)
+
+	client := client.NewClient(config.GimletD.URL, auth)
+	gimletdUser, err := client.UserGet(user.Login, true)
+	if err != nil {
+		if strings.Contains(err.Error(), "Not Found") {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		logrus.Errorf("cannot get GimletD user: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	userString, err := json.Marshal(map[string]interface{}{
+		"url":  config.GimletD.URL,
+		"user": gimletdUser,
+	})
+	if err != nil {
+		logrus.Errorf("cannot serialize user: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(userString)
+}
+
 func envs(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
 
@@ -31,7 +79,7 @@ func envs(w http.ResponseWriter, r *http.Request) {
 			stack.Env = a.Name
 		}
 		envs = append(envs, &api.Env{
-			Name: a.Name,
+			Name:   a.Name,
 			Stacks: a.Stacks,
 		})
 	}

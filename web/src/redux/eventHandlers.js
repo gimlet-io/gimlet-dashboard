@@ -19,3 +19,8 @@ export function user(state, user) {
   state.user = user;
   return state;
 }
+
+export function gimletd(state, gimletd) {
+  state.gimletd = gimletd;
+  return state;
+}

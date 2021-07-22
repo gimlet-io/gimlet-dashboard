@@ -7,7 +7,8 @@ export default class Profile extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      user: reduxState.user
+      user: reduxState.user,
+      gimletd: reduxState.gimletd
     }
 
     // handling API and streaming state changes
@@ -15,11 +16,12 @@ export default class Profile extends Component {
       let reduxState = this.props.store.getState();
 
       this.setState({user: reduxState.user});
+      this.setState({gimletd: reduxState.gimletd});
     });
   }
 
   render() {
-    const {user} = this.state;
+    const {user, gimletd} = this.state;
 
     const loggedIn = user !== undefined;
     if (!loggedIn) {
@@ -27,6 +29,8 @@ export default class Profile extends Component {
     }
 
     user.imageUrl = `https://github.com/${user.login}.png?size=128`
+
+    const gimletdIntegrationEnabled = gimletd !== undefined;
 
     return (
       <div>
@@ -49,6 +53,7 @@ export default class Profile extends Component {
           </div>
         </header>
         <main>
+          {gimletdIntegrationEnabled &&
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
@@ -66,7 +71,7 @@ export default class Profile extends Component {
                   </h3>
                   <code
                     className="block whitespace-pre overflow-x-scroll font-mono text-sm p-2 my-4 bg-gray-800 text-yellow-100 rounded">
-                    {`curl -L https://github.com/gimlet-io/gimlet-cli/releases/download/v0.8.0/gimlet-$(uname)-$(uname -m) -o gimlet
+                    {`curl -L https://github.com/gimlet-io/gimlet-cli/releases/download/v0.9.0/gimlet-$(uname)-$(uname -m) -o gimlet
 chmod +x gimlet
 sudo mv ./gimlet /usr/local/bin/gimlet
 gimlet --version`}
@@ -79,8 +84,8 @@ gimlet --version`}
                     {`mkdir -p ~/.gimlet
 
 cat << EOF > ~/.gimlet/config
-GIMLET_SERVER=
-GIMLET_TOKEN=
+export GIMLET_SERVER=${gimletd.url}
+export GIMLET_TOKEN=${gimletd.user.token}
 EOF
                       
 source ~/.gimlet/config`}
@@ -96,6 +101,7 @@ source ~/.gimlet/config`}
               </div>
             </div>
           </div>
+          }
         </main>
       </div>
     )
