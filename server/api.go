@@ -6,6 +6,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimletd/client"
+	gimletdModel "github.com/gimlet-io/gimletd/model"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -46,11 +47,10 @@ func gimletd(w http.ResponseWriter, r *http.Request) {
 
 	client := client.NewClient(config.GimletD.URL, auth)
 	gimletdUser, err := client.UserGet(user.Login, true)
+	if err != nil && strings.Contains(err.Error(), "Not Found") {
+		gimletdUser, err = client.UserPost(&gimletdModel.User{Login: user.Login})
+	}
 	if err != nil {
-		if strings.Contains(err.Error(), "Not Found") {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			return
-		}
 		logrus.Errorf("cannot get GimletD user: %s", err)
 		http.Error(w, http.StatusText(500), 500)
 		return

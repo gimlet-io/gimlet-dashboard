@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/drone/go-scm v1.15.1 // indirect
-	github.com/gimlet-io/gimletd v0.2.3-0.20210722091303-a67307461f9d // indirect
+	github.com/gimlet-io/gimletd v0.2.3-0.20210722102826-365f89021bbf // indirect
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/go-chi/cors v1.2.0
