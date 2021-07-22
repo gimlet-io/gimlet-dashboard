@@ -6,10 +6,10 @@ import {createStore} from 'redux';
 import {rootReducer} from './redux/redux';
 import {BrowserRouter as Router, Redirect, Route, Switch, withRouter} from "react-router-dom";
 import GimletClient from "./client/client";
-import Environments from "./views/environments/environments";
 import Repositories from "./views/repositories/repositories";
 import APIBackend from "./apiBackend";
 import Profile from "./views/profile/profile";
+import Services from "./views/services/services";
 
 
 export default class App extends Component {
@@ -55,8 +55,8 @@ export default class App extends Component {
           <NavBar/>
           <div className="py-10">
             <Switch>
-              <Route path="/environments">
-                <Environments store={store}/>
+              <Route path="/services">
+                <Services store={store}/>
               </Route>
 
               <Route path="/repositories">
