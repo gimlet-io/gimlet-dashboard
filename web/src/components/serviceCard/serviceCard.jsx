@@ -56,7 +56,7 @@ Deployment.propTypes =
   }
 ;
 
-function Pod(props) {
+export function Pod(props) {
   const {pod} = props;
 
   let color;
