@@ -10,6 +10,7 @@ import Repositories from "./views/repositories/repositories";
 import APIBackend from "./apiBackend";
 import Profile from "./views/profile/profile";
 import Services from "./views/services/services";
+import Repo from "./views/repo/repo";
 
 
 export default class App extends Component {
@@ -41,6 +42,8 @@ export default class App extends Component {
       props => <APIBackend {...props} store={store} gimletClient={gimletClient}/>
     );
     const StreamingBackendWithLocation = withRouter(props => <StreamingBackend {...props} store={store}/>);
+    const RepoWithRouting = withRouter(props => <Repo {...props} store={store}/>);
+    const ServicesWithRouting = withRouter(props => <Services {...props} store={store}/>);
 
     return (
       <Router>
@@ -56,7 +59,7 @@ export default class App extends Component {
           <div className="py-10">
             <Switch>
               <Route path="/services">
-                <Services store={store}/>
+                <ServicesWithRouting store={store}/>
               </Route>
 
               <Route path="/repositories">
@@ -78,6 +81,10 @@ export default class App extends Component {
                   focus:ring-indigo-500">
                   Login
                 </button>
+              </Route>
+
+              <Route path="/repo/:owner/:repo">
+                <RepoWithRouting store={store}/>
               </Route>
 
             </Switch>

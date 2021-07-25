@@ -3,10 +3,11 @@ import './serviceCard.css';
 import * as PropTypes from "prop-types";
 
 function ServiceCard(props) {
-  const {service} = props;
+  const {service, navigateToRepo} = props;
 
   return (
-    <div className="w-full flex items-center justify-between p-6 space-x-6">
+    <div className="w-full flex items-center justify-between p-6 space-x-6 cursor-pointer"
+         onClick={() => navigateToRepo(service.repo)}>
       <div className="flex-1 truncate">
         <p className="text-sm font-bold">{service.service.namespace}/{service.service.name}
           <span
@@ -26,7 +27,7 @@ function ServiceCard(props) {
   )
 }
 
-function Deployment(props) {
+export function Deployment(props) {
   const {deployment} = props;
 
   return (
