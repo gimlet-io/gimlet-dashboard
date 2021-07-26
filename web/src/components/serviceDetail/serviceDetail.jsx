@@ -7,7 +7,7 @@ function ServiceDetail(props) {
   return (
     <div class="w-full flex items-center justify-between p-6 space-x-6">
       <div class="flex-1 truncate">
-        <p class="text-sm font-bold">{service.service.namespace}/{service.service.name}</p>
+        <h3 class="text-lg font-bold mb-2">{service.service.name}</h3>
         <div class="flex flex-wrap text-sm">
           <div class="flex-1 min-w-full md:min-w-0">
             {service.ingresses ? service.ingresses.map((ingress) => <Ingress ingress={ingress}/>) : null}
