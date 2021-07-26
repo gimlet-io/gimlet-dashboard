@@ -80,9 +80,6 @@ type StackUpdate struct {
 	// Ingress
 	URL string `json:"url"`
 
-	// Canary
-	CanaryStatus interface{} `json:"canaryStatus"`
-
 	// Service
 	Stacks []*Stack `json:"stacks"`
 }

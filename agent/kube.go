@@ -29,13 +29,13 @@ import (
 const AnnotationGitRepository = "gimlet.io/git-repository"
 const AnnotationGitSha = "gimlet.io/git-sha"
 
-type Agent struct {
+type KubeEnv struct {
 	Name      string
 	Namespace string
 	Client    kubernetes.Interface
 }
 
-func (e *Agent) Services(repo string) ([]*api.Stack, error) {
+func (e *KubeEnv) Services(repo string) ([]*api.Stack, error) {
 	annotatedServices, err := e.annotatedServices(repo)
 	if err != nil {
 		logrus.Errorf("could not get 1 %v", err)
@@ -81,7 +81,7 @@ func (e *Agent) Services(repo string) ([]*api.Stack, error) {
 }
 
 // annotatedServices returns all services that are enabled for Gimlet
-func (e *Agent) annotatedServices(repo string) ([]v1.Service, error) {
+func (e *KubeEnv) annotatedServices(repo string) ([]v1.Service, error) {
 	svc, err := e.Client.CoreV1().Services(e.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (e *Agent) annotatedServices(repo string) ([]v1.Service, error) {
 	return services, nil
 }
 
-func (e *Agent) deploymentForService(service v1.Service, deployments []appsv1.Deployment) (*api.Deployment, error) {
+func (e *KubeEnv) deploymentForService(service v1.Service, deployments []appsv1.Deployment) (*api.Deployment, error) {
 	var deployment *api.Deployment
 
 	for _, d := range deployments {
@@ -133,7 +133,7 @@ func (e *Agent) deploymentForService(service v1.Service, deployments []appsv1.De
 	return deployment, nil
 }
 
-func logs(e *Agent, pod v1.Pod) string {
+func logs(e *KubeEnv, pod v1.Pod) string {
 	podLogs := ""
 	req := e.Client.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{TailLines: fifty()})
 	result := req.Do(context.TODO())

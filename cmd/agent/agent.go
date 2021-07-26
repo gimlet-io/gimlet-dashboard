@@ -61,9 +61,9 @@ func main() {
 	}
 
 	if namespace != "" {
-		log.Infof("Initializing %s agent in %s namespace scope", envName, namespace)
+		log.Infof("Initializing %s kubeEnv in %s namespace scope", envName, namespace)
 	} else {
-		log.Infof("Initializing %s agent in cluster scope", envName)
+		log.Infof("Initializing %s kubeEnv in cluster scope", envName)
 	}
 
 	k8sConfig, err := k8sConfig(config)
@@ -72,20 +72,19 @@ func main() {
 		panic(err.Error())
 	}
 
-	podController := agent.PodController(clientset)
-
-	agent := &agent.Agent{
+	kubeEnv := &agent.KubeEnv{
 		Name:      envName,
 		Namespace: namespace,
 		Client:    clientset,
 	}
 
-	go serverCommunication(agent, config)
-
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 
+	podController := agent.PodController(kubeEnv, config.Host, config.AgentKey)
 	go podController.Run(1, stopCh)
+
+	go serverCommunication(kubeEnv, config)
 
 	signals := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -150,11 +149,11 @@ func parseEnvString(envString string) (string, string, error) {
 	}
 }
 
-func serverCommunication(agent *agent.Agent, config config.Config) {
+func serverCommunication(kubeEnv *agent.KubeEnv, config config.Config) {
 	for {
 		done := make(chan bool)
 
-		events, err := register(config.Host, agent.Name, agent.Namespace, config.AgentKey)
+		events, err := register(config.Host, kubeEnv.Name, kubeEnv.Namespace, config.AgentKey)
 		if err != nil {
 			log.Errorf("could not connect to Gimlet: %s", err.Error())
 			time.Sleep(time.Second * 3)
@@ -162,7 +161,7 @@ func serverCommunication(agent *agent.Agent, config config.Config) {
 		}
 
 		log.Info("Connected to Gimlet")
-		go sendState(agent, config.Host, config.AgentKey)
+		go sendState(kubeEnv, config.Host, config.AgentKey)
 
 		go func(events chan map[string]interface{}) {
 			for {
@@ -171,7 +170,7 @@ func serverCommunication(agent *agent.Agent, config config.Config) {
 					log.Debugf("event received: %v", e)
 					switch e["action"] {
 					case "refetch":
-						go sendState(agent, config.Host, config.AgentKey)
+						go sendState(kubeEnv, config.Host, config.AgentKey)
 					}
 				} else {
 					log.Info("event stream closed")
@@ -187,8 +186,8 @@ func serverCommunication(agent *agent.Agent, config config.Config) {
 	}
 }
 
-func sendState(agent *agent.Agent, gimletHost string, agentKey string) {
-	stacks, err := agent.Services("")
+func sendState(kubeEnv *agent.KubeEnv, gimletHost string, agentKey string) {
+	stacks, err := kubeEnv.Services("")
 	if err != nil {
 		log.Errorf("could not get state from k8s apiServer: %v", err)
 		return
@@ -201,7 +200,7 @@ func sendState(agent *agent.Agent, gimletHost string, agentKey string) {
 	}
 
 	params := url.Values{}
-	params.Add("name", agent.Name)
+	params.Add("name", kubeEnv.Name)
 	reqUrl := fmt.Sprintf("%s/agent/state?%s", gimletHost, params.Encode())
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewBuffer(stacksString))
 	if err != nil {
