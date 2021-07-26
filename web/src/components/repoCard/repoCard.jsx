@@ -1,7 +1,7 @@
 import React from "react";
 
 function RepoCard(props) {
-  const {name, services} = props;
+  const {name, services, navigateToRepo} = props;
 
   const serviceWidgets = services.map(service => {
     let ingressWidgets = [];
@@ -37,7 +37,8 @@ function RepoCard(props) {
   })
 
   return (
-    <div className="w-full flex items-center justify-between p-6 space-x-6">
+    <div className="w-full flex items-center justify-between p-6 space-x-6 cursor-pointer"
+         onClick={() => navigateToRepo(name)}>
       <div className="flex-1 truncate">
         <p className="text-sm font-bold">{name}</p>
         <div className="p-2 space-y-2">

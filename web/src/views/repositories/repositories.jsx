@@ -19,6 +19,8 @@ export default class Repositories extends Component {
       this.setState({repositories: this.mapToRepositories(reduxState.envs)});
       this.setState({search: reduxState.search});
     });
+
+    this.navigateToRepo = this.navigateToRepo.bind(this);
   }
 
   mapToRepositories(envs) {
@@ -37,6 +39,14 @@ export default class Repositories extends Component {
     }
 
     return repositories;
+  }
+
+  navigateToRepo(repo) {
+    if (repo.startsWith('github.com/')) { //TODO remove github.com from input data
+      repo = repo.replace('github.com/', '');
+    }
+
+    this.props.history.push(`/repo/${repo}`)
   }
 
   render() {
@@ -65,6 +75,7 @@ export default class Repositories extends Component {
           <RepoCard
             name={repoName}
             services={filteredRepositories[repoName]}
+            navigateToRepo={this.navigateToRepo}
           />
         </li>
       )

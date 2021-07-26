@@ -44,6 +44,8 @@ export default class App extends Component {
     const StreamingBackendWithLocation = withRouter(props => <StreamingBackend {...props} store={store}/>);
     const RepoWithRouting = withRouter(props => <Repo {...props} store={store}/>);
     const ServicesWithRouting = withRouter(props => <Services {...props} store={store}/>);
+    const RepositoriesWithRouting = withRouter(props => <Repositories {...props} store={store}/>);
+
 
     return (
       <Router>
@@ -59,11 +61,11 @@ export default class App extends Component {
           <div className="py-10">
             <Switch>
               <Route path="/services">
-                <ServicesWithRouting store={store}/>
+                <ServicesWithRouting/>
               </Route>
 
               <Route path="/repositories">
-                <Repositories store={store}/>
+                <RepositoriesWithRouting/>
               </Route>
 
               <Route path="/profile">
