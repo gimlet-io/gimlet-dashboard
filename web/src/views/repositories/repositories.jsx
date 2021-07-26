@@ -19,6 +19,8 @@ export default class Repositories extends Component {
       this.setState({repositories: this.mapToRepositories(reduxState.envs)});
       this.setState({search: reduxState.search});
     });
+
+    this.navigateToRepo = this.navigateToRepo.bind(this);
   }
 
   mapToRepositories(envs) {
@@ -37,6 +39,10 @@ export default class Repositories extends Component {
     }
 
     return repositories;
+  }
+
+  navigateToRepo(repo) {
+    this.props.history.push(`/repo/${repo}`)
   }
 
   render() {
@@ -65,10 +71,16 @@ export default class Repositories extends Component {
           <RepoCard
             name={repoName}
             services={filteredRepositories[repoName]}
+            navigateToRepo={this.navigateToRepo}
           />
         </li>
       )
     })
+
+    const emptyState = search.filter !== '' ?
+      (<p className="text-xs text-gray-800">No service matches the search</p>)
+      :
+      (<p className="text-xs text-gray-800">No services</p>);
 
     return (
       <div>
@@ -81,7 +93,7 @@ export default class Repositories extends Component {
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {repoCards.length > 0 ? repoCards : (<p className="text-xs text-gray-800">No service matches the search</p>)}
+                {repoCards.length > 0 ? repoCards : emptyState}
               </ul>
             </div>
           </div>

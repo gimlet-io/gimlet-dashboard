@@ -25,7 +25,7 @@ spec:
         cert-manager.io/cluster-issuer: letsencrypt
       host: demo-app.gimlet.io
       tlsEnabled: true
-    gitRepository: github.com/laszlocph/demo-app
+    gitRepository: laszlocph/demo-app
     gitSha: xyz
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -37,7 +37,7 @@ spec:
   interval: 1m
   url: https://github.com/gimlet-io/onechart.git
   ref:
-    branch: gimlet-taxonomy
+    branch: master
   ignore: |
     # exclude all
     /*

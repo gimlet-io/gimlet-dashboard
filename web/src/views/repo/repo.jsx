@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import ServiceCard from "../../components/serviceCard/serviceCard";
+import ServiceDetail from "../../components/serviceDetail/serviceDetail";
 
-export default class Services extends Component {
+export default class Repo extends Component {
   constructor(props) {
     super(props);
 
@@ -19,23 +19,24 @@ export default class Services extends Component {
       this.setState({envs: reduxState.envs});
       this.setState({search: reduxState.search});
     });
-
-    this.navigateToRepo = this.navigateToRepo.bind(this);
-  }
-
-  navigateToRepo(repo) {
-    this.props.history.push(`/repo/${repo}`)
   }
 
   render() {
+    const {owner, repo} = this.props.match.params;
+    const repoName = `${owner}/${repo}`
     let {envs, search} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
       const env = envs[envName];
       filteredEnvs[env.name] = {name: env.name, stacks: env.stacks};
+      filteredEnvs[env.name].stacks = env.stacks.filter((service) => {
+        console.log(service);
+        console.log(repoName)
+        return service.repo === repoName
+      });
       if (search.filter !== '') {
-        filteredEnvs[env.name].stacks = env.stacks.filter((service) => {
+        filteredEnvs[env.name].stacks = filteredEnvs.stacks.filter((service) => {
           return service.service.name.includes(search.filter) ||
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
@@ -43,16 +44,14 @@ export default class Services extends Component {
       }
     }
 
-    const emptyState = search.filter !== '' ?
-      (<p className="text-xs text-gray-800">No service matches the search</p>)
-      :
-      (<p className="text-xs text-gray-800">No services</p>);
-
     return (
       <div>
         <header>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight text-gray-900">Services</h1>
+            <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}</h1>
+            <button class="text-gray-500 hover:text-gray-700" onClick={() => this.props.history.goBack()}>
+              &laquo; back
+            </button>
           </div>
         </header>
         <main>
@@ -63,22 +62,17 @@ export default class Services extends Component {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
                     return (
-                      <li key={service.name} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
-                        <ServiceCard
-                          service={service}
-                          navigateToRepo={this.navigateToRepo}
-                        />
-                      </li>
+                      <ServiceDetail key={service.name} service={service}/>
                     )
                   })
 
                   return (
                     <div>
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
-
-                      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {renderedServices.length > 0 ? renderedServices : emptyState}
-                      </ul>
+                      <div class="bg-white shadow divide-y divide-gray-200">
+                        {renderedServices.length > 0 ? renderedServices : (
+                          <p className="text-xs text-gray-800">No services deployed from the repo</p>)}
+                      </div>
                     </div>
                   )
                 })
