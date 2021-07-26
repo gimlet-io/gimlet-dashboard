@@ -104,7 +104,7 @@ func state(w http.ResponseWriter, r *http.Request) {
 
 	stackPointers := []*api.Stack{}
 	for _, s := range stacks {
-		copy := s // needed as the address of s is constant in the for loop
+		copy := s       // needed as the address of s is constant in the for loop
 		copy.Env = name // making the service aware of its env
 		stackPointers = append(stackPointers, &copy)
 	}
@@ -120,5 +120,20 @@ func state(w http.ResponseWriter, r *http.Request) {
 		StreamingEvent: StreamingEvent{Event: EnvsUpdatedEventString},
 		Envs:           envs,
 	})
+	clientHub.Broadcast <- jsonString
+}
+
+func update(w http.ResponseWriter, r *http.Request) {
+	var update api.StackUpdate
+	err := json.NewDecoder(r.Body).Decode(&update)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+
+	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
+	jsonString, _ := json.Marshal(update)
 	clientHub.Broadcast <- jsonString
 }

@@ -10,6 +10,10 @@ export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
 export const EVENT_ENVS_UPDATED = 'envsUpdated';
 
+export const EVENT_POD_CREATED = 'podCreated';
+export const EVENT_POD_UPDATED = 'podUpdated';
+export const EVENT_POD_DELETED = 'podDeleted';
+
 export const initialState = {
   settings: {
     agents: []
@@ -44,7 +48,14 @@ function processStreamingEvent(state, event) {
       return eventHandlers.agentDisconnected(state, event);
     case EVENT_ENVS_UPDATED:
       return eventHandlers.envsUpdated(state, event.envs);
+    case EVENT_POD_CREATED:
+      return eventHandlers.podCreated(state, event);
+    case EVENT_POD_UPDATED:
+      return eventHandlers.podUpdated(state, event);
+    case EVENT_POD_DELETED:
+      return eventHandlers.podDeleted(state, event);
     default:
+      console.log('Could not process streaming event: ' + JSON.stringify(event));
       return state;
   }
 }

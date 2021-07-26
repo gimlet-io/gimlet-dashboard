@@ -17,11 +17,19 @@ limitations under the License.
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
+	apps_v1 "k8s.io/api/apps/v1"
+	batch_v1 "k8s.io/api/batch/v1"
+	api_v1 "k8s.io/api/core/v1"
+	networking_v1beta1 "k8s.io/api/networking/v1beta1"
 	rntme "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -35,12 +43,28 @@ type Controller struct {
 	indexer      cache.Indexer
 	queue        workqueue.RateLimitingInterface
 	informer     cache.Controller
-	eventHandler func(cache.Indexer, string) error
+	eventHandler func(informerEvent Event, objectMeta meta_v1.ObjectMeta, obj interface{}) error
+	kubeEnv      *KubeEnv
 }
 
+// Event indicate the informerEvent
+type Event struct {
+	key       string
+	eventType string
+}
+
+var serverStartTime time.Time
+
 // NewController creates a new Controller.
-func NewController(name string, listWatcher cache.ListerWatcher, objType rntme.Object, eventHandler func(cache.Indexer, string) error) *Controller {
+func NewController(
+	name string,
+	listWatcher cache.ListerWatcher,
+	objType rntme.Object,
+	eventHandler func(informerEvent Event, objectMeta meta_v1.ObjectMeta, obj interface{}) error,
+) *Controller {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	var informerEvent Event
+	var err error
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
 	// whenever the cache is updated, the pod key is added to the workqueue.
@@ -48,23 +72,24 @@ func NewController(name string, listWatcher cache.ListerWatcher, objType rntme.O
 	// of the Pod than the version which was responsible for triggering the update.
 	indexer, informer := cache.NewIndexerInformer(listWatcher, objType, 0, cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
+			informerEvent.key, err = cache.MetaNamespaceKeyFunc(obj)
+			informerEvent.eventType = "create"
 			if err == nil {
-				queue.Add(key)
+				queue.Add(informerEvent)
 			}
 		},
 		UpdateFunc: func(old interface{}, new interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(new)
+			informerEvent.key, err = cache.MetaNamespaceKeyFunc(old)
+			informerEvent.eventType = "update"
 			if err == nil {
-				queue.Add(key)
+				queue.Add(informerEvent)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			// IndexerInformer uses a delta queue, therefore for deletes we have to use this
-			// key function.
-			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+			informerEvent.key, err = cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+			informerEvent.eventType = "delete"
 			if err == nil {
-				queue.Add(key)
+				queue.Add(informerEvent)
 			}
 		},
 	}, cache.Indexers{})
@@ -80,19 +105,34 @@ func NewController(name string, listWatcher cache.ListerWatcher, objType rntme.O
 
 func (c *Controller) processNextItem() bool {
 	// Wait until there is a new item in the working queue
-	key, quit := c.queue.Get()
+	informerEvent, quit := c.queue.Get()
 	if quit {
 		return false
 	}
 	// Tell the queue that we are done with processing this key. This unblocks the key for other workers
 	// This allows safe parallel processing because two pods with the same key are never processed in
 	// parallel.
-	defer c.queue.Done(key)
+	defer c.queue.Done(informerEvent)
+
+	obj, _, err := c.indexer.GetByKey(informerEvent.(Event).key)
+	if err != nil {
+		log.Errorf("Fetching object with key %s from store failed with %v", informerEvent.(Event).key, err)
+		return true
+	}
+
+	objectMeta := getObjectMetaData(obj)
+
+	// don't process events from before agent start
+	// startup sends the complete cluster state upstream
+	if informerEvent.(Event).eventType != "delete" &&
+		objectMeta.CreationTimestamp.Sub(serverStartTime).Seconds() < 0 {
+		return true
+	}
 
 	// Invoke the method containing the business logic
-	err := c.eventHandler(c.indexer, key.(string))
+	err = c.eventHandler(informerEvent.(Event), objectMeta, obj)
 	// Handle the error if something went wrong during the execution of the business logic
-	c.handleErr(err, key)
+	c.handleErr(err, informerEvent)
 	return true
 }
 
@@ -129,6 +169,7 @@ func (c *Controller) Run(threadiness int, stopCh chan struct{}) {
 	// Let the workers stop when we are done
 	defer c.queue.ShutDown()
 	log.Infof("Starting %s controller", c.name)
+	serverStartTime = time.Now().Local()
 
 	go c.informer.Run(stopCh)
 
@@ -148,5 +189,65 @@ func (c *Controller) Run(threadiness int, stopCh chan struct{}) {
 
 func (c *Controller) runWorker() {
 	for c.processNextItem() {
+	}
+}
+
+func getObjectMetaData(obj interface{}) meta_v1.ObjectMeta {
+
+	var objectMeta meta_v1.ObjectMeta
+
+	switch object := obj.(type) {
+	case *apps_v1.Deployment:
+		objectMeta = object.ObjectMeta
+	case *api_v1.ReplicationController:
+		objectMeta = object.ObjectMeta
+	case *apps_v1.ReplicaSet:
+		objectMeta = object.ObjectMeta
+	case *apps_v1.DaemonSet:
+		objectMeta = object.ObjectMeta
+	case *api_v1.Service:
+		objectMeta = object.ObjectMeta
+	case *api_v1.Pod:
+		objectMeta = object.ObjectMeta
+	case *batch_v1.Job:
+		objectMeta = object.ObjectMeta
+	case *api_v1.PersistentVolume:
+		objectMeta = object.ObjectMeta
+	case *api_v1.Namespace:
+		objectMeta = object.ObjectMeta
+	case *api_v1.Secret:
+		objectMeta = object.ObjectMeta
+	case *networking_v1beta1.Ingress:
+		objectMeta = object.ObjectMeta
+	}
+	return objectMeta
+}
+
+func sendUpdate(host string, agentKey string, env string, update interface{}) {
+	stacksString, err := json.Marshal(update)
+	if err != nil {
+		log.Errorf("could not serialize k8s state: %v", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", host+"/agent/state/"+env+"/update", bytes.NewBuffer(stacksString))
+	if err != nil {
+		log.Errorf("could not create http request: %v", err)
+		return
+	}
+	req.Header.Set("Authorization", "BEARER "+agentKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Errorf("could not send state update: %d - %v", resp.StatusCode, string(body))
+		return
 	}
 }

@@ -96,6 +96,7 @@ func agentRoutes(r *chi.Mux) {
 
 		r.Get("/agent/register", register)
 		r.Post("/agent/state", state)
+		r.Post("/agent/state/{name}/update", update)
 	})
 }
 
