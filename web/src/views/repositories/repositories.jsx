@@ -70,6 +70,11 @@ export default class Repositories extends Component {
       )
     })
 
+    const emptyState = search.filter !== '' ?
+      (<p className="text-xs text-gray-800">No service matches the search</p>)
+      :
+      (<p className="text-xs text-gray-800">No services</p>);
+
     return (
       <div>
         <header>
@@ -81,7 +86,7 @@ export default class Repositories extends Component {
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {repoCards.length > 0 ? repoCards : (<p className="text-xs text-gray-800">No service matches the search</p>)}
+                {repoCards.length > 0 ? repoCards : emptyState}
               </ul>
             </div>
           </div>

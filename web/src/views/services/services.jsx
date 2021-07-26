@@ -47,6 +47,11 @@ export default class Services extends Component {
       }
     }
 
+    const emptyState = search.filter !== '' ?
+      (<p className="text-xs text-gray-800">No service matches the search</p>)
+      :
+      (<p className="text-xs text-gray-800">No services</p>);
+
     return (
       <div>
         <header>
@@ -76,7 +81,7 @@ export default class Services extends Component {
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
 
                       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {renderedServices.length > 0 ? renderedServices : (<p className="text-xs text-gray-800">No service matches the search</p>)}
+                        {renderedServices.length > 0 ? renderedServices : emptyState}
                       </ul>
                     </div>
                   )

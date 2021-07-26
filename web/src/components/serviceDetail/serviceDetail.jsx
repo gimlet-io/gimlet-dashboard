@@ -36,7 +36,7 @@ class Ingress extends Component {
     return (
       <div class="bg-gray-100 p-2 mb-1 border rounded-sm border-gray-200 text-gray-500 relative">
         <span class="text-xs text-gray-400 absolute bottom-0 right-0 p-2">ingress</span>
-        <div class="mb-1"><a href={'http://' + ingress.url} target="_blank" rel="noopener noreferrer">{ingress.url}</a>
+        <div class="mb-1"><a href={'https://' + ingress.url} target="_blank" rel="noopener noreferrer">{ingress.url}</a>
         </div>
         <p class="text-xs">{ingress.namespace}/{ingress.name}</p>
       </div>
