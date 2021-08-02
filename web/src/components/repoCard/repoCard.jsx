@@ -7,8 +7,9 @@ function RepoCard(props) {
     let ingressWidgets = [];
     if (service.ingresses !== undefined) {
       ingressWidgets = service.ingresses.map(ingress => (
-        <li>{ingress.url}
-          <a href={ingress.url} target="_blank" rel="noopener noreferrer">
+        <a href={`https://${ingress.url}`} target="_blank" rel="noopener noreferrer"
+         onClick={(e) => {e.stopPropagation(); return true}}>
+          <p class="text-gray-400">{ingress.url}
             <svg xmlns="http://www.w3.org/2000/svg"
                  className="inline fill-current text-gray-400 hover:text-teal-300 ml-1" width="12"
                  height="12" viewBox="0 0 24 24">
@@ -16,8 +17,8 @@ function RepoCard(props) {
               <path
                 d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
             </svg>
-          </a>
-        </li>
+          </p>
+        </a>
       ))
     }
 
