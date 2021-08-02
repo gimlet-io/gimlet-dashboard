@@ -91,6 +91,8 @@ func envs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	agentHub.ForceStateSend()
+
 	w.WriteHeader(200)
 	w.Write(envString)
 }

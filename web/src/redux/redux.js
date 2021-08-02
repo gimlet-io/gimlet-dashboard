@@ -1,4 +1,6 @@
-import * as eventHandlers from './eventHandlers';
+import * as eventHandlers from './eventHandlers/eventHandlers';
+import * as podEventHandlers from './eventHandlers/podEventHandlers';
+import * as deploymentEventHandlers from './eventHandlers/deploymentEventHandlers';
 
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
@@ -13,6 +15,10 @@ export const EVENT_ENVS_UPDATED = 'envsUpdated';
 export const EVENT_POD_CREATED = 'podCreated';
 export const EVENT_POD_UPDATED = 'podUpdated';
 export const EVENT_POD_DELETED = 'podDeleted';
+
+export const EVENT_DEPLOYMENT_CREATED = 'deploymentCreated';
+export const EVENT_DEPLOYMENT_UPDATED = 'deploymentUpdated';
+export const EVENT_DEPLOYMENT_DELETED = 'deploymentDeleted';
 
 export const initialState = {
   settings: {
@@ -41,6 +47,8 @@ export function rootReducer(state = initialState, action) {
 }
 
 function processStreamingEvent(state, event) {
+  console.log(event.event);
+
   switch (event.event) {
     case EVENT_AGENT_CONNECTED:
       return eventHandlers.agentConnected(state, event);
@@ -49,11 +57,17 @@ function processStreamingEvent(state, event) {
     case EVENT_ENVS_UPDATED:
       return eventHandlers.envsUpdated(state, event.envs);
     case EVENT_POD_CREATED:
-      return eventHandlers.podCreated(state, event);
+      return podEventHandlers.podCreated(state, event);
     case EVENT_POD_UPDATED:
-      return eventHandlers.podUpdated(state, event);
+      return podEventHandlers.podUpdated(state, event);
     case EVENT_POD_DELETED:
-      return eventHandlers.podDeleted(state, event);
+      return podEventHandlers.podDeleted(state, event);
+    case EVENT_DEPLOYMENT_CREATED:
+      return deploymentEventHandlers.deploymentCreated(state, event);
+    case EVENT_DEPLOYMENT_UPDATED:
+      return deploymentEventHandlers.deploymentUpdated(state, event);
+    case EVENT_DEPLOYMENT_DELETED:
+      return deploymentEventHandlers.deploymentDeleted(state, event);
     default:
       console.log('Could not process streaming event: ' + JSON.stringify(event));
       return state;

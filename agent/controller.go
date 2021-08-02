@@ -124,7 +124,7 @@ func (c *Controller) processNextItem() bool {
 
 	// don't process events from before agent start
 	// startup sends the complete cluster state upstream
-	if informerEvent.(Event).eventType != "delete" &&
+	if informerEvent.(Event).eventType == "create" &&
 		objectMeta.CreationTimestamp.Sub(serverStartTime).Seconds() < 0 {
 		return true
 	}

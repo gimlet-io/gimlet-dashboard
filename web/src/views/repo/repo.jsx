@@ -31,8 +31,6 @@ export default class Repo extends Component {
       const env = envs[envName];
       filteredEnvs[env.name] = {name: env.name, stacks: env.stacks};
       filteredEnvs[env.name].stacks = env.stacks.filter((service) => {
-        console.log(service);
-        console.log(repoName)
         return service.repo === repoName
       });
       if (search.filter !== '') {
