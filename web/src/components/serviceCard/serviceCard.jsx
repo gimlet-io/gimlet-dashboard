@@ -30,6 +30,10 @@ function ServiceCard(props) {
 export function Deployment(props) {
   const {deployment} = props;
 
+  if (!deployment) {
+    return null;
+  }
+
   return (
     <div>
       <p className="mb-1">

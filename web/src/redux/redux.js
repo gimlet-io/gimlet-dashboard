@@ -1,6 +1,7 @@
 import * as eventHandlers from './eventHandlers/eventHandlers';
 import * as podEventHandlers from './eventHandlers/podEventHandlers';
 import * as deploymentEventHandlers from './eventHandlers/deploymentEventHandlers';
+import * as ingressEventHandlers from './eventHandlers/ingressEventHandlers';
 
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
@@ -19,6 +20,10 @@ export const EVENT_POD_DELETED = 'podDeleted';
 export const EVENT_DEPLOYMENT_CREATED = 'deploymentCreated';
 export const EVENT_DEPLOYMENT_UPDATED = 'deploymentUpdated';
 export const EVENT_DEPLOYMENT_DELETED = 'deploymentDeleted';
+
+export const EVENT_INGRESS_CREATED = 'ingressCreated';
+export const EVENT_INGRESS_UPDATED = 'ingressUpdated';
+export const EVENT_INGRESS_DELETED = 'ingressDeleted';
 
 export const initialState = {
   settings: {
@@ -68,6 +73,12 @@ function processStreamingEvent(state, event) {
       return deploymentEventHandlers.deploymentUpdated(state, event);
     case EVENT_DEPLOYMENT_DELETED:
       return deploymentEventHandlers.deploymentDeleted(state, event);
+    case EVENT_INGRESS_CREATED:
+      return ingressEventHandlers.ingressCreated(state, event);
+    case EVENT_INGRESS_UPDATED:
+      return ingressEventHandlers.ingressUpdated(state, event);
+    case EVENT_INGRESS_DELETED:
+      return ingressEventHandlers.ingressDeleted(state, event);
     default:
       console.log('Could not process streaming event: ' + JSON.stringify(event));
       return state;

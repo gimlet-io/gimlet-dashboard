@@ -22,6 +22,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"time"
@@ -29,7 +30,6 @@ import (
 	apps_v1 "k8s.io/api/apps/v1"
 	batch_v1 "k8s.io/api/batch/v1"
 	api_v1 "k8s.io/api/core/v1"
-	networking_v1beta1 "k8s.io/api/networking/v1beta1"
 	rntme "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -217,7 +217,7 @@ func getObjectMetaData(obj interface{}) meta_v1.ObjectMeta {
 		objectMeta = object.ObjectMeta
 	case *api_v1.Secret:
 		objectMeta = object.ObjectMeta
-	case *networking_v1beta1.Ingress:
+	case *ext_v1beta1.Ingress:
 		objectMeta = object.ObjectMeta
 	}
 	return objectMeta

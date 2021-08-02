@@ -83,8 +83,10 @@ func main() {
 
 	podController := agent.PodController(kubeEnv, config.Host, config.AgentKey)
 	deploymentController := agent.DeploymentController(kubeEnv, config.Host, config.AgentKey)
+	ingressController := agent.IngressController(kubeEnv, config.Host, config.AgentKey)
 	go podController.Run(1, stopCh)
 	go deploymentController.Run(1, stopCh)
+	go ingressController.Run(1, stopCh)
 
 	go serverCommunication(kubeEnv, config)
 
