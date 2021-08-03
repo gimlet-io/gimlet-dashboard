@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Pod} from "../serviceCard/serviceCard";
 import {RolloutHistory} from "../rolloutHistory/rolloutHistory";
+import Emoji from "react-emoji-render";
 
 function ServiceDetail(props) {
   const {service, rolloutHistory} = props;
@@ -61,7 +62,7 @@ class Deployment extends Component {
       <div class="bg-gray-100 p-2 mb-1 border rounded-sm border-blue-200, text-gray-500 relative">
         <span class="text-xs text-gray-400 absolute bottom-0 right-0 p-2">deployment</span>
         <p class="mb-1">
-          <p class="break-words">{deployment.message}</p>
+          <p class="break-words">{deployment.message && <Emoji text={deployment.message}/>}</p>
           <p class="text-xs italic"><a href={`https://github.com/${repo}/commit/${deployment.sha}`} target="_blank"
                                        rel="noopener noreferrer">{deployment.sha.slice(0, 6)}</a></p>
         </p>

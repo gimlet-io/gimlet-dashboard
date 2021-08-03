@@ -1,5 +1,6 @@
 import {format, formatDistance} from "date-fns";
 import React, {Component} from "react";
+import Emoji from "react-emoji-render";
 
 export class RolloutHistory extends Component {
   constructor(props) {
@@ -129,7 +130,7 @@ function Commit(props) {
   return (
     <div className="md:flex text-xs text-gray-500">
       <div className="md:flex-initial">
-        <span className="font-semibold leading-none">{version.message}</span>
+        <span className="font-semibold leading-none">{version.message && <Emoji text={version.message} />}</span>
         <div className="flex mt-1">
           {version.author &&
           <img
