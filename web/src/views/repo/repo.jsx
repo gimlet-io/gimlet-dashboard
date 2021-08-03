@@ -45,8 +45,6 @@ export default class Repo extends Component {
     const repoName = `${owner}/${repo}`
     let {envs, search, rolloutHistory} = this.state;
 
-    console.log(rolloutHistory);
-
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
       const env = envs[envName];
@@ -80,8 +78,13 @@ export default class Repo extends Component {
                 {Object.keys(filteredEnvs).map((envName) => {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
+                    let appRolloutHistory=undefined;
+                    if (rolloutHistory && rolloutHistory[service.repo]) {
+                      appRolloutHistory = rolloutHistory[service.repo][envName][service.service.name]
+                    }
+
                     return (
-                      <ServiceDetail key={service.name} service={service}/>
+                      <ServiceDetail key={service.service.name} service={service} rolloutHistory={appRolloutHistory}/>
                     )
                   })
 
