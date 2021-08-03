@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Pod} from "../serviceCard/serviceCard";
-import {format, formatDistance} from 'date-fns';
+import {RolloutHistory} from "../rolloutHistory/rolloutHistory";
 
 function ServiceDetail(props) {
   const {service, rolloutHistory} = props;
@@ -26,51 +26,6 @@ function ServiceDetail(props) {
           <div class="flex-1 min-w-full md:min-w-0"/>
         </div>
       </div>
-    </div>
-  )
-}
-
-function RolloutHistory(props) {
-  let {rolloutHistory} = props;
-
-  console.log(rolloutHistory)
-
-
-  if (!rolloutHistory) {
-    return null;
-  }
-
-  rolloutHistory.sort((first, second) => {
-    return first.created > second.created
-  });
-
-  let previousDateLabel = ''
-  const markers = rolloutHistory.map((rollout) => {
-
-    const exactDate = format(rollout.created * 1000, 'MMMM do yyyy, h:mm:ss a')
-    const dateLabel = formatDistance(rollout.created * 1000, new Date());
-
-    const showDate = previousDateLabel !== dateLabel
-    previousDateLabel = dateLabel;
-
-    let color = rollout.rolledBack ? 'bg-red-100' : 'bg-green-100';
-    let border = showDate ? 'border-l' : '';
-
-    return (
-      <div className={`h-8 ${border}`}>
-        <div className={`h-1 sm:h-2 mx-2 ${color} rounded`}></div>
-        {showDate &&
-        <div className="mx-2 mt-2 text-xs text-gray-400">
-          <span title={exactDate}>{dateLabel} ago</span>
-        </div>
-        }
-      </div>
-    )
-  })
-
-  return (
-    <div class="grid grid-cols-10">
-      {markers}
     </div>
   )
 }
