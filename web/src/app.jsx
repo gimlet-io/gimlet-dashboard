@@ -42,10 +42,9 @@ export default class App extends Component {
       props => <APIBackend {...props} store={store} gimletClient={gimletClient}/>
     );
     const StreamingBackendWithLocation = withRouter(props => <StreamingBackend {...props} store={store}/>);
-    const RepoWithRouting = withRouter(props => <Repo {...props} store={store}/>);
+    const RepoWithRouting = withRouter(props => <Repo {...props} store={store} gimletClient={gimletClient}/>);
     const ServicesWithRouting = withRouter(props => <Services {...props} store={store}/>);
     const RepositoriesWithRouting = withRouter(props => <Repositories {...props} store={store}/>);
-
 
     return (
       <Router>

@@ -29,3 +29,9 @@ export function search(state, search) {
   state.search = search;
   return state;
 }
+
+export function rolloutHistory(state, payload) {
+  const repo = `${payload.owner}/${payload.repo}`;
+  state.rolloutHistory[repo] = payload.releases;
+  return state;
+}

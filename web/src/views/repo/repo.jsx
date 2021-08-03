@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
+import {ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -9,7 +10,8 @@ export default class Repo extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       envs: reduxState.envs,
-      search: reduxState.search
+      search: reduxState.search,
+      rolloutHistory: reduxState.rolloutHistory
     }
 
     // handling API and streaming state changes
@@ -18,13 +20,30 @@ export default class Repo extends Component {
 
       this.setState({envs: reduxState.envs});
       this.setState({search: reduxState.search});
+      this.setState({rolloutHistory: reduxState.rolloutHistory});
     });
+  }
+
+  componentDidMount() {
+    const {owner, repo} = this.props.match.params;
+
+    this.props.gimletClient.getRolloutHistory(owner, repo)
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_ROLLOUT_HISTORY, payload: {
+            owner: owner,
+            repo: repo,
+            releases: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
   }
 
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search} = this.state;
+    let {envs, search, rolloutHistory} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
@@ -59,8 +78,13 @@ export default class Repo extends Component {
                 {Object.keys(filteredEnvs).map((envName) => {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
+                    let appRolloutHistory=undefined;
+                    if (rolloutHistory && rolloutHistory[service.repo]) {
+                      appRolloutHistory = rolloutHistory[service.repo][envName][service.service.name]
+                    }
+
                     return (
-                      <ServiceDetail key={service.name} service={service}/>
+                      <ServiceDetail key={service.service.name} service={service} rolloutHistory={appRolloutHistory}/>
                     )
                   })
 
