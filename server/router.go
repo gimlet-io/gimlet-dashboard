@@ -87,6 +87,7 @@ func userRoutes(r *chi.Mux) {
 		r.Get("/api/gimletd", gimletd)
 		r.Get("/api/envs", envs)
 		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
+		r.Get("/api/repo/{owner}/{name}/commits", commits)
 	})
 }
 

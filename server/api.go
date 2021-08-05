@@ -6,6 +6,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/gimlet-io/gimletd/client"
 	gimletdModel "github.com/gimlet-io/gimletd/model"
 	"github.com/go-chi/chi"
@@ -148,7 +149,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 			)
 			if err != nil {
 				logrus.Errorf("cannot get releases: %s", err)
-				http.Error(w, http.StatusText(500), 500)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
 			appReleases[stack.Service.Name] = r
@@ -159,10 +160,35 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	releasesString, err := json.Marshal(releases)
 	if err != nil {
 		logrus.Errorf("cannot serialize releases: %s", err)
-		http.Error(w, http.StatusText(500), 500)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(releasesString)
+}
+
+func commits(w http.ResponseWriter, r *http.Request) {
+	owner := chi.URLParam(r, "owner")
+	name := chi.URLParam(r, "name")
+	repo := owner + "/" + name
+
+	ctx := r.Context()
+	dao := ctx.Value("config").(*store.Store)
+	commits, err := dao.Commits(repo)
+	if err != nil {
+		logrus.Errorf("cannot get commits: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	commitsString, err := json.Marshal(commits)
+	if err != nil {
+		logrus.Errorf("cannot serialize commits: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(commitsString)
 }
