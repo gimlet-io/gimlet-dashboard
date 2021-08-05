@@ -35,7 +35,7 @@ type Config struct {
 	JWTSecret string `envconfig:"JWT_SECRET"`
 	Github    Github
 	Database  Database
-	GimletD    GimletD
+	GimletD   GimletD
 }
 
 // Logging provides the logging configuration.
@@ -45,11 +45,15 @@ type Logging struct {
 }
 
 type Github struct {
-	ClientID     string `envconfig:"GITHUB_CLIENT_ID"`
-	ClientSecret string `envconfig:"GITHUB_CLIENT_SECRET"`
-	SkipVerify   bool   `envconfig:"GITHUB_SKIP_VERIFY"`
-	Debug        bool   `envconfig:"GITHUB_DEBUG"`
-	Org          string `envconfig:"GITHUB_ORG"`
+	AppID          string `envconfig:"GITHUB_APP_ID"`
+	InstallationID string `envconfig:"GITHUB_INSTALLATION_ID"`
+	PrivateKey     string `envconfig:"GITHUB_PRIVATE_KEY"`
+	WebhookSecret  string `envconfig:"GITHUB_WEBHOOK_SECRET"`
+	ClientID       string `envconfig:"GITHUB_CLIENT_ID"`
+	ClientSecret   string `envconfig:"GITHUB_CLIENT_SECRET"`
+	SkipVerify     bool   `envconfig:"GITHUB_SKIP_VERIFY"`
+	Debug          bool   `envconfig:"GITHUB_DEBUG"`
+	Org            string `envconfig:"GITHUB_ORG"`
 }
 
 type Database struct {
@@ -60,4 +64,8 @@ type Database struct {
 type GimletD struct {
 	URL   string `envconfig:"GIMLETD_URL"`
 	TOKEN string `envconfig:"GIMLETD_TOKEN"`
+}
+
+func (c *Config) IsGithub() bool {
+	return c.Github.AppID != ""
 }

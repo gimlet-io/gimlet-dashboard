@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	"github.com/gimlet-io/gimlet-dashboard/server/oauth2"
+	"github.com/gimlet-io/gimlet-dashboard/gitService"
+	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
 	"github.com/gimlet-io/gimlet-dashboard/server/session"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
@@ -24,8 +24,9 @@ func SetupRouter(
 	agentHub *AgentHub,
 	clientHub *ClientHub,
 	store *store.Store,
-	git *scm.Client,
-	refresher *oauth2.Refresher,
+	goScmHelper *goScmHelper.GoScmHelper,
+	gitService gitService.GitService,
+	tokenManager gitService.NonImpersonatedTokenManager,
 ) *chi.Mux {
 	agentAuth = jwtauth.New("HS256", []byte(config.JWTSecret), nil)
 	_, tokenString, _ := agentAuth.Encode(map[string]interface{}{"user_id": "gimlet-agent"})
@@ -42,9 +43,10 @@ func SetupRouter(
 	r.Use(middleware.WithValue("agentHub", agentHub))
 	r.Use(middleware.WithValue("clientHub", clientHub))
 	r.Use(middleware.WithValue("store", store))
-	r.Use(middleware.WithValue("git", git))
-	r.Use(middleware.WithValue("refresher", refresher))
+	r.Use(middleware.WithValue("goScmHelper", goScmHelper))
 	r.Use(middleware.WithValue("config", config))
+	r.Use(middleware.WithValue("gitService", gitService))
+	r.Use(middleware.WithValue("tokenManager", tokenManager))
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9000", "http://127.0.0.1:9000"},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
+	"github.com/gimlet-io/gimlet-dashboard/gitService"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/gimlet-io/gimletd/client"
@@ -191,4 +192,46 @@ func commits(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(commitsString)
+
+	config := ctx.Value("config").(*config.Config)
+	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
+	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+
+	go fetchCommits(owner, name, gitServiceImpl, token, dao, config)
+}
+
+func fetchCommits(
+	owner string,
+	repo string,
+	gitService gitService.GitService,
+	token string,
+	store *store.Store,
+	config *config.Config,
+) {
+	commits, err := gitService.FetchCommits(owner, repo, token)
+	if err != nil {
+		logrus.Errorf("Could not fetch commits for %v, %v", repo, err)
+		return
+	}
+
+	err = store.SaveCommits(repo, commits)
+	if err != nil {
+		logrus.Errorf("Could not store commits for %v, %v", repo, err)
+		return
+	}
+	if config.IsGithub() {
+		statusOnCommits := map[string]*model.CombinedStatus{}
+		for _, c := range commits {
+			statusOnCommits[c.SHA] = &c.Status
+		}
+
+		if len(statusOnCommits) != 0 {
+			err = store.SaveStatusesOnCommits(repo, statusOnCommits)
+			if err != nil {
+				logrus.Errorf("Could not store status for %v, %v", repo, err)
+				return
+			}
+		}
+	}
 }
