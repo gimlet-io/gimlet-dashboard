@@ -16,6 +16,7 @@ package sql
 
 const Dummy = "dummy"
 const SelectUserByLogin = "select-user-by-login"
+const SelectCommitsByRepo = "select-commits-by-repo"
 
 var queries = map[string]map[string]string{
 	"sqlite3": {
@@ -26,6 +27,13 @@ SELECT 1;
 SELECT id, login, name, email, access_token, refresh_token, expires, secret
 FROM users
 WHERE login = ?;
+`,
+		SelectCommitsByRepo: `
+SELECT id, repo, sha, url, author, author_pic, message, created_at, tags, status
+FROM commits
+WHERE repo = ?
+ORDER BY created_at DESC
+LIMIT 20;
 `,
 	},
 	"postgres": {},

@@ -16,6 +16,7 @@ package ddl
 
 const createTableUsers = "create-table-users"
 const addNameColumnToUsersTable = "add-name-column-to-users-table"
+const createTableCommits = "create-table-commits"
 
 type migration struct {
 	name string
@@ -42,6 +43,24 @@ UNIQUE(login)
 		{
 			name: addNameColumnToUsersTable,
 			stmt: `ALTER TABLE users ADD COLUMN name TEXT default '';`,
+		},
+		{
+			name: createTableCommits,
+			stmt: `
+CREATE TABLE IF NOT EXISTS commits (
+id         INTEGER PRIMARY KEY AUTOINCREMENT,
+sha        TEXT,
+url        TEXT,
+author     TEXT,
+author_pic TEXT,
+message    TEXT,
+created_at INTEGER,
+tags       TEXT,
+repo       TEXT,
+status 	   TEXT,
+UNIQUE(sha,repo)
+);
+`,
 		},
 	},
 	"postgres": {},
