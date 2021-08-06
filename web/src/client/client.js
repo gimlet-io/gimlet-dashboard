@@ -24,6 +24,8 @@ export default class GimletClient {
 
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
 
+  getCommits = (owner, name) => this.get(`/api/repo/${owner}/${name}/commits`);
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })

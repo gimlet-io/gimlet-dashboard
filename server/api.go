@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/gitService"
@@ -175,7 +176,7 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	repo := owner + "/" + name
 
 	ctx := r.Context()
-	dao := ctx.Value("config").(*store.Store)
+	dao := ctx.Value("store").(*store.Store)
 	commits, err := dao.Commits(repo)
 	if err != nil {
 		logrus.Errorf("cannot get commits: %s", err)
@@ -215,7 +216,7 @@ func fetchCommits(
 		return
 	}
 
-	err = store.SaveCommits(repo, commits)
+	err = store.SaveCommits(scm.Join(owner, repo), commits)
 	if err != nil {
 		logrus.Errorf("Could not store commits for %v, %v", repo, err)
 		return
@@ -227,7 +228,7 @@ func fetchCommits(
 		}
 
 		if len(statusOnCommits) != 0 {
-			err = store.SaveStatusesOnCommits(repo, statusOnCommits)
+			err = store.SaveStatusesOnCommits(scm.Join(owner, repo), statusOnCommits)
 			if err != nil {
 				logrus.Errorf("Could not store status for %v, %v", repo, err)
 				return

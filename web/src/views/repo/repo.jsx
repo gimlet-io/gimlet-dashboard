@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
-import {ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {Commits} from "../../components/commits/commits";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -11,7 +12,8 @@ export default class Repo extends Component {
     this.state = {
       envs: reduxState.envs,
       search: reduxState.search,
-      rolloutHistory: reduxState.rolloutHistory
+      rolloutHistory: reduxState.rolloutHistory,
+      commits: reduxState.commits
     }
 
     // handling API and streaming state changes
@@ -21,6 +23,7 @@ export default class Repo extends Component {
       this.setState({envs: reduxState.envs});
       this.setState({search: reduxState.search});
       this.setState({rolloutHistory: reduxState.rolloutHistory});
+      this.setState({commits: reduxState.commits});
     });
   }
 
@@ -38,12 +41,24 @@ export default class Repo extends Component {
         });
       }, () => {/* Generic error handler deals with it */
       });
+
+    this.props.gimletClient.getCommits(owner, repo)
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_COMMITS, payload: {
+            owner: owner,
+            repo: repo,
+            commits: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
   }
 
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search, rolloutHistory} = this.state;
+    let {envs, search, rolloutHistory, commits} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
@@ -59,6 +74,10 @@ export default class Repo extends Component {
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
         })
       }
+    }
+
+    if (commits && commits[repoName]) {
+      console.log(commits[repoName])
     }
 
     return (
@@ -78,7 +97,7 @@ export default class Repo extends Component {
                 {Object.keys(filteredEnvs).map((envName) => {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
-                    let appRolloutHistory=undefined;
+                    let appRolloutHistory = undefined;
                     if (rolloutHistory && rolloutHistory[service.repo]) {
                       appRolloutHistory = rolloutHistory[service.repo][envName][service.service.name]
                     }
@@ -94,6 +113,11 @@ export default class Repo extends Component {
                       <div class="bg-white shadow divide-y divide-gray-200">
                         {renderedServices.length > 0 ? renderedServices : (
                           <p className="text-xs text-gray-800">No services deployed from the repo</p>)}
+                      </div>
+                      <div class="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8">
+                        {commits &&
+                        <Commits commits={commits[repoName]}/>
+                        }
                       </div>
                     </div>
                   )

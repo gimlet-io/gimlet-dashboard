@@ -35,3 +35,9 @@ export function rolloutHistory(state, payload) {
   state.rolloutHistory[repo] = payload.releases;
   return state;
 }
+
+export function commits(state, payload) {
+  const repo = `${payload.owner}/${payload.repo}`;
+  state.commits[repo] = payload.commits;
+  return state;
+}

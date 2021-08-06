@@ -31,7 +31,7 @@ func NewGithubOrgTokenManager(config *config.Config) (*GithubOrgTokenManager, er
 
 	manager := &GithubOrgTokenManager{
 		appId:          config.Github.AppID,
-		privateKey:     config.Github.PrivateKey,
+		privateKey:     config.Github.PrivateKey.String(),
 		installationId: installID,
 	}
 	manager.refreshOrgToken()
@@ -52,24 +52,26 @@ func (tm *GithubOrgTokenManager) refreshLoop() {
 	for {
 		time.Sleep(5 * time.Minute)
 		if tm.orgToken != "" && tm.expiresAt != nil && tm.expiresAt.Before(time.Now().Add(time.Minute*10)) {
-			orgToken, orgUser, expiresAt, err := tm.refreshOrgToken()
+			err := tm.refreshOrgToken()
 			if err != nil {
 				logrus.Errorf("could not refresh orgToken %v", err)
 				continue
 			}
-			tm.orgUser = orgUser
-			tm.orgToken = orgToken
-			tm.expiresAt = expiresAt
 		}
 	}
 }
 
-func (tm *GithubOrgTokenManager) refreshOrgToken() (string, string, *time.Time, error) {
+func (tm *GithubOrgTokenManager) refreshOrgToken() (error) {
 	installationToken, err := tm.installationToken()
 	if err != nil {
-		return "", "", nil, err
+		return err
 	}
-	return *installationToken.Token, "abc123", installationToken.ExpiresAt, nil
+
+	tm.orgUser = "abc123"
+	tm.orgToken = *installationToken.Token
+	tm.expiresAt = installationToken.ExpiresAt
+
+	return nil
 }
 
 func (tm *GithubOrgTokenManager) installationToken() (*github.InstallationToken, error) {

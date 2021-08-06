@@ -23,8 +23,6 @@ export class RolloutHistory extends Component {
     let {rolloutHistory} = this.props;
     const {open} = this.state;
 
-    console.log(rolloutHistory)
-
     if (!rolloutHistory) {
       return null;
     }
