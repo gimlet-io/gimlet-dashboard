@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
-import {ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
+import {branches} from "../../redux/eventHandlers/eventHandlers";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -13,7 +14,8 @@ export default class Repo extends Component {
       envs: reduxState.envs,
       search: reduxState.search,
       rolloutHistory: reduxState.rolloutHistory,
-      commits: reduxState.commits
+      commits: reduxState.commits,
+      branches: reduxState.branches
     }
 
     // handling API and streaming state changes
@@ -24,6 +26,7 @@ export default class Repo extends Component {
       this.setState({search: reduxState.search});
       this.setState({rolloutHistory: reduxState.rolloutHistory});
       this.setState({commits: reduxState.commits});
+      this.setState({branches: reduxState.branches});
     });
   }
 
@@ -53,12 +56,24 @@ export default class Repo extends Component {
         });
       }, () => {/* Generic error handler deals with it */
       });
+
+    this.props.gimletClient.getBranches(owner, repo)
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_BRANCHES, payload: {
+            owner: owner,
+            repo: repo,
+            branches: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
   }
 
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search, rolloutHistory, commits} = this.state;
+    let {envs, search, rolloutHistory, commits, branches} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
@@ -76,8 +91,8 @@ export default class Repo extends Component {
       }
     }
 
-    if (commits && commits[repoName]) {
-      console.log(commits[repoName])
+    if (branches && branches[repoName]) {
+      console.log(branches[repoName])
     }
 
     return (

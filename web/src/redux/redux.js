@@ -10,6 +10,7 @@ export const ACTION_TYPE_GIMLETD = 'gimletd';
 export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
+export const ACTION_TYPE_BRANCHES = 'branches';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -34,7 +35,8 @@ export const initialState = {
   envs: {},
   search: {filter: ''},
   rolloutHistory: {},
-  commits: {}
+  commits: {},
+  branches: {}
 };
 
 export function rootReducer(state = initialState, action) {
@@ -53,6 +55,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.rolloutHistory(state, action.payload)
     case ACTION_TYPE_COMMITS:
       return eventHandlers.commits(state, action.payload)
+    case ACTION_TYPE_BRANCHES:
+      return eventHandlers.branches(state, action.payload)
     default:
       console.log('Could not process redux event: ' + JSON.stringify(action));
       return state;

@@ -26,6 +26,8 @@ export default class GimletClient {
 
   getCommits = (owner, name) => this.get(`/api/repo/${owner}/${name}/commits`);
 
+  getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })

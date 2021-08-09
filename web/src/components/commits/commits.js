@@ -5,7 +5,7 @@ export class Commits extends Component {
   render() {
     let {commits} = this.props;
 
-    console.log(commits)
+    // console.log(commits)
 
     if (!commits) {
       return null;

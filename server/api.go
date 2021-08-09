@@ -13,6 +13,7 @@ import (
 	gimletdModel "github.com/gimlet-io/gimletd/model"
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -227,6 +228,42 @@ func commits(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(commitsString)
+}
+
+func branches(w http.ResponseWriter, r *http.Request) {
+	owner := chi.URLParam(r, "owner")
+	name := chi.URLParam(r, "name")
+	repoName := fmt.Sprintf("%s/%s", owner, name)
+
+	ctx := r.Context()
+	gitRepoCache, _ := ctx.Value("gitRepoCache").(*gitService.RepoCache)
+
+	repo, err := gitRepoCache.InstanceForRead(repoName)
+	if err != nil {
+		logrus.Errorf("cannot get repo: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	branches := []string{}
+	refIter, _ := repo.References()
+	refIter.ForEach(func(r *plumbing.Reference) error {
+		if r.Name().IsRemote(){
+			branch := r.Name().Short()
+			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
+		}
+		return nil
+	})
+
+	branchesString, err := json.Marshal(branches)
+	if err != nil {
+		logrus.Errorf("cannot serialize branches: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(branchesString)
 }
 
 // Commit represents a Github commit

@@ -41,3 +41,10 @@ export function commits(state, payload) {
   state.commits[repo] = payload.commits;
   return state;
 }
+
+export function branches(state, payload) {
+  console.log(payload.branches)
+  const repo = `${payload.owner}/${payload.repo}`;
+  state.branches[repo] = payload.branches;
+  return state;
+}
