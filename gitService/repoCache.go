@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -26,13 +27,34 @@ func NewRepoCache(
 	stopCh chan struct{},
 	cachePath string,
 ) (*RepoCache, error) {
-	return &RepoCache{
+	repoCache := &RepoCache{
 		tokenManager: tokenManager,
 		repos:        map[string]*git.Repository{},
 		stopCh:       stopCh,
 		invalidateCh: make(chan string),
 		cachePath:    cachePath,
-	}, nil
+	}
+
+	paths, err := os.ReadDir(cachePath)
+	if err != nil {
+		return nil, fmt.Errorf("cannot list files: %s", err)
+	}
+
+	for _, fileInfo := range paths {
+		if !fileInfo.IsDir() {
+			continue
+		}
+
+		path := filepath.Join(cachePath, fileInfo.Name())
+		repo, err := git.PlainOpen(path)
+		if err != nil {
+			return nil, fmt.Errorf("cannot open git repository at %s: %s", path, err)
+		}
+
+		repoCache.repos[strings.ReplaceAll(fileInfo.Name(), "%", "/")] = repo
+	}
+
+	return repoCache, nil
 }
 
 func (r *RepoCache) Run() {
@@ -95,7 +117,7 @@ func (r *RepoCache) Invalidate(repoName string) {
 }
 
 func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
-	repoPath := filepath.Join(r.cachePath, repoName)
+	repoPath := filepath.Join(r.cachePath, strings.ReplaceAll(repoName, "/", "%"))
 
 	err := os.MkdirAll(repoPath, Dir_RWX_RX_R)
 	if err != nil {

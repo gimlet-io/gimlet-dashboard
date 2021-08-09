@@ -88,6 +88,7 @@ func main() {
 		goScm,
 		gitSvc,
 		tokenManager,
+		repoCache,
 	)
 	http.ListenAndServe(":9000", r)
 }

@@ -40,6 +40,7 @@ export class Commits extends Component {
                     <a
                       className="font-semibold"
                       href={`https://github.com/${commit.author}`}
+                      label={commit.authorName}
                       target="_blank"
                       rel="noopener noreferrer">
                       {commit.author}

@@ -12,6 +12,8 @@ import (
 	"github.com/gimlet-io/gimletd/client"
 	gimletdModel "github.com/gimlet-io/gimletd/model"
 	"github.com/go-chi/chi"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -173,13 +175,45 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 func commits(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
 	name := chi.URLParam(r, "name")
-	repo := owner + "/" + name
+	repoName := fmt.Sprintf("%s/%s", owner, name)
 
 	ctx := r.Context()
-	dao := ctx.Value("store").(*store.Store)
-	commits, err := dao.Commits(repo)
+	gitRepoCache, _ := ctx.Value("gitRepoCache").(*gitService.RepoCache)
+
+	repo, err := gitRepoCache.InstanceForRead(repoName)
 	if err != nil {
-		logrus.Errorf("cannot get commits: %s", err)
+		logrus.Errorf("cannot get repo: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	commitWalker, err := repo.Log(&git.LogOptions{})
+	if err != nil {
+		logrus.Errorf("cannot walk commits: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	limit := 10
+	commits := []*Commit{}
+	err = commitWalker.ForEach(func(c *object.Commit) error {
+		if limit != 0 && len(commits) >= limit {
+			return fmt.Errorf("%s", "LIMIT")
+		}
+
+		commits = append(commits, &Commit{
+			SHA: c.Hash.String(),
+			AuthorName:    c.Author.Name,
+			Message:   c.Message,
+			CreatedAt: c.Author.When.Unix(),
+		})
+
+		return nil
+	})
+	if err != nil &&
+		err.Error() != "EOF" &&
+		err.Error() != "LIMIT" {
+		logrus.Errorf("cannot walk commits: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -193,13 +227,19 @@ func commits(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(commitsString)
+}
 
-	config := ctx.Value("config").(*config.Config)
-	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
-	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-
-	go fetchCommits(owner, name, gitServiceImpl, token, dao, config)
+// Commit represents a Github commit
+type Commit struct {
+	SHA        string               `json:"sha"`
+	URL        string               `json:"url""`
+	Author     string               `json:"author"`
+	AuthorName string               `json:"authorName"`
+	AuthorPic  string               `json:"author_pic"`
+	Message    string               `json:"message"`
+	CreatedAt  int64                `json:"created_at"`
+	Tags       []string             `json:"tags,omitempty"`
+	Status     model.CombinedStatus `json:"status,omitempty"`
 }
 
 func fetchCommits(
