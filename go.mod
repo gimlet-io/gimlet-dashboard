@@ -11,7 +11,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/jwtauth/v5 v5.0.1
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-github/v37 v37.0.0
 	github.com/gorilla/securecookie v1.1.1
@@ -21,7 +21,8 @@ require (
 	github.com/laszlocph/go-login v1.0.4-0.20200901120411-b6d05e420c8a
 	github.com/lib/pq v1.10.2
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/otiai10/copy v1.6.0
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/russross/meddler v1.0.1
 	github.com/shurcooL/githubv4 v0.0.0-20210725200734-83ba7b4c9228

@@ -15,7 +15,8 @@ export default class Repo extends Component {
       search: reduxState.search,
       rolloutHistory: reduxState.rolloutHistory,
       commits: reduxState.commits,
-      branches: reduxState.branches
+      branches: reduxState.branches,
+      selectedBranch: ''
     }
 
     // handling API and streaming state changes
@@ -28,6 +29,8 @@ export default class Repo extends Component {
       this.setState({commits: reduxState.commits});
       this.setState({branches: reduxState.branches});
     });
+
+    this.branchChange = this.branchChange.bind(this)
   }
 
   componentDidMount() {
@@ -45,19 +48,18 @@ export default class Repo extends Component {
       }, () => {/* Generic error handler deals with it */
       });
 
-    this.props.gimletClient.getCommits(owner, repo)
-      .then(data => {
-        this.props.store.dispatch({
-          type: ACTION_TYPE_COMMITS, payload: {
-            owner: owner,
-            repo: repo,
-            commits: data
-          }
-        });
-      }, () => {/* Generic error handler deals with it */
-      });
-
     this.props.gimletClient.getBranches(owner, repo)
+      .then(data => {
+        let defaultBranch = 'main'
+        for (let branch of data) {
+          if (branch === "master") {
+            defaultBranch = "master";
+          }
+        }
+
+        this.branchChange(defaultBranch)
+        return data;
+      })
       .then(data => {
         this.props.store.dispatch({
           type: ACTION_TYPE_BRANCHES, payload: {
@@ -70,10 +72,37 @@ export default class Repo extends Component {
       });
   }
 
+  branchChange(newBranch) {
+    if(newBranch === '') {
+      return
+    }
+
+    const {owner, repo} = this.props.match.params;
+    const {selectedBranch} = this.state;
+
+    if (newBranch !== selectedBranch) {
+      this.setState({selectedBranch: newBranch});
+
+      console.log('Getting commits')
+      this.props.gimletClient.getCommits(owner, repo, newBranch)
+        .then(data => {
+          this.props.store.dispatch({
+            type: ACTION_TYPE_COMMITS, payload: {
+              owner: owner,
+              repo: repo,
+              commits: data
+            }
+          });
+        }, () => {/* Generic error handler deals with it */
+        });
+    }
+  }
+
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search, rolloutHistory, commits, branches} = this.state;
+    let {envs, search, rolloutHistory, commits} = this.state;
+    const {branches, selectedBranch} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
@@ -88,17 +117,6 @@ export default class Repo extends Component {
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
         })
-      }
-    }
-
-    let defaultBranch = 'main';
-    if (branches && branches[repoName]) {
-      console.log(branches[repoName])
-
-      for (let branch of branches[repoName]) {
-        if (branch === "master") {
-          defaultBranch = "master";
-        }
       }
     }
 
@@ -141,7 +159,8 @@ export default class Repo extends Component {
                           {branches &&
                           <Dropdown
                             items={branches[repoName]}
-                            value={defaultBranch}
+                            value={selectedBranch}
+                            changeHandler={(newBranch) => this.branchChange(newBranch)}
                           />
                           }
                         </div>

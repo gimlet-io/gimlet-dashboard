@@ -19,7 +19,7 @@ export class Commits extends Component {
       let ringColor = 'ring-gray-100';
 
       commitWidgets.push(
-        <li>
+        <li key={idx}>
           <div className="relative pb-4">
             {idx !== ar.length - 1 &&
             <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>

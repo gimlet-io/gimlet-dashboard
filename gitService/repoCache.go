@@ -3,9 +3,12 @@ package gitService
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,8 +111,38 @@ func (r *RepoCache) InstanceForRead(repoName string) (*git.Repository, error) {
 	if repo, ok := r.repos[repoName]; ok {
 		return repo, nil
 	}
-
 	return r.clone(repoName)
+}
+
+func (r *RepoCache) InstanceForWrite(repoName string) (*git.Repository, string, error) {
+	tmpPath, err := ioutil.TempDir("", "gitops-")
+	if err != nil {
+		errors.WithMessage(err, "couldn't get temporary directory")
+	}
+
+	if _, ok := r.repos[repoName]; !ok {
+		_, err = r.clone(repoName)
+		if err != nil {
+			errors.WithMessage(err, "couldn't clone")
+		}
+	}
+
+	repoPath := filepath.Join(r.cachePath, strings.ReplaceAll(repoName, "/", "%"))
+	err = copy.Copy(repoPath, tmpPath)
+	if err != nil {
+		errors.WithMessage(err, "could not make copy of repo")
+	}
+
+	copiedRepo, err := git.PlainOpen(tmpPath)
+	if err != nil {
+		return nil, "", fmt.Errorf("cannot open git repository at %s: %s", tmpPath, err)
+	}
+
+	return copiedRepo, tmpPath, nil
+}
+
+func (r *RepoCache) CleanupWrittenRepo(path string) error {
+	return os.RemoveAll(path)
 }
 
 func (r *RepoCache) Invalidate(repoName string) {
@@ -143,6 +176,18 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 		return nil, errors.WithMessage(err, "couldn't clone")
 	}
 
+	err = repo.Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		Auth: &http.BasicAuth{
+			Username: user,
+			Password: token,
+		},
+		Depth: 100,
+	})
+	if err != nil {
+		return nil, errors.WithMessage(err, "couldn't fetch")
+	}
+
 	r.repos[repoName] = repo
 	return repo, nil
 }
@@ -154,7 +199,6 @@ func (r *RepoCache) remoteHasChanges(repoName string) (bool, error) {
 	}
 
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
-		//RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,

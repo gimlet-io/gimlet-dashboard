@@ -178,14 +178,40 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	repoName := fmt.Sprintf("%s/%s", owner, name)
 
+	branch := r.URL.Query().Get("branch")
+	if branch == "" {
+		branch = "main"
+	}
+
 	ctx := r.Context()
 	gitRepoCache, _ := ctx.Value("gitRepoCache").(*gitService.RepoCache)
 
-	repo, err := gitRepoCache.InstanceForRead(repoName)
-	if err != nil {
-		logrus.Errorf("cannot get repo: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+	var repo *git.Repository
+	if branch != "master" && branch != "main" {
+		r, pathToClanUp, err := gitRepoCache.InstanceForWrite(repoName)
+		defer gitRepoCache.CleanupWrittenRepo(pathToClanUp)
+		if err != nil {
+			logrus.Errorf("cannot get repo: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		repo = r
+
+		err = switchToBranch(repo, branch)
+		if err != nil {
+			logrus.Errorf("cannot switch to branch: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+	} else {
+		r, err := gitRepoCache.InstanceForRead(repoName)
+		if err != nil {
+			logrus.Errorf("cannot get repo: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		repo = r
 	}
 
 	commitWalker, err := repo.Log(&git.LogOptions{})
@@ -203,10 +229,10 @@ func commits(w http.ResponseWriter, r *http.Request) {
 		}
 
 		commits = append(commits, &Commit{
-			SHA: c.Hash.String(),
-			AuthorName:    c.Author.Name,
-			Message:   c.Message,
-			CreatedAt: c.Author.When.Unix(),
+			SHA:        c.Hash.String(),
+			AuthorName: c.Author.Name,
+			Message:    c.Message,
+			CreatedAt:  c.Author.When.Unix(),
 		})
 
 		return nil
@@ -230,6 +256,15 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	w.Write(commitsString)
 }
 
+func switchToBranch(repo *git.Repository, branch string) error {
+	b := plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch))
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+	return worktree.Checkout(&git.CheckoutOptions{Create: false, Force: false, Branch: b})
+}
+
 func branches(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
 	name := chi.URLParam(r, "name")
@@ -248,7 +283,7 @@ func branches(w http.ResponseWriter, r *http.Request) {
 	branches := []string{}
 	refIter, _ := repo.References()
 	refIter.ForEach(func(r *plumbing.Reference) error {
-		if r.Name().IsRemote(){
+		if r.Name().IsRemote() {
 			branch := r.Name().Short()
 			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
 		}
