@@ -27,7 +27,7 @@ func (db *Store) SaveCommits(repo string, commits []*model.Commit) error {
 		return err
 	}
 
-	existingSHAs, err := db.commitsByRepoAndSHA(tx, repo, hashes)
+	existingSHAs, err := db.commitShasByRepoAndSHA(tx, repo, hashes)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (db *Store) SaveCommits(repo string, commits []*model.Commit) error {
 		valueArgs := make([]interface{}, 0, len(commitsToInsert)*9)
 		for _, c := range commitsToInsert {
 			valueStrings = append(valueStrings, "(?, ?, ?, ?, ?, ?, ?, ?, ?)")
-			valueArgs = append(valueArgs, c.Repo)
+			valueArgs = append(valueArgs, repo)
 			valueArgs = append(valueArgs, c.SHA)
 			valueArgs = append(valueArgs, c.URL)
 			valueArgs = append(valueArgs, c.Author)
@@ -126,7 +126,7 @@ func (db *Store) Commits(repo string) ([]*model.Commit, error) {
 	return data, err
 }
 
-func (db *Store) commitsByRepoAndSHA(tx *databaseSql.Tx, repo string, hashes []string) ([]*model.Commit, error) {
+func (db *Store) commitShasByRepoAndSHA(tx *databaseSql.Tx, repo string, hashes []string) ([]*model.Commit, error) {
 	if len(hashes) == 0 {
 		return []*model.Commit{}, nil
 	}
@@ -139,5 +139,23 @@ func (db *Store) commitsByRepoAndSHA(tx *databaseSql.Tx, repo string, hashes []s
 
 	data := []*model.Commit{}
 	err := meddler.QueryAll(tx, &data, stmt, args...)
+
+	return data, err
+}
+
+func (db *Store) CommitsByRepoAndSHA(repo string, hashes []string) ([]*model.Commit, error) {
+	if len(hashes) == 0 {
+		return []*model.Commit{}, nil
+	}
+	stmt := "select sha, url, author, author_pic, tags, status from commits where repo=? and sha in (?" + strings.Repeat(",?", len(hashes)-1) + ")"
+	args := []interface{}{}
+	args = append(args, repo)
+	for _, sha := range hashes {
+		args = append(args, sha)
+	}
+
+	data := []*model.Commit{}
+	err := meddler.QueryAll(db, &data, stmt, args...)
+
 	return data, err
 }
