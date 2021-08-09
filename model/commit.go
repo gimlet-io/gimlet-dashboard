@@ -24,8 +24,6 @@ type Commit struct {
 	URL       string         `json:"url"  meddler:"url"`
 	Author    string         `json:"author"  meddler:"author"`
 	AuthorPic string         `json:"author_pic"  meddler:"author_pic"`
-	Message   string         `json:"message"  meddler:"message"`
-	CreatedAt int64          `json:"created_at"  meddler:"created_at"`
 	Tags      []string       `json:"tags,omitempty"    meddler:"tags,json"`
 	Status    CombinedStatus `json:"status,omitempty"    meddler:"status,json"`
 }

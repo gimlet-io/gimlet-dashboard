@@ -48,18 +48,16 @@ func (db *Store) SaveCommits(repo string, commits []*model.Commit) error {
 		valueStrings := make([]string, 0, len(commitsToInsert))
 		valueArgs := make([]interface{}, 0, len(commitsToInsert)*9)
 		for _, c := range commitsToInsert {
-			valueStrings = append(valueStrings, "(?, ?, ?, ?, ?, ?, ?, ?, ?)")
+			valueStrings = append(valueStrings, "(?, ?, ?, ?, ?, ?, ?)")
 			valueArgs = append(valueArgs, repo)
 			valueArgs = append(valueArgs, c.SHA)
 			valueArgs = append(valueArgs, c.URL)
 			valueArgs = append(valueArgs, c.Author)
 			valueArgs = append(valueArgs, c.AuthorPic)
-			valueArgs = append(valueArgs, c.Message)
-			valueArgs = append(valueArgs, c.CreatedAt)
 			valueArgs = append(valueArgs, "[]")
 			valueArgs = append(valueArgs, "{}")
 		}
-		stmt := fmt.Sprintf("INSERT INTO commits (repo, sha, url, author, author_pic, message, created_at, tags, status) VALUES %s", strings.Join(valueStrings, ","))
+		stmt := fmt.Sprintf("INSERT INTO commits (repo, sha, url, author, author_pic, tags, status) VALUES %s", strings.Join(valueStrings, ","))
 		_, err = tx.Exec(stmt, valueArgs...)
 		if err != nil {
 			tx.Rollback()

@@ -29,10 +29,9 @@ FROM users
 WHERE login = ?;
 `,
 		SelectCommitsByRepo: `
-SELECT id, repo, sha, url, author, author_pic, message, created_at, tags, status
+SELECT id, repo, sha, url, author, author_pic, tags, status
 FROM commits
 WHERE repo = ?
-ORDER BY created_at DESC
 LIMIT 20;
 `,
 	},
