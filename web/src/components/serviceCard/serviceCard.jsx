@@ -47,7 +47,7 @@ export function Deployment(props) {
         </p>
       </p>
       {deployment.pods.map((pod) => (
-        <Pod pod={pod}/>
+        <Pod key={pod.name} pod={pod}/>
       ))
       }
     </div>

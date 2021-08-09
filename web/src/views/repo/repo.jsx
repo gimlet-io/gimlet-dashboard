@@ -83,7 +83,6 @@ export default class Repo extends Component {
     if (newBranch !== selectedBranch) {
       this.setState({selectedBranch: newBranch});
 
-      console.log('Getting commits')
       this.props.gimletClient.getCommits(owner, repo, newBranch)
         .then(data => {
           this.props.store.dispatch({
