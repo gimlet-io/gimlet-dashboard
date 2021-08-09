@@ -1,15 +1,15 @@
 package server
 
 import (
-	"context"
 	"database/sql"
 	"encoding/base32"
-	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
+	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/httputil"
 	"github.com/gimlet-io/gimlet-dashboard/server/token"
 	"github.com/gimlet-io/gimlet-dashboard/store"
+	"github.com/gimlet-io/go-scm/scm"
 	"github.com/gorilla/securecookie"
 	"github.com/laszlocph/go-login/login"
 	log "github.com/sirupsen/logrus"
@@ -27,32 +27,28 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 	token := login.TokenFrom(ctx)
 
-	git, _ := ctx.Value("git").(*scm.Client)
-	gitContext := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
-		Token:   token.Access,
-		Refresh: token.Refresh,
-	})
-	scmUser, _, err := git.Users.Find(gitContext)
+	goScmHelper, _ := ctx.Value("goScmHelper").(goScmHelper.GoScmHelper)
+	scmUser, err := goScmHelper.User(token.Access, token.Refresh)
 	if err != nil {
 		log.Errorf("cannot find git user: %s", err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
-	orgList, _, err := git.Organizations.List(gitContext, scm.ListOptions{
-		Size: 50,
-	})
+	orgList, err := goScmHelper.Organizations(token.Access, token.Refresh)
 	if err != nil {
 		log.Errorf("cannot get user organizations: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	config, _ := ctx.Value("config").(*config.Config)
-	member := validateOrganizationMembership(orgList, config.Github.Org, scmUser.Login)
 
-	if !member {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return
+	config, _ := ctx.Value("config").(*config.Config)
+	if config.IsGithub() {
+		member := validateOrganizationMembership(orgList, config.Github.Org, scmUser.Login)
+		if !member {
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
 	}
 
 	store := ctx.Value("store").(*store.Store)

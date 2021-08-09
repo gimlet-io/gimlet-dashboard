@@ -23,8 +23,6 @@ export class RolloutHistory extends Component {
     let {rolloutHistory} = this.props;
     const {open} = this.state;
 
-    console.log(rolloutHistory)
-
     if (!rolloutHistory) {
       return null;
     }
@@ -66,7 +64,7 @@ at ${exactDate}`;
       )
 
       rollouts.push(
-        <li>
+        <li key={idx}>
           <div className="relative pb-4">
             {idx !== 0 &&
             <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>

@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
-import {ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {Commits} from "../../components/commits/commits";
+import Dropdown from "../../components/dropdown/dropdown";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -11,7 +13,10 @@ export default class Repo extends Component {
     this.state = {
       envs: reduxState.envs,
       search: reduxState.search,
-      rolloutHistory: reduxState.rolloutHistory
+      rolloutHistory: reduxState.rolloutHistory,
+      commits: reduxState.commits,
+      branches: reduxState.branches,
+      selectedBranch: ''
     }
 
     // handling API and streaming state changes
@@ -21,7 +26,11 @@ export default class Repo extends Component {
       this.setState({envs: reduxState.envs});
       this.setState({search: reduxState.search});
       this.setState({rolloutHistory: reduxState.rolloutHistory});
+      this.setState({commits: reduxState.commits});
+      this.setState({branches: reduxState.branches});
     });
+
+    this.branchChange = this.branchChange.bind(this)
   }
 
   componentDidMount() {
@@ -38,12 +47,61 @@ export default class Repo extends Component {
         });
       }, () => {/* Generic error handler deals with it */
       });
+
+    this.props.gimletClient.getBranches(owner, repo)
+      .then(data => {
+        let defaultBranch = 'main'
+        for (let branch of data) {
+          if (branch === "master") {
+            defaultBranch = "master";
+          }
+        }
+
+        this.branchChange(defaultBranch)
+        return data;
+      })
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_BRANCHES, payload: {
+            owner: owner,
+            repo: repo,
+            branches: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
+  branchChange(newBranch) {
+    if(newBranch === '') {
+      return
+    }
+
+    const {owner, repo} = this.props.match.params;
+    const {selectedBranch} = this.state;
+
+    if (newBranch !== selectedBranch) {
+      this.setState({selectedBranch: newBranch});
+
+      this.props.gimletClient.getCommits(owner, repo, newBranch)
+        .then(data => {
+          this.props.store.dispatch({
+            type: ACTION_TYPE_COMMITS, payload: {
+              owner: owner,
+              repo: repo,
+              commits: data
+            }
+          });
+        }, () => {/* Generic error handler deals with it */
+        });
+    }
   }
 
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search, rolloutHistory} = this.state;
+    let {envs, search, rolloutHistory, commits} = this.state;
+    const {branches, selectedBranch} = this.state;
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {
@@ -65,7 +123,11 @@ export default class Repo extends Component {
       <div>
         <header>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}</h1>
+            <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}
+              <a href={`https://github.com/${owner}/${repo}`} target="_blank" rel="noopener noreferrer">
+                <svg xmlns="http://www.w3.org/2000/svg" className="inline fill-current text-gray-500 hover:text-gray-700 ml-1" width="12" height="12" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" /></svg>
+              </a>
+            </h1>
             <button class="text-gray-500 hover:text-gray-700" onClick={() => this.props.history.goBack()}>
               &laquo; back
             </button>
@@ -78,7 +140,7 @@ export default class Repo extends Component {
                 {Object.keys(filteredEnvs).map((envName) => {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
-                    let appRolloutHistory=undefined;
+                    let appRolloutHistory = undefined;
                     if (rolloutHistory && rolloutHistory[service.repo]) {
                       appRolloutHistory = rolloutHistory[service.repo][envName][service.service.name]
                     }
@@ -94,6 +156,20 @@ export default class Repo extends Component {
                       <div class="bg-white shadow divide-y divide-gray-200">
                         {renderedServices.length > 0 ? renderedServices : (
                           <p className="text-xs text-gray-800">No services deployed from the repo</p>)}
+                      </div>
+                      <div class="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8 relative">
+                        <div className="w-64 mb-4 lg:mb-8">
+                          {branches &&
+                          <Dropdown
+                            items={branches[repoName]}
+                            value={selectedBranch}
+                            changeHandler={(newBranch) => this.branchChange(newBranch)}
+                          />
+                          }
+                        </div>
+                        {commits &&
+                        <Commits commits={commits[repoName]}/>
+                        }
                       </div>
                     </div>
                   )

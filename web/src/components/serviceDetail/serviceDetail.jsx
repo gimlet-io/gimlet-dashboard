@@ -69,7 +69,7 @@ class Deployment extends Component {
         <p class="text-xs">{deployment.namespace}/{deployment.name}</p>
         {
           deployment.pods && deployment.pods.map((pod) => (
-            <Pod pod={pod}/>
+            <Pod key={pod.name} pod={pod}/>
           ))
         }
       </div>
