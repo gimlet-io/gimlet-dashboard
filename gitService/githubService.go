@@ -12,7 +12,79 @@ type GithubClient struct {
 }
 
 // FetchCommits fetches Github commits and their statuses
-/*
+/* Getting all branches
+query {
+  repository(owner: "gimlet-io", name: "fosdem-2021") {
+    refs(first: 10, , refPrefix:"refs/heads/") {
+      nodes {
+        name
+      }
+    }
+  }
+}
+*/
+
+/* Getting all tags
+query {
+  repository(owner: "gimlet-io", name: "fosdem-2021") {
+    refs(first: 10, , refPrefix:"refs/heads/") {
+      nodes {
+        name
+      }
+    }
+  }
+}
+*/
+
+/* Getting multiple commits by hash
+query {
+  viewer {
+    login
+  }
+  rateLimit {
+    limit
+    cost
+    remaining
+    resetAt
+  }
+  repository(owner: "laszlocph", name: "aedes") {
+     a: object(oid: "25a913a5e052d3f5b9c4880377542f3ed8389d2b") {
+      ... on Commit {
+        oid
+        message
+        authoredDate
+        status {
+          state
+          contexts {
+            context
+            createdAt
+            state
+            targetUrl
+          }
+        }
+      }
+    }
+    b: object(oid: "3396bc4fae754b5f55de23f49f973ddca70295d7") {
+      ... on Commit {
+        oid
+        message
+        authoredDate
+        status {
+          state
+          contexts {
+            context
+            createdAt
+            state
+            targetUrl
+          }
+        }
+      }
+    }
+  }
+}
+ */
+
+/* Commits with tags(?)
 query {
   repository(owner: "laszlocph", name: "aedes") {
     refs(refPrefix:"refs/tags/", first: 100){
@@ -31,6 +103,7 @@ query {
           committedDate
           history(first:10){
             nodes {
+              oid
               message
               authoredDate
               status {
