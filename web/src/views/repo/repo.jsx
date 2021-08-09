@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
 import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
-import {branches} from "../../redux/eventHandlers/eventHandlers";
+import Dropdown from "../../components/dropdown/dropdown";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -91,8 +91,15 @@ export default class Repo extends Component {
       }
     }
 
+    let defaultBranch = 'main';
     if (branches && branches[repoName]) {
       console.log(branches[repoName])
+
+      for (let branch of branches[repoName]) {
+        if (branch === "master") {
+          defaultBranch = "master";
+        }
+      }
     }
 
     return (
@@ -129,7 +136,15 @@ export default class Repo extends Component {
                         {renderedServices.length > 0 ? renderedServices : (
                           <p className="text-xs text-gray-800">No services deployed from the repo</p>)}
                       </div>
-                      <div class="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8">
+                      <div class="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8 relative">
+                        <div className="w-64 mb-4 lg:mb-8">
+                          {branches &&
+                          <Dropdown
+                            items={branches[repoName]}
+                            value={defaultBranch}
+                          />
+                          }
+                        </div>
                         {commits &&
                         <Commits commits={commits[repoName]}/>
                         }
