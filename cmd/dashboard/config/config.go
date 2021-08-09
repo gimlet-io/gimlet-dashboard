@@ -10,17 +10,20 @@ import (
 func Environ() (*Config, error) {
 	cfg := Config{}
 	err := envconfig.Process("", &cfg)
-	defaultDB(&cfg)
+	defaults(&cfg)
 
 	return &cfg, err
 }
 
-func defaultDB(c *Config) {
+func defaults(c *Config) {
 	if c.Database.Driver == "" {
 		c.Database.Driver = "sqlite3"
 	}
 	if c.Database.Config == "" {
 		c.Database.Config = "gimlet-dashboard.sqlite"
+	}
+	if c.RepoCachePath == "" {
+		c.RepoCachePath = "/tmp/gimlet-dashboard"
 	}
 }
 
@@ -31,12 +34,13 @@ func (c *Config) String() string {
 }
 
 type Config struct {
-	Logging   Logging
-	Host      string `envconfig:"HOST"`
-	JWTSecret string `envconfig:"JWT_SECRET"`
-	Github    Github
-	Database  Database
-	GimletD   GimletD
+	Logging       Logging
+	Host          string `envconfig:"HOST"`
+	JWTSecret     string `envconfig:"JWT_SECRET"`
+	Github        Github
+	Database      Database
+	GimletD       GimletD
+	RepoCachePath string
 }
 
 // Logging provides the logging configuration.

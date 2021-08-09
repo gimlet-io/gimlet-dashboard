@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	gitService2 "github.com/gimlet-io/gimlet-dashboard/gitService"
+	gitService "github.com/gimlet-io/gimlet-dashboard/gitService"
 	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
 	"github.com/gimlet-io/gimlet-dashboard/server"
 	"github.com/gimlet-io/gimlet-dashboard/store"
@@ -49,18 +49,32 @@ func main() {
 
 	goScm := goScmHelper.NewGoScmHelper(config)
 
-	var gitService gitService2.GitService
-	var tokenManager gitService2.NonImpersonatedTokenManager
+	var gitSvc gitService.GitService
+	var tokenManager gitService.NonImpersonatedTokenManager
 
 	if config.IsGithub() {
-		gitService = &gitService2.GithubClient{}
-		tokenManager, err = gitService2.NewGithubOrgTokenManager(config)
+		gitSvc = &gitService.GithubClient{}
+		tokenManager, err = gitService.NewGithubOrgTokenManager(config)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		panic("Github configuration must be provided")
 	}
+
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+
+	repoCache, err := gitService.NewRepoCache(
+		tokenManager,
+		stopCh,
+		config.RepoCachePath,
+	)
+	if err != nil {
+		panic(err)
+	}
+	go repoCache.Run()
+	log.Info("repo cache initialized")
 
 	metricsRouter := chi.NewRouter()
 	metricsRouter.Get("/metrics", promhttp.Handler().ServeHTTP)
@@ -72,7 +86,7 @@ func main() {
 		clientHub,
 		store,
 		goScm,
-		gitService,
+		gitSvc,
 		tokenManager,
 	)
 	http.ListenAndServe(":9000", r)
