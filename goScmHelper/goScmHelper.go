@@ -102,49 +102,6 @@ func (helper *GoScmHelper) Organizations(accessToken string, refreshToken string
 	return organizations, err
 }
 
-func (helper *GoScmHelper) Tags(owner string, name string, token string) ([]*scm.Reference, error) {
-	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
-		Token:   token,
-		Refresh: "",
-	})
-
-	tags, _, err := helper.client.Git.ListTags(ctx, scm.Join(owner, name), scm.ListOptions{Size: 50})
-	if err != nil {
-		return nil, err
-	}
-
-	return tags, nil
-}
-
-func (helper *GoScmHelper) Branches(owner string, name string, token string) ([]string, error) {
-	var result []string
-
-	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
-		Token:   token,
-		Refresh: "",
-	})
-
-	opts := scm.ListOptions{Size: 100}
-	for {
-		branches, meta, err := helper.client.Git.ListBranches(ctx, scm.Join(owner, name), opts)
-		if err != nil {
-			return []string{}, err
-		}
-		for _, branch := range branches {
-			result = append(result, branch.Name)
-		}
-
-		opts.Page = meta.Page.Next
-		opts.URL = meta.Page.NextURL
-
-		if opts.Page == 0 && opts.URL == "" {
-			break
-		}
-	}
-
-	return result, nil
-}
-
 func (helper *GoScmHelper) RegisterWebhook(
 	host string,
 	token string,
