@@ -200,6 +200,7 @@ func (r *RepoCache) remoteHasChanges(repoName string) (bool, error) {
 	}
 
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
