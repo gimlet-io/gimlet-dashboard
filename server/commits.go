@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/gitService"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/store"
@@ -87,7 +88,7 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dao := ctx.Value("store").(*store.Store)
-	commits, hashesToFetch, err := augmentCommits(repoName, commits, dao)
+	commits, hashesToFetch, err := augmentCommitsWithSCMData(repoName, commits, dao)
 	if err != nil {
 		logrus.Errorf("cannot augment commits: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -98,6 +99,14 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
 	token, _, _ := tokenManager.Token()
 	go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
+
+	config := ctx.Value("config").(*config.Config)
+	commits, err = augmentCommitsWithGimletArtifacts(commits, config)
+	if err != nil {
+		logrus.Errorf("cannot get deplyotargets: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	commitsString, err := json.Marshal(commits)
 	if err != nil {
@@ -110,20 +119,26 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	w.Write(commitsString)
 }
 
-// Commit represents a Github commit
-type Commit struct {
-	SHA        string               `json:"sha"`
-	URL        string               `json:"url""`
-	Author     string               `json:"author"`
-	AuthorName string               `json:"authorName"`
-	AuthorPic  string               `json:"author_pic"`
-	Message    string               `json:"message"`
-	CreatedAt  int64                `json:"created_at"`
-	Tags       []string             `json:"tags,omitempty"`
-	Status     model.CombinedStatus `json:"status,omitempty"`
+type DeployTarget struct {
+	App string `json:"app"`
+	Env string `json:"env"`
 }
 
-func augmentCommits(repo string, commits []*Commit, dao *store.Store) ([]*Commit, []string, error) {
+// Commit represents a Github commit
+type Commit struct {
+	SHA           string               `json:"sha"`
+	URL           string               `json:"url""`
+	Author        string               `json:"author"`
+	AuthorName    string               `json:"authorName"`
+	AuthorPic     string               `json:"author_pic"`
+	Message       string               `json:"message"`
+	CreatedAt     int64                `json:"created_at"`
+	Tags          []string             `json:"tags,omitempty"`
+	Status        model.CombinedStatus `json:"status,omitempty"`
+	DeployTargets []*DeployTarget      `json:"deployTargets,omitempty"`
+}
+
+func augmentCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store) ([]*Commit, []string, error) {
 	var hashes []string
 	for _, commit := range commits {
 		hashes = append(hashes, commit.SHA)
