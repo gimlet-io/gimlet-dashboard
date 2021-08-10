@@ -26,7 +26,7 @@ type GithubOrgTokenManager struct {
 func NewGithubOrgTokenManager(config *config.Config) (*GithubOrgTokenManager, error) {
 	installID, err := strconv.ParseInt(config.Github.InstallationID, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse installationId")
+		return nil, fmt.Errorf("could not parse installationId: %s", err)
 	}
 
 	manager := &GithubOrgTokenManager{
@@ -34,7 +34,11 @@ func NewGithubOrgTokenManager(config *config.Config) (*GithubOrgTokenManager, er
 		privateKey:     config.Github.PrivateKey.String(),
 		installationId: installID,
 	}
-	manager.refreshOrgToken()
+	err = manager.refreshOrgToken()
+	if err != nil {
+		return nil, fmt.Errorf("could refresh org token: %s", err)
+	}
+
 	go manager.refreshLoop()
 
 	return manager, nil
@@ -61,7 +65,7 @@ func (tm *GithubOrgTokenManager) refreshLoop() {
 	}
 }
 
-func (tm *GithubOrgTokenManager) refreshOrgToken() (error) {
+func (tm *GithubOrgTokenManager) refreshOrgToken() error {
 	installationToken, err := tm.installationToken()
 	if err != nil {
 		return err
