@@ -157,7 +157,7 @@ export default class Nav extends Component {
                                     )}
                                     onClick={() => {
                                       if (item.href === '/logout') {
-                                        window.location.replace("/login");
+                                        window.location.replace("/logout");
                                         return true
                                       }
 

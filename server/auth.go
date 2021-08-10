@@ -27,7 +27,7 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 	token := login.TokenFrom(ctx)
 
-	goScmHelper, _ := ctx.Value("goScmHelper").(goScmHelper.GoScmHelper)
+	goScmHelper, _ := ctx.Value("goScmHelper").(*goScmHelper.GoScmHelper)
 	scmUser, err := goScmHelper.User(token.Access, token.Refresh)
 	if err != nil {
 		log.Errorf("cannot find git user: %s", err)
