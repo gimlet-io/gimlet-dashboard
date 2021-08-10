@@ -5,11 +5,11 @@ export class Commits extends Component {
   render() {
     let {commits} = this.props;
 
-    // console.log(commits)
-
     if (!commits) {
       return null;
     }
+
+    console.log(commits)
 
     const commitWidgets = [];
 
@@ -34,7 +34,13 @@ export class Commits extends Component {
               <div className="min-w-0 flex-1">
                 <div>
                   <div className="text-sm">
-                    <p href="#" className="font-semibold text-gray-800">{commit.message}</p>
+                    <p href="#" className="font-semibold text-gray-800">{commit.message}
+                      <span>
+                      {
+                        commit.status.statuses.map(status => <StatusIcon status={status}/>)
+                      }
+                    </span>
+                    </p>
                   </div>
                   <p className="mt-0.5 text-xs text-gray-800">
                     <a
@@ -74,5 +80,43 @@ export class Commits extends Component {
         </ul>
       </div>
     )
+  }
+}
+
+class StatusIcon extends Component {
+  render() {
+    const {status} = this.props;
+
+    switch (status.state) {
+      case 'SUCCESS':
+        return (
+          <svg class="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15" height="20"
+               role="img"
+          >
+            <title>{status.context}</title>
+            <path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/>
+          </svg>
+        );
+      case 'PENDING':
+        return (
+          <svg class="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10" height="20"
+               role="img"
+          >
+            <title>{status.context}</title>
+            <path fill-rule="evenodd" d="M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z"/>
+          </svg>
+        );
+      default:
+        return (
+          <svg className="inline fill-current text-red-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15"
+               height="20"
+               role="img"
+          >
+            <title>{status.context}</title>
+            <path fill-rule="evenodd"
+                  d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/>
+          </svg>
+        )
+    }
   }
 }
