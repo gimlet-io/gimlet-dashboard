@@ -36,8 +36,8 @@ export class Commits extends Component {
                   <div className="text-sm">
                     <p href="#" className="font-semibold text-gray-800">{commit.message}
                       <span>
-                      {
-                        commit.status.statuses.map(status => <StatusIcon status={status}/>)
+                      {commit.status && commit.status.statuses &&
+                      commit.status.statuses.map(status => <StatusIcon status={status}/>)
                       }
                     </span>
                     </p>
