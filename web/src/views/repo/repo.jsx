@@ -111,13 +111,19 @@ export default class Repo extends Component {
         return service.repo === repoName
       });
       if (search.filter !== '') {
-        filteredEnvs[env.name].stacks = filteredEnvs.stacks.filter((service) => {
+        console.log(filteredEnvs[env.name])
+        filteredEnvs[env.name].stacks = filteredEnvs[env.name].stacks.filter((service) => {
           return service.service.name.includes(search.filter) ||
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
         })
       }
     }
+
+    const emptyState = search.filter !== '' ?
+      (<p className="text-xs text-gray-800">No service matches the search</p>)
+      :
+      (<p className="text-xs text-gray-800">No services</p>);
 
     return (
       <div>
@@ -153,9 +159,8 @@ export default class Repo extends Component {
                   return (
                     <div>
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
-                      <div class="bg-white shadow divide-y divide-gray-200">
-                        {renderedServices.length > 0 ? renderedServices : (
-                          <p className="text-xs text-gray-800">No services deployed from the repo</p>)}
+                      <div class="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
+                        {renderedServices.length > 0 ? renderedServices : emptyState}
                       </div>
                       <div class="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8 relative">
                         <div className="w-64 mb-4 lg:mb-8">

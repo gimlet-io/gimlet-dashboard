@@ -7,9 +7,9 @@ function ServiceDetail(props) {
   const {service, rolloutHistory} = props;
 
   return (
-    <div class="w-full flex items-center justify-between p-6 space-x-6">
+    <div class="w-full flex items-center justify-between space-x-6">
       <div class="flex-1 truncate">
-        <h3 class="text-lg font-bold mb-2">{service.service.name}</h3>
+        <h3 class="text-lg font-bold">{service.service.name}</h3>
         <div class="my-2 mb-4 sm:my-4 sm:mb-6">
           <RolloutHistory rolloutHistory={rolloutHistory}/>
         </div>
