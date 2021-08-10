@@ -51,7 +51,8 @@ func NewRepoCache(
 		path := filepath.Join(cachePath, fileInfo.Name())
 		repo, err := git.PlainOpen(path)
 		if err != nil {
-			return nil, fmt.Errorf("cannot open git repository at %s: %s", path, err)
+			logrus.Warnf("cannot open git repository at %s: %s", path, err)
+			continue
 		}
 
 		repoCache.repos[strings.ReplaceAll(fileInfo.Name(), "%", "/")] = repo
