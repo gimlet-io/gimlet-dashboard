@@ -116,7 +116,11 @@ func githubOAuthRoutes(config *config.Config, r *chi.Mux) {
 	loginMiddleware := &github.Config{
 		ClientID:     config.Github.ClientID,
 		ClientSecret: config.Github.ClientSecret,
-		Scope:        []string{"user:email,read:org"},
+		// you don't need to provide scopes in your authorization request.
+		// Unlike traditional OAuth, the authorization token is limited to the permissions associated
+		// with your GitHub App and those of the user.
+		// https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#identifying-and-authorizing-users-for-github-apps
+		Scope:        []string{""},
 		Dumper:       dumper,
 	}
 	r.Handle("/auth", loginMiddleware.Handler(
