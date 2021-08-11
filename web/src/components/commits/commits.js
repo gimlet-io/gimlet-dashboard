@@ -1,15 +1,14 @@
 import {format, formatDistance} from "date-fns";
 import React, {Component} from "react";
+import DeployWidget from "../deployWidget/deployWidget";
 
 export class Commits extends Component {
   render() {
-    let {commits} = this.props;
+    const {commits, envs, rolloutHistory} = this.props;
 
     if (!commits) {
       return null;
     }
-
-    console.log(commits)
 
     const commitWidgets = [];
 
@@ -20,9 +19,9 @@ export class Commits extends Component {
 
       commitWidgets.push(
         <li key={idx}>
-          <div className="relative pb-4">
+          <div className="relative pl-2 py-4 hover:bg-gray-100 rounded">
             {idx !== ar.length - 1 &&
-            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <span className="absolute top-4 left-6 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             }
             <div className="relative flex items-start space-x-3">
               <div className="relative">
@@ -66,6 +65,14 @@ export class Commits extends Component {
 
                   </div>
                 </div>
+              </div>
+              <div class="pr-4">
+                <ReleaseBadges
+                  sha={commit.sha}
+                  envs={envs}
+                  rolloutHistory={rolloutHistory}
+                />
+                <DeployWidget deployTargets={commit.deployTargets}/>
               </div>
             </div>
           </div>
@@ -118,5 +125,74 @@ class StatusIcon extends Component {
           </svg>
         )
     }
+  }
+}
+
+class ReleaseBadges extends Component {
+  render() {
+    const {sha, envs, rolloutHistory} = this.props;
+
+    let current = [];
+    for (let envName of Object.keys(envs)) {
+      const env = envs[envName];
+      for (let stack of env.stacks) {
+        if (stack.deployment &&
+          stack.deployment.sha === sha) {
+          current.push({
+            env: envName,
+            app: stack.service.name
+          })
+        }
+      }
+    }
+
+    let recent = [];
+    if (rolloutHistory) {
+      for (let envName of Object.keys(rolloutHistory)) {
+        const env = rolloutHistory[envName];
+        for (let appName of Object.keys(env)) {
+          const appReleases = env[appName];
+          for (let release of appReleases) {
+            if (release.version.sha === sha) {
+              const exists = recent.find(element => element.env === envName && element.app === appName);
+              const isCurrent = current.find(element => element.env === envName && element.app === appName);
+              if (!exists && !isCurrent) {
+                recent.push({
+                  env: envName,
+                  app: appName
+                })
+              }
+            }
+          }
+        }
+      }
+    }
+
+    let recentBadges = recent.map((release) => (
+      <span
+        className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800 mr-2"
+      >
+        <span>was recently on</span>
+        <span className="capitalize ml-1">{release.env}</span>
+        <span className="ml-1">as {release.app}</span>
+      </span>
+    ))
+
+    let releaseBadges = current.map((release) => (
+      <span
+        className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-pink-100 text-pink-800 mr-2"
+      >
+        <span>on</span>
+        <span className="capitalize ml-1">{release.env}</span>
+        <span className="ml-1">as {release.app}</span>
+      </span>
+    ))
+
+    return (
+      <div class="max-w-sm break-all inline-block text-sm">
+        {recentBadges}
+        {releaseBadges}
+      </div>
+    )
   }
 }
