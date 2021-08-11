@@ -77,7 +77,7 @@ UNIQUE(sha,repo)
 			stmt: `update commits set message='' where message is null;`,
 		},
 		{
-			name: defaultValueForMessage,
+			name: defaultValueForCreated,
 			stmt: `update commits set created=0 where created is null;`,
 		},
 	},
