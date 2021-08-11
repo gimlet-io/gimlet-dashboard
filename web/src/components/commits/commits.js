@@ -1,15 +1,14 @@
 import {format, formatDistance} from "date-fns";
 import React, {Component} from "react";
+import DeployWidget from "../deployWidget/deployWidget";
 
 export class Commits extends Component {
   render() {
-    let {commits} = this.props;
+    const {commits} = this.props;
 
     if (!commits) {
       return null;
     }
-
-    console.log(commits)
 
     const commitWidgets = [];
 
@@ -20,9 +19,9 @@ export class Commits extends Component {
 
       commitWidgets.push(
         <li key={idx}>
-          <div className="relative pb-4">
+          <div className="relative pl-2 py-4 hover:bg-gray-100 rounded">
             {idx !== ar.length - 1 &&
-            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <span className="absolute top-4 left-6 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             }
             <div className="relative flex items-start space-x-3">
               <div className="relative">
@@ -66,6 +65,18 @@ export class Commits extends Component {
 
                   </div>
                 </div>
+              </div>
+              <div class="pr-4">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 mr-2">
+                  was recently on Staging
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-pink-100 text-pink-800 mr-2"
+                >
+                  on Production
+                </span>
+                <DeployWidget />
               </div>
             </div>
           </div>
