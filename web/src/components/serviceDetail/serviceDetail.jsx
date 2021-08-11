@@ -6,8 +6,6 @@ import Emoji from "react-emoji-render";
 function ServiceDetail(props) {
   const {service, rolloutHistory} = props;
 
-  console.log(service)
-
   return (
     <div class="w-full flex items-center justify-between space-x-6">
       <div class="flex-1 truncate">
