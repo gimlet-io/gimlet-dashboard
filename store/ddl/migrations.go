@@ -20,6 +20,7 @@ const createTableCommits = "create-table-commits"
 const addMessageColumnToCommitsTable = "add-message-column-to-commits-table"
 const addCreatedColumnToCommitsTable = "add-created-column-to-commits-table"
 const defaultValueForMessage = "default-value-for-message"
+const defaultValueForCreated = "default-value-for-created"
 
 type migration struct {
 	name string
@@ -74,6 +75,10 @@ UNIQUE(sha,repo)
 		{
 			name: defaultValueForMessage,
 			stmt: `update commits set message='' where message is null;`,
+		},
+		{
+			name: defaultValueForMessage,
+			stmt: `update commits set created=0 where created is null;`,
 		},
 	},
 	"postgres": {},
