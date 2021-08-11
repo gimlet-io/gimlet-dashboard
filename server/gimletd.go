@@ -127,7 +127,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	w.Write(releasesString)
 }
 
-func augmentCommitsWithGimletArtifacts(commits []*Commit, config *config.Config) ([]*Commit, error) {
+func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config) ([]*Commit, error) {
 	if config.GimletD.URL == "" ||
 		config.GimletD.TOKEN == "" {
 		logrus.Warnf("couldn't connect to Gimletd for artifact data: gimletd access not configured")
@@ -164,7 +164,7 @@ func augmentCommitsWithGimletArtifacts(commits []*Commit, config *config.Config)
 		artifactsBySha[a.Version.SHA] = a
 	}
 
-	var augmentedCommits []*Commit
+	var decoratedCommits []*Commit
 	for _, c := range commits {
 		if artifact, ok := artifactsBySha[c.SHA]; ok {
 			for _, targetEnv := range artifact.Environments {
@@ -177,8 +177,8 @@ func augmentCommitsWithGimletArtifacts(commits []*Commit, config *config.Config)
 				})
 			}
 		}
-		augmentedCommits = append(augmentedCommits, c)
+		decoratedCommits = append(decoratedCommits, c)
 	}
 
-	return augmentedCommits, nil
+	return decoratedCommits, nil
 }

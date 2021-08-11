@@ -29,7 +29,7 @@ FROM users
 WHERE login = ?;
 `,
 		SelectCommitsByRepo: `
-SELECT id, repo, sha, url, author, author_pic, tags, status
+SELECT id, repo, sha, url, author, author_pic, message, created, tags, status
 FROM commits
 WHERE repo = ?
 LIMIT 20;

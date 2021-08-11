@@ -32,10 +32,11 @@ func (p *Pod) FQN() string {
 }
 
 type Deployment struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Pods      []*Pod `json:"pods,omitempty"`
-	SHA       string `json:"sha"`
+	Name          string `json:"name"`
+	Namespace     string `json:"namespace"`
+	Pods          []*Pod `json:"pods,omitempty"`
+	SHA           string `json:"sha"`
+	CommitMessage string `json:"commitMessage"`
 }
 
 func (d *Deployment) FQN() string {

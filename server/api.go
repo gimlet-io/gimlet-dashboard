@@ -3,9 +3,11 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/gitService"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -40,6 +42,27 @@ func envs(w http.ResponseWriter, r *http.Request) {
 			Name:   a.Name,
 			Stacks: a.Stacks,
 		})
+	}
+
+	ctx := r.Context()
+	dao := ctx.Value("store").(*store.Store)
+	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
+	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+	for _, env := range envs {
+		for _, stack := range env.Stacks {
+			_, hashesToFetch, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao)
+			if err != nil {
+				logrus.Errorf("cannot decorate commits: %s", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			if len(hashesToFetch) > 0 {
+				owner, name := scm.Split(stack.Repo)
+				go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
+			}
+		}
 	}
 
 	envString, err := json.Marshal(envs)

@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/gitService"
 	"github.com/gimlet-io/gimlet-dashboard/model"
@@ -88,9 +89,9 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dao := ctx.Value("store").(*store.Store)
-	commits, hashesToFetch, err := augmentCommitsWithSCMData(repoName, commits, dao)
+	commits, hashesToFetch, err := decorateCommitsWithSCMData(repoName, commits, dao)
 	if err != nil {
-		logrus.Errorf("cannot augment commits: %s", err)
+		logrus.Errorf("cannot decorate commits: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -101,7 +102,7 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
 
 	config := ctx.Value("config").(*config.Config)
-	commits, err = augmentCommitsWithGimletArtifacts(commits, config)
+	commits, err = decorateCommitsWithGimletArtifacts(commits, config)
 	if err != nil {
 		logrus.Errorf("cannot get deplyotargets: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -138,7 +139,7 @@ type Commit struct {
 	DeployTargets []*DeployTarget      `json:"deployTargets,omitempty"`
 }
 
-func augmentCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store) ([]*Commit, []string, error) {
+func decorateCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store) ([]*Commit, []string, error) {
 	var hashes []string
 	for _, commit := range commits {
 		hashes = append(hashes, commit.SHA)
@@ -154,7 +155,7 @@ func augmentCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store)
 		dbCommitsByHash[dbCommit.SHA] = dbCommit
 	}
 
-	var augmentedCommits []*Commit
+	var decoratedCommits []*Commit
 	var hashesToFetch []string
 	for _, commit := range commits {
 		if dbCommit, ok := dbCommitsByHash[commit.SHA]; ok {
@@ -167,10 +168,31 @@ func augmentCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store)
 			hashesToFetch = append(hashesToFetch, commit.SHA)
 		}
 
-		augmentedCommits = append(augmentedCommits, commit)
+		decoratedCommits = append(decoratedCommits, commit)
 	}
 
-	return augmentedCommits, hashesToFetch, nil
+	return decoratedCommits, hashesToFetch, nil
+}
+
+func decorateDeploymentWithSCMData(repo string, deployment *api.Deployment, dao *store.Store) (*api.Deployment, []string, error) {
+	dbCommits, err := dao.CommitsByRepoAndSHA(repo, []string{deployment.SHA})
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot get commits from db %s", err)
+	}
+
+	dbCommitsByHash := map[string]*model.Commit{}
+	for _, dbCommit := range dbCommits {
+		dbCommitsByHash[dbCommit.SHA] = dbCommit
+	}
+
+	var hashesToFetch []string
+	if dbCommit, ok := dbCommitsByHash[deployment.SHA]; ok {
+		deployment.CommitMessage = dbCommit.Message
+	} else {
+		hashesToFetch = append(hashesToFetch, deployment.SHA)
+	}
+
+	return deployment, hashesToFetch, nil
 }
 
 func fetchCommits(

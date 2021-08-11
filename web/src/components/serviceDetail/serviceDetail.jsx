@@ -6,6 +6,8 @@ import Emoji from "react-emoji-render";
 function ServiceDetail(props) {
   const {service, rolloutHistory} = props;
 
+  console.log(service)
+
   return (
     <div class="w-full flex items-center justify-between space-x-6">
       <div class="flex-1 truncate">
@@ -62,7 +64,7 @@ class Deployment extends Component {
       <div class="bg-gray-100 p-2 mb-1 border rounded-sm border-blue-200, text-gray-500 relative">
         <span class="text-xs text-gray-400 absolute bottom-0 right-0 p-2">deployment</span>
         <p class="mb-1">
-          <p class="break-words">{deployment.message && <Emoji text={deployment.message}/>}</p>
+          <p class="break-words">{deployment.commitMessage && <Emoji text={deployment.commitMessage}/>}</p>
           <p class="text-xs italic"><a href={`https://github.com/${repo}/commit/${deployment.sha}`} target="_blank"
                                        rel="noopener noreferrer">{deployment.sha.slice(0, 6)}</a></p>
         </p>

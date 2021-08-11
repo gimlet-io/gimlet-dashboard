@@ -26,6 +26,8 @@ type Commit struct {
 	AuthorPic string         `json:"author_pic"  meddler:"author_pic"`
 	Tags      []string       `json:"tags,omitempty"    meddler:"tags,json"`
 	Status    CombinedStatus `json:"status,omitempty"    meddler:"status,json"`
+	Message   string         `json:"message"  meddler:"message"`
+	Created   int64          `json:"created"  meddler:"created"`
 }
 
 type CombinedStatus struct {

@@ -73,7 +73,7 @@ func (c *GithubClient) FetchCommits(
 	// we pad it with the first hash
 	// getting that multiple times in the result set
 	// should be idempotent
-	toPadWidth := 10-len(hashesToFetch)
+	toPadWidth := 10 - len(hashesToFetch)
 	if len(hashesToFetch) < 10 {
 		for i := 0; i < toPadWidth; i++ {
 			hashesToFetch = append(hashesToFetch, hashesToFetch[0])
@@ -135,6 +135,7 @@ func translateCommit(commit commit) *model.Commit {
 
 	return &model.Commit{
 		SHA:       commit.OID,
+		Message:   commit.Message,
 		Author:    commit.Author.User.Login,
 		AuthorPic: commit.Author.User.AvatarURL,
 		URL:       commit.URL,
@@ -154,9 +155,10 @@ type ctx struct {
 }
 
 type commit struct {
-	URL    string
-	OID    string
-	Author struct {
+	URL     string
+	OID     string
+	Message string
+	Author  struct {
 		User struct {
 			Login     string
 			AvatarURL string

@@ -17,6 +17,8 @@ package ddl
 const createTableUsers = "create-table-users"
 const addNameColumnToUsersTable = "add-name-column-to-users-table"
 const createTableCommits = "create-table-commits"
+const addMessageColumnToCommitsTable = "add-message-column-to-commits-table"
+const addCreatedColumnToCommitsTable = "add-created-column-to-commits-table"
 
 type migration struct {
 	name string
@@ -59,6 +61,14 @@ status 	   TEXT,
 UNIQUE(sha,repo)
 );
 `,
+		},
+		{
+			name: addMessageColumnToCommitsTable,
+			stmt: `ALTER TABLE commits ADD COLUMN message TEXT;`,
+		},
+		{
+			name: addCreatedColumnToCommitsTable,
+			stmt: `ALTER TABLE commits ADD COLUMN created INTEGER;`,
 		},
 	},
 	"postgres": {},
