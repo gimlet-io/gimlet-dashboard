@@ -125,6 +125,11 @@ export default class Repo extends Component {
       :
       (<p className="text-xs text-gray-800">No services</p>);
 
+    let repoRolloutHistory = undefined;
+    if (rolloutHistory && rolloutHistory[repoName]) {
+      repoRolloutHistory = rolloutHistory[repoName]
+    }
+
     return (
       <div>
         <header>
@@ -147,8 +152,8 @@ export default class Repo extends Component {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
                     let appRolloutHistory = undefined;
-                    if (rolloutHistory && rolloutHistory[service.repo]) {
-                      appRolloutHistory = rolloutHistory[service.repo][envName][service.service.name]
+                    if (repoRolloutHistory) {
+                      appRolloutHistory = repoRolloutHistory[envName][service.service.name]
                     }
 
                     return (
@@ -173,7 +178,11 @@ export default class Repo extends Component {
                           }
                         </div>
                         {commits &&
-                        <Commits commits={commits[repoName]}/>
+                        <Commits
+                          commits={commits[repoName]}
+                          envs={filteredEnvs}
+                          rolloutHistory={repoRolloutHistory}
+                        />
                         }
                       </div>
                     </div>
