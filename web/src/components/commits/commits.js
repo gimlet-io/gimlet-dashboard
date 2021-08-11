@@ -72,7 +72,7 @@ export class Commits extends Component {
                   envs={envs}
                   rolloutHistory={rolloutHistory}
                 />
-                <DeployWidget/>
+                <DeployWidget deployTargets={commit.deployTargets}/>
               </div>
             </div>
           </div>
@@ -189,7 +189,7 @@ class ReleaseBadges extends Component {
     ))
 
     return (
-      <div class="max-w-sm break-all inline-block text-xs">
+      <div class="max-w-sm break-all inline-block text-sm">
         {recentBadges}
         {releaseBadges}
       </div>
