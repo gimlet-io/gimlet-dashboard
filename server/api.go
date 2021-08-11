@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/drone/go-scm/scm"
@@ -44,25 +45,11 @@ func envs(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	ctx := r.Context()
-	dao := ctx.Value("store").(*store.Store)
-	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
-	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-	for _, env := range envs {
-		for _, stack := range env.Stacks {
-			_, hashesToFetch, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao)
-			if err != nil {
-				logrus.Errorf("cannot decorate commits: %s", err)
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-
-			if len(hashesToFetch) > 0 {
-				owner, name := scm.Split(stack.Repo)
-				go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
-			}
-		}
+	err := decorateDeployments(r.Context(), envs)
+	if err != nil {
+		logrus.Errorf("cannot decorate deployments: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
 	}
 
 	envString, err := json.Marshal(envs)
@@ -76,6 +63,27 @@ func envs(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write(envString)
+}
+
+func decorateDeployments(ctx context.Context, envs []*api.Env) error {
+	dao := ctx.Value("store").(*store.Store)
+	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
+	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+	for _, env := range envs {
+		for _, stack := range env.Stacks {
+			_, hashesToFetch, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao)
+			if err != nil {
+				return fmt.Errorf("cannot decorate commits: %s", err)
+			}
+
+			if len(hashesToFetch) > 0 {
+				owner, name := scm.Split(stack.Repo)
+				go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
+			}
+		}
+	}
+	return nil
 }
 
 func switchToBranch(repo *git.Repository, branch string) error {

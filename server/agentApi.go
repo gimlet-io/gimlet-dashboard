@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -114,6 +115,13 @@ func state(w http.ResponseWriter, r *http.Request) {
 		Name:   name,
 		Stacks: stackPointers,
 	}}
+
+	err = decorateDeployments(r.Context(), envs)
+	if err != nil {
+		logrus.Errorf("cannot decorate deployments: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
 	jsonString, _ := json.Marshal(EnvsUpdatedEvent{
