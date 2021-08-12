@@ -38,7 +38,7 @@ export default function DeployWidget(props) {
                         'block px-4 py-2 text-sm w-full text-left'
                       )}
                     >
-                      to <span class="capitalize">{target.env}</span> as {target.app}
+                      {target.appAlias ? target.appAlias : target.app} to {target.env}
                     </button>
                   )}
                 </Menu.Item>

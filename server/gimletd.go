@@ -172,8 +172,9 @@ func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config
 					c.DeployTargets = []*DeployTarget{}
 				}
 				c.DeployTargets = append(c.DeployTargets, &DeployTarget{
-					App: targetEnv.App,
-					Env: targetEnv.Env,
+					App:      targetEnv.App,
+					AppAlias: targetEnv.AppAlias,
+					Env:      targetEnv.Env,
 				})
 			}
 		}

@@ -6,7 +6,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/drone/go-scm v1.15.1
 	github.com/fluxcd/pkg/recorder v0.0.6 // indirect
-	github.com/gimlet-io/gimletd v0.3.2-0.20210810124751-b6f1c92fc1e7
+	github.com/gimlet-io/gimletd v0.3.2-0.20210812062423-98cae8456a8b
 	github.com/gimlet-io/go-scm v1.7.1-0.20210805122147-afe9f16f8145
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.3
