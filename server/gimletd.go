@@ -127,6 +127,67 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	w.Write(releasesString)
 }
 
+func deploy(w http.ResponseWriter, r *http.Request) {
+	var releaseRequest dx.ReleaseRequest
+	err := json.NewDecoder(r.Body).Decode(&releaseRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
+	if config.GimletD.URL == "" ||
+		config.GimletD.TOKEN == "" {
+		w.WriteHeader(http.StatusNotFound)
+	}
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: config.GimletD.TOKEN,
+		},
+	)
+	adminClient := client.NewClient(config.GimletD.URL, auth)
+
+	user := ctx.Value("user").(*model.User)
+	gimletdUser, err := adminClient.UserGet(user.Login, true)
+	if err != nil {
+		logrus.Errorf("cannot find gimletd user: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	oauth2Config = new(oauth2.Config)
+	auth = oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: gimletdUser.Token,
+		},
+	)
+	impersonatedClient := client.NewClient(config.GimletD.URL, auth)
+
+	trackingID, err := impersonatedClient.ReleasesPost(releaseRequest)
+	if err != nil {
+		logrus.Errorf("cannot post release: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	trackingString, err := json.Marshal(map[string]interface{}{
+		"trackingId": trackingID,
+	})
+	if err != nil {
+		logrus.Errorf("cannot serialize trackingId: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(trackingString)
+}
+
 func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config) ([]*Commit, error) {
 	if config.GimletD.URL == "" ||
 		config.GimletD.TOKEN == "" {
@@ -172,9 +233,10 @@ func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config
 					c.DeployTargets = []*DeployTarget{}
 				}
 				c.DeployTargets = append(c.DeployTargets, &DeployTarget{
-					App:      targetEnv.App,
-					AppAlias: targetEnv.AppAlias,
-					Env:      targetEnv.Env,
+					App:        targetEnv.App,
+					AppAlias:   targetEnv.AppAlias,
+					Env:        targetEnv.Env,
+					ArtifactId: artifact.ID,
 				})
 			}
 		}

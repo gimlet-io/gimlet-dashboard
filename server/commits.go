@@ -121,9 +121,10 @@ func commits(w http.ResponseWriter, r *http.Request) {
 }
 
 type DeployTarget struct {
-	App      string `json:"app"`
-	AppAlias string `json:"appAlias,omitempty"`
-	Env      string `json:"env"`
+	App        string `json:"app"`
+	AppAlias   string `json:"appAlias,omitempty"`
+	Env        string `json:"env"`
+	ArtifactId string `json:"artifactId"`
 }
 
 // Commit represents a Github commit

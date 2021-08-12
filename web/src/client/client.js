@@ -28,6 +28,8 @@ export default class GimletClient {
 
   getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
 
+  deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })

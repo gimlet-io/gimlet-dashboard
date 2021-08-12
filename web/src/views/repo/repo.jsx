@@ -31,6 +31,7 @@ export default class Repo extends Component {
     });
 
     this.branchChange = this.branchChange.bind(this)
+    this.deploy = this.deploy.bind(this)
   }
 
   componentDidMount() {
@@ -73,7 +74,7 @@ export default class Repo extends Component {
   }
 
   branchChange(newBranch) {
-    if(newBranch === '') {
+    if (newBranch === '') {
       return
     }
 
@@ -95,6 +96,10 @@ export default class Repo extends Component {
         }, () => {/* Generic error handler deals with it */
         });
     }
+  }
+
+  deploy(target) {
+    this.props.gimletClient.deploy(target.artifactId, target.env, target.app);
   }
 
   render() {
@@ -136,7 +141,13 @@ export default class Repo extends Component {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}
               <a href={`https://github.com/${owner}/${repo}`} target="_blank" rel="noopener noreferrer">
-                <svg xmlns="http://www.w3.org/2000/svg" className="inline fill-current text-gray-500 hover:text-gray-700 ml-1" width="12" height="12" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     className="inline fill-current text-gray-500 hover:text-gray-700 ml-1" width="12" height="12"
+                     viewBox="0 0 24 24">
+                  <path d="M0 0h24v24H0z" fill="none"/>
+                  <path
+                    d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                </svg>
               </a>
             </h1>
             <button class="text-gray-500 hover:text-gray-700" onClick={() => this.props.history.goBack()}>
@@ -182,6 +193,7 @@ export default class Repo extends Component {
                           commits={commits[repoName]}
                           envs={filteredEnvs}
                           rolloutHistory={repoRolloutHistory}
+                          deployHandler={this.deploy}
                         />
                         }
                       </div>
