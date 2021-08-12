@@ -172,7 +172,7 @@ class ReleaseBadges extends Component {
       <span
         className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800 mr-2"
       >
-        was recently on <span className="capitalize mx-1">{release.env}</span> as {release.app}
+        was recently on {release.env} as {release.app}
       </span>
     ))
 
@@ -180,7 +180,7 @@ class ReleaseBadges extends Component {
       <span
         className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-pink-100 text-pink-800 mr-2"
       >
-        on <span className="capitalize mx-1">{release.env}</span> as {release.app}
+        on {release.env} as {release.app}
       </span>
     ))
 
