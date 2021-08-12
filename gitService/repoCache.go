@@ -86,7 +86,7 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 		logrus.Info("repo cache is stale, updating")
 		err := r.updateRepo(repoName)
 		if err != nil {
-			logrus.Errorf("could not update git repo %s", err)
+			logrus.Errorf("could not update git repo %s: %s", repoName, err)
 		}
 	}
 }
