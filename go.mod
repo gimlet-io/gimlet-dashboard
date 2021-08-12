@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c // indirect
+	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/drone/go-scm v1.15.1
 	github.com/gimlet-io/gimletd v0.3.2-0.20210812062423-98cae8456a8b
@@ -12,7 +13,9 @@ require (
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/jwtauth/v5 v5.0.1
-	github.com/go-git/go-git/v5 v5.4.2
+	github.com/go-git/go-billy/v5 v5.3.1 // indirect
+	github.com/go-git/go-git-fixtures/v4 v4.2.1 // indirect
+	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-github/v37 v37.0.0
 	github.com/gorilla/securecookie v1.1.1
