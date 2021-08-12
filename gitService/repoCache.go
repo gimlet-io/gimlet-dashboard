@@ -183,7 +183,7 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 			Username: user,
 			Password: token,
 		},
-		Depth: 100,
+		//Depth: 100,
 	})
 	if err != nil {
 		return nil, errors.WithMessage(err, "couldn't fetch")
