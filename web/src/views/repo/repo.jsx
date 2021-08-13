@@ -1,9 +1,13 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
-import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {
+  ACTION_TYPE_BRANCHES,
+  ACTION_TYPE_COMMITS,
+  ACTION_TYPE_DEPLOY,
+  ACTION_TYPE_ROLLOUT_HISTORY
+} from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
 import Dropdown from "../../components/dropdown/dropdown";
-import DeployStatus from "../../components/deployStatus/deployStatus";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -99,8 +103,13 @@ export default class Repo extends Component {
     }
   }
 
-  deploy(target) {
+  deploy(target, sha) {
     this.props.gimletClient.deploy(target.artifactId, target.env, target.app);
+
+    target.sha = sha;
+    this.props.store.dispatch({
+      type: ACTION_TYPE_DEPLOY, payload: target
+    });
   }
 
   render() {
@@ -205,7 +214,6 @@ export default class Repo extends Component {
               </div>
             </div>
           </div>
-          <DeployStatus />
         </main>
       </div>
     )

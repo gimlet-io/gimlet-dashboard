@@ -72,7 +72,11 @@ export class Commits extends Component {
                   envs={envs}
                   rolloutHistory={rolloutHistory}
                 />
-                <DeployWidget deployTargets={commit.deployTargets} deployHandler={deployHandler}/>
+                <DeployWidget
+                  deployTargets={commit.deployTargets}
+                  deployHandler={deployHandler}
+                  sha={commit.sha}
+                />
               </div>
             </div>
           </div>

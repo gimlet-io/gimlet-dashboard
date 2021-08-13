@@ -6,7 +6,7 @@ function classNames(...classes) {
 }
 
 export default function DeployWidget(props) {
-  const {deployTargets, deployHandler} = props;
+  const {deployTargets, deployHandler, sha} = props;
 
   if (!deployTargets) {
     return null;
@@ -33,7 +33,7 @@ export default function DeployWidget(props) {
                 <Menu.Item key={`${target.app}-${target.env}`}>
                   {({active}) => (
                     <button
-                      onClick={() => deployHandler(target)}
+                      onClick={() => deployHandler(target, sha)}
                       className={classNames(
                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                         'block px-4 py-2 text-sm w-full text-left'

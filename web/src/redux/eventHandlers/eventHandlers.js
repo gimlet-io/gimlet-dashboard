@@ -47,3 +47,8 @@ export function branches(state, payload) {
   state.branches[repo] = payload.branches;
   return state;
 }
+
+export function deploy(state, payload) {
+  state.runningDeploys.push(payload);
+  return state;
+}

@@ -11,6 +11,7 @@ export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
 export const ACTION_TYPE_BRANCHES = 'branches';
+export const ACTION_TYPE_DEPLOY = 'deploy';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -36,7 +37,8 @@ export const initialState = {
   search: {filter: ''},
   rolloutHistory: {},
   commits: {},
-  branches: {}
+  branches: {},
+  runningDeploys: []
 };
 
 export function rootReducer(state = initialState, action) {
@@ -57,6 +59,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.commits(state, action.payload)
     case ACTION_TYPE_BRANCHES:
       return eventHandlers.branches(state, action.payload)
+    case ACTION_TYPE_DEPLOY:
+      return eventHandlers.deploy(state, action.payload)
     default:
       console.log('Could not process redux event: ' + JSON.stringify(action));
       return state;

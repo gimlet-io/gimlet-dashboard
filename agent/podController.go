@@ -64,6 +64,10 @@ func PodController(kubeEnv *KubeEnv, gimletHost string, agentKey string) *Contro
 					return err
 				}
 
+				if obj == nil {
+					return nil
+				}
+
 				updatedPod := obj.(*v1.Pod)
 				for _, svc := range integratedServices {
 					if hasLabels(svc.Spec.Selector, updatedPod.GetObjectMeta().GetLabels()) {
