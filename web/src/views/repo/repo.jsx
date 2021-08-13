@@ -3,6 +3,7 @@ import ServiceDetail from "../../components/serviceDetail/serviceDetail";
 import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
 import Dropdown from "../../components/dropdown/dropdown";
+import DeployStatus from "../../components/deployStatus/deployStatus";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -204,6 +205,7 @@ export default class Repo extends Component {
               </div>
             </div>
           </div>
+          <DeployStatus />
         </main>
       </div>
     )
