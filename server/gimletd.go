@@ -188,6 +188,46 @@ func deploy(w http.ResponseWriter, r *http.Request) {
 	w.Write(trackingString)
 }
 
+func deployStatus(w http.ResponseWriter, r *http.Request) {
+	trackingId := r.URL.Query().Get("trackingId")
+	if trackingId == "" {
+		http.Error(w, fmt.Sprintf("%s: %s", http.StatusText(http.StatusBadRequest), "trackingId parameter is mandatory"), http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
+	if config.GimletD.URL == "" ||
+		config.GimletD.TOKEN == "" {
+		w.WriteHeader(http.StatusNotFound)
+	}
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: config.GimletD.TOKEN,
+		},
+	)
+	client := client.NewClient(config.GimletD.URL, auth)
+
+	releaseStatus, err := client.TrackGet(trackingId)
+	if err != nil {
+		logrus.Errorf("cannot get deployStatus: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	releaseStatusString, err := json.Marshal(releaseStatus)
+	if err != nil {
+		logrus.Errorf("cannot serialize releaseStatus: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(releaseStatusString)
+}
+
 func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config) ([]*Commit, error) {
 	if config.GimletD.URL == "" ||
 		config.GimletD.TOKEN == "" {

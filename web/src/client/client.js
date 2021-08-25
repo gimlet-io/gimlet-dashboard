@@ -30,6 +30,8 @@ export default class GimletClient {
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
+  getDeployStatus = (trackingId) => this.get(`/api/deployStatus?trackingId=${trackingId}`);
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })

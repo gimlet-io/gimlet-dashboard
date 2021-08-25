@@ -30,32 +30,40 @@ export default class DeployStatus extends Component {
     const deploy = runningDeploys[0];
 
     let gitopsWidget = (
-      <div>
-        <p className="text-yellow-100 font-semibold">
-          Manifests written to git
-        </p>
-        <p className="pl-2 mb-4">
-          📋 {deploy.gitopsSha}
-        </p>
-      </div>
+      <Loading/>
     )
+    let appliedWidget = null;
 
-    let appliedWidget = (
-      <p className="font-semibold text-green-300">
-        Gitops changes applied
-      </p>
-    )
-
-    if (!deploy.gitopsSha) {
+    if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length != 0) {
       gitopsWidget = (
-        <Loading/>
+        <div>
+          <p className="text-yellow-100 font-semibold">
+            Manifests written to git
+          </p>
+          {Object.keys(deploy.gitopsHashes).map(hash => (
+            <p className="pl-2 mb-4">
+              📋 {hash.slice(0, 6)}
+            </p>
+          ))}
+        </div>
       )
-      appliedWidget = null;
-    } else if (!deploy.applied) {
       appliedWidget = (
         <Loading/>
       )
     }
+
+    if (deploy.gitopsHashes &&
+      Object.keys(deploy.gitopsHashes).length != 0 &&
+      Object.keys(deploy.gitopsHashes).filter(gitopsHash => deploy.gitopsHashes[gitopsHash].status === 'N/A').length === 0
+    ) {
+      appliedWidget = (
+        <p className="font-semibold text-green-300">
+          Gitops changes applied
+        </p>
+      )
+    }
+
+    console.log(deploy)
 
     return (
       <>
@@ -80,7 +88,7 @@ export default class DeployStatus extends Component {
                   <div className="flex">
                     <div className="w-0 flex-1 justify-between">
                       <p className="text-yellow-100 font-semibold">
-                        Rolling out {deploy.app}
+                        Rolling out {deploy.appAlias ? deploy.appAlias : deploy.app}
                       </p>
                       <p class="pl-2  ">
                         🎯 {deploy.env}

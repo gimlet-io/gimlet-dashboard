@@ -52,3 +52,15 @@ export function deploy(state, payload) {
   state.runningDeploys.push(payload);
   return state;
 }
+
+export function deployStatus(state, payload) {
+  for (let runningDeploy of state.runningDeploys) {
+    if (runningDeploy.sha === payload.sha &&
+      runningDeploy.env === payload.env &&
+      runningDeploy.app === payload.app) {
+      runningDeploy = payload;
+    }
+  }
+
+  return state;
+}
