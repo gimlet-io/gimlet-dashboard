@@ -84,14 +84,23 @@ func (r *RepoCache) Run() {
 }
 
 func (r *RepoCache) syncGitRepo(repoName string) {
-	hasChanges, err := r.remoteHasChanges(repoName)
+	token, user, err := r.tokenManager.Token()
+	if err != nil {
+		logrus.Errorf("couldn't get scm token: %s", err)
+	}
 
-	if hasChanges || err != nil {
-		logrus.Info("repo cache is stale, updating")
-		err := r.updateRepo(repoName)
-		if err != nil {
-			logrus.Errorf("could not update git repo %s: %s", repoName, err)
-		}
+	err = r.repos[repoName].Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		Auth: &http.BasicAuth{
+			Username: user,
+			Password: token,
+		},
+	})
+	if err == git.NoErrAlreadyUpToDate {
+		return
+	}
+	if err != nil {
+		logrus.Errorf("could not fetch: %s", err)
 	}
 }
 
@@ -101,14 +110,13 @@ func (r *RepoCache) updateRepo(repoName string) error {
 		return errors.WithMessage(err, "couldn't get scm token")
 	}
 
-	worktree, err := r.repos[repoName].Worktree()
-
-	return worktree.Pull(&git.PullOptions{
-		RemoteName: "origin",
+	return r.repos[repoName].Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
 		},
+		Depth: 100,
 	})
 }
 
@@ -195,27 +203,4 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 
 	r.repos[repoName] = repo
 	return repo, nil
-}
-
-func (r *RepoCache) remoteHasChanges(repoName string) (bool, error) {
-	token, user, err := r.tokenManager.Token()
-	if err != nil {
-		return false, errors.WithMessage(err, "couldn't get scm token")
-	}
-
-	err = r.repos[repoName].Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
-		Auth: &http.BasicAuth{
-			Username: user,
-			Password: token,
-		},
-	})
-	if err == git.NoErrAlreadyUpToDate {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
 }
