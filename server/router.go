@@ -87,6 +87,7 @@ func userRoutes(r *chi.Mux) {
 		r.Use(session.SetCSRF())
 		r.Use(session.MustUser())
 
+		r.Get("/api/gitopsRepo", gitopsRepo)
 		r.Get("/api/user", user)
 		r.Get("/api/gimletd", gimletd)
 		r.Get("/api/envs", envs)
@@ -94,6 +95,7 @@ func userRoutes(r *chi.Mux) {
 		r.Get("/api/repo/{owner}/{name}/commits", commits)
 		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
 		r.Post("/api/deploy", deploy)
+		r.Get("/api/deployStatus", deployStatus)
 		r.Get("/api/repo/{owner}/{name}/branches", branches)
 	})
 }

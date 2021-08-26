@@ -38,6 +38,10 @@ func NewRepoCache(
 		cachePath:    cachePath,
 	}
 
+	const DirRwxRxR = 0754
+	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
+		os.MkdirAll(cachePath, DirRwxRxR)
+	}
 	paths, err := os.ReadDir(cachePath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot list files: %s", err)

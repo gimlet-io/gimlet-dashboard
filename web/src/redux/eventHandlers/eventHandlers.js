@@ -8,6 +8,11 @@ export function agentDisconnected(state, event) {
   return state;
 }
 
+export function gitopsRepo(state, event) {
+  state.settings.gitopsRepo = event.gitopsRepo;
+  return state;
+}
+
 export function envsUpdated(state, envs) {
   envs.forEach((env) => {
     state.envs[env.name] = env;
@@ -45,5 +50,27 @@ export function commits(state, payload) {
 export function branches(state, payload) {
   const repo = `${payload.owner}/${payload.repo}`;
   state.branches[repo] = payload.branches;
+  return state;
+}
+
+export function deploy(state, payload) {
+  state.runningDeploys = [payload];
+  return state;
+}
+
+export function deployStatus(state, payload) {
+  for (let runningDeploy of state.runningDeploys) {
+    if (runningDeploy.sha === payload.sha &&
+      runningDeploy.env === payload.env &&
+      runningDeploy.app === payload.app) {
+      runningDeploy = payload;
+    }
+  }
+
+  return state;
+}
+
+export function clearDeployStatus(state) {
+  state.runningDeploys = [];
   return state;
 }

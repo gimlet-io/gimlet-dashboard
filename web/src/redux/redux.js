@@ -11,6 +11,10 @@ export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
 export const ACTION_TYPE_BRANCHES = 'branches';
+export const ACTION_TYPE_DEPLOY = 'deploy';
+export const ACTION_TYPE_DEPLOY_STATUS = 'deployStatus';
+export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
+export const ACTION_TYPE_GITOPS_REPO = 'gitopsRepo';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -36,13 +40,16 @@ export const initialState = {
   search: {filter: ''},
   rolloutHistory: {},
   commits: {},
-  branches: {}
+  branches: {},
+  runningDeploys: []
 };
 
 export function rootReducer(state = initialState, action) {
   switch (action.type) {
     case ACTION_TYPE_STREAMING:
       return processStreamingEvent(state, action.payload)
+    case ACTION_TYPE_GITOPS_REPO:
+      return eventHandlers.gitopsRepo(state, action.payload);
     case ACTION_TYPE_ENVS:
       return eventHandlers.envsUpdated(state, action.payload)
     case ACTION_TYPE_USER:
@@ -57,6 +64,12 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.commits(state, action.payload)
     case ACTION_TYPE_BRANCHES:
       return eventHandlers.branches(state, action.payload)
+    case ACTION_TYPE_DEPLOY:
+      return eventHandlers.deploy(state, action.payload)
+    case ACTION_TYPE_DEPLOY_STATUS:
+      return eventHandlers.deployStatus(state, action.payload)
+    case ACTION_TYPE_CLEAR_DEPLOY_STATUS:
+      return eventHandlers.clearDeployStatus(state)
     default:
       console.log('Could not process redux event: ' + JSON.stringify(action));
       return state;

@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import ServiceDetail from "../../components/serviceDetail/serviceDetail";
-import {ACTION_TYPE_BRANCHES, ACTION_TYPE_COMMITS, ACTION_TYPE_ROLLOUT_HISTORY} from "../../redux/redux";
+import {
+  ACTION_TYPE_BRANCHES,
+  ACTION_TYPE_COMMITS,
+  ACTION_TYPE_DEPLOY, ACTION_TYPE_DEPLOY_STATUS,
+  ACTION_TYPE_ROLLOUT_HISTORY
+} from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
 import Dropdown from "../../components/dropdown/dropdown";
 
@@ -16,7 +21,8 @@ export default class Repo extends Component {
       rolloutHistory: reduxState.rolloutHistory,
       commits: reduxState.commits,
       branches: reduxState.branches,
-      selectedBranch: ''
+      selectedBranch: '',
+      settings: reduxState.settings
     }
 
     // handling API and streaming state changes
@@ -98,8 +104,51 @@ export default class Repo extends Component {
     }
   }
 
-  deploy(target) {
-    this.props.gimletClient.deploy(target.artifactId, target.env, target.app);
+  checkDeployStatus(deployRequest) {
+    this.props.gimletClient.getDeployStatus(deployRequest.trackingId)
+      .then(data => {
+        deployRequest.status = data.status;
+        deployRequest.statusDesc = data.statusDesc;
+        deployRequest.gitopsHashes = data.gitopsHashes;
+        this.props.store.dispatch({
+          type: ACTION_TYPE_DEPLOY_STATUS, payload: deployRequest
+        });
+
+        if (data.status === "new") {
+          setTimeout(() => {
+            this.checkDeployStatus(deployRequest);
+          }, 500);
+        }
+
+        if (data.status === "processed") {
+          for(let gitopsHash of Object.keys(data.gitopsHashes)) {
+            if (data.gitopsHashes[gitopsHash].status === 'N/A') { // poll until all gitops writes are applied
+              setTimeout(() => {
+                this.checkDeployStatus(deployRequest);
+              }, 500);
+            }
+          }
+        }
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
+  deploy(target, sha, repo) {
+    this.props.gimletClient.deploy(target.artifactId, target.env, target.app)
+      .then(data => {
+        target.sha = sha;
+        target.trackingId = data.trackingId;
+        setTimeout(() => {
+          this.checkDeployStatus(target);
+        }, 500);
+      }, () => {/* Generic error handler deals with it */
+      });
+
+    target.sha = sha;
+    target.repo = repo;
+    this.props.store.dispatch({
+      type: ACTION_TYPE_DEPLOY, payload: target
+    });
   }
 
   render() {
@@ -168,7 +217,11 @@ export default class Repo extends Component {
                     }
 
                     return (
-                      <ServiceDetail key={service.service.name} service={service} rolloutHistory={appRolloutHistory}/>
+                      <ServiceDetail
+                        key={service.service.name}
+                        service={service}
+                        rolloutHistory={appRolloutHistory}
+                      />
                     )
                   })
 
@@ -194,6 +247,7 @@ export default class Repo extends Component {
                           envs={filteredEnvs}
                           rolloutHistory={repoRolloutHistory}
                           deployHandler={this.deploy}
+                          repo={repoName}
                         />
                         }
                       </div>

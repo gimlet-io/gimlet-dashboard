@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -59,10 +60,11 @@ func envs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	agentHub.ForceStateSend()
-
 	w.WriteHeader(200)
 	w.Write(envString)
+
+	time.Sleep(50 * time.Millisecond) // there is a race condition in local dev: the refetch arrives sooner
+	go agentHub.ForceStateSend()
 }
 
 func decorateDeployments(ctx context.Context, envs []*api.Env) error {

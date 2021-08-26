@@ -11,6 +11,7 @@ import APIBackend from "./apiBackend";
 import Profile from "./views/profile/profile";
 import Services from "./views/services/services";
 import Repo from "./views/repo/repo";
+import DeployStatus from "./components/deployStatus/deployStatus";
 
 
 export default class App extends Component {
@@ -30,7 +31,7 @@ export default class App extends Component {
 
     this.state = {
       store: store,
-      gimletClient: gimletClient
+      gimletClient: gimletClient,
     }
   }
 
@@ -91,6 +92,7 @@ export default class App extends Component {
             </Switch>
           </div>
         </div>
+        <DeployStatus store={store}/>
       </Router>
     )
   }

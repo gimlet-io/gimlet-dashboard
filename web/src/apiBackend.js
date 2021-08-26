@@ -1,5 +1,5 @@
 import {Component} from 'react';
-import {ACTION_TYPE_ENVS, ACTION_TYPE_GIMLETD, ACTION_TYPE_USER} from "./redux/redux";
+import {ACTION_TYPE_ENVS, ACTION_TYPE_GIMLETD, ACTION_TYPE_GITOPS_REPO, ACTION_TYPE_USER} from "./redux/redux";
 
 export default class APIBackend extends Component {
 
@@ -10,6 +10,9 @@ export default class APIBackend extends Component {
       return;
     }
 
+    this.props.gimletClient.getGitopsRepo()
+      .then(data => this.props.store.dispatch({type: ACTION_TYPE_GITOPS_REPO, payload: data}), () => {/* Generic error handler deals with it */
+      });
     this.props.gimletClient.getUser()
       .then(data => this.props.store.dispatch({type: ACTION_TYPE_USER, payload: data}), () => {/* Generic error handler deals with it */
       });

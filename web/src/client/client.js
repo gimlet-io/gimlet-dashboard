@@ -18,6 +18,8 @@ export default class GimletClient {
 
   getUser = () => this.get('/api/user');
 
+  getGitopsRepo = () => this.get('/api/gitopsRepo');
+
   getEnvs = () => this.get('/api/envs');
 
   getGimletD = () => this.get('/api/gimletd');
@@ -29,6 +31,8 @@ export default class GimletClient {
   getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
+
+  getDeployStatus = (trackingId) => this.get(`/api/deployStatus?trackingId=${trackingId}`);
 
   get = (path) => fetch(this.url + path, {
     credentials: 'include'

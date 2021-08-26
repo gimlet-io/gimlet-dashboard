@@ -4,7 +4,7 @@ import DeployWidget from "../deployWidget/deployWidget";
 
 export class Commits extends Component {
   render() {
-    const {commits, envs, rolloutHistory, deployHandler} = this.props;
+    const {commits, envs, rolloutHistory, deployHandler, repo} = this.props;
 
     if (!commits) {
       return null;
@@ -72,7 +72,12 @@ export class Commits extends Component {
                   envs={envs}
                   rolloutHistory={rolloutHistory}
                 />
-                <DeployWidget deployTargets={commit.deployTargets} deployHandler={deployHandler}/>
+                <DeployWidget
+                  deployTargets={commit.deployTargets}
+                  deployHandler={deployHandler}
+                  sha={commit.sha}
+                  repo={repo}
+                />
               </div>
             </div>
           </div>
@@ -169,7 +174,7 @@ class ReleaseBadges extends Component {
     }
 
     let recentBadges = recent.map((release) => (
-      <span
+      <span key={`${release.app}-${release.env}`}
         className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800 mr-2"
       >
         was recently {release.app} on {release.env}
@@ -177,7 +182,7 @@ class ReleaseBadges extends Component {
     ))
 
     let releaseBadges = current.map((release) => (
-      <span
+      <span key={`${release.app}-${release.env}`}
         className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-pink-100 text-pink-800 mr-2"
       >
         {release.app} on {release.env}
