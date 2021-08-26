@@ -82,7 +82,15 @@ at ${exactDate}`;
                     <p href="#" className="font-medium text-gray-900">{rollout.triggeredBy}</p>
                   </div>
                   <p className="mt-0.5 text-sm text-gray-500">
-                    Released {dateLabel} ago
+                    <span>Released</span>
+                    <a
+                      className="ml-1"
+                      title={exactDate}
+                      href={`https://github.com/${rollout.gitopsRepo}/commit/${rollout.gitopsRef}`}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      {dateLabel} ago
+                    </a>
                   </p>
                 </div>
                 <div className="mt-2 text-sm text-gray-700">
