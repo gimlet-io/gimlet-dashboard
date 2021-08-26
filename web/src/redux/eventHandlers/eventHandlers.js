@@ -49,7 +49,7 @@ export function branches(state, payload) {
 }
 
 export function deploy(state, payload) {
-  state.runningDeploys.push(payload);
+  state.runningDeploys = [payload];
   return state;
 }
 
@@ -62,5 +62,10 @@ export function deployStatus(state, payload) {
     }
   }
 
+  return state;
+}
+
+export function clearDeployStatus(state) {
+  state.runningDeploys = [];
   return state;
 }

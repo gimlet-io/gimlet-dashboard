@@ -1,6 +1,7 @@
 import {Component, Fragment} from 'react'
 import {Transition} from '@headlessui/react'
 import {XIcon} from '@heroicons/react/solid'
+import {ACTION_TYPE_CLEAR_DEPLOY_STATUS, ACTION_TYPE_DEPLOY_STATUS} from "../../redux/redux";
 
 export default class DeployStatus extends Component {
   constructor(props) {
@@ -63,8 +64,6 @@ export default class DeployStatus extends Component {
       )
     }
 
-    console.log(deploy)
-
     return (
       <>
         <div
@@ -73,7 +72,7 @@ export default class DeployStatus extends Component {
         >
           <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
             <Transition
-              show={show && runningDeploys.length > 0}
+              show={runningDeploys.length > 0}
               as={Fragment}
               enter="transform ease-out duration-300 transition"
               enterFrom="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
@@ -103,7 +102,9 @@ export default class DeployStatus extends Component {
                       <button
                         className="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
                         onClick={() => {
-                          this.setState({show: false});
+                          this.props.store.dispatch({
+                            type: ACTION_TYPE_CLEAR_DEPLOY_STATUS, payload: {}
+                          });
                         }}
                       >
                         <span className="sr-only">Close</span>

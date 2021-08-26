@@ -2,7 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/gimlet-io/gimlet-dashboard/agent"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -141,7 +143,25 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
+	update = decorateDeploymentUpdateWithCommitMessage(update, r)
+
 	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
 	jsonString, _ := json.Marshal(update)
 	clientHub.Broadcast <- jsonString
+}
+
+func decorateDeploymentUpdateWithCommitMessage(update api.StackUpdate, r *http.Request) api.StackUpdate {
+	if update.Event == agent.EventDeploymentUpdated {
+		dao := r.Context().Value("store").(*store.Store)
+
+		dbCommits, err := dao.CommitsByRepoAndSHA(update.Repo, []string{update.SHA})
+		if err != nil {
+			logrus.Warnf("cannot get commits from db %s", err)
+		}
+		if len(dbCommits) == 1 {
+			update.CommitMessage = dbCommits[0].Message
+		}
+	}
+
+	return update
 }

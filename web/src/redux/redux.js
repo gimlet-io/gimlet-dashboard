@@ -13,6 +13,7 @@ export const ACTION_TYPE_COMMITS = 'commits';
 export const ACTION_TYPE_BRANCHES = 'branches';
 export const ACTION_TYPE_DEPLOY = 'deploy';
 export const ACTION_TYPE_DEPLOY_STATUS = 'deployStatus';
+export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -64,6 +65,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.deploy(state, action.payload)
     case ACTION_TYPE_DEPLOY_STATUS:
       return eventHandlers.deployStatus(state, action.payload)
+    case ACTION_TYPE_CLEAR_DEPLOY_STATUS:
+      return eventHandlers.clearDeployStatus(state)
     default:
       console.log('Could not process redux event: ' + JSON.stringify(action));
       return state;

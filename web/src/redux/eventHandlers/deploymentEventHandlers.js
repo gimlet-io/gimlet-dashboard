@@ -39,8 +39,8 @@ export function deploymentUpdated(state, event) {
 
     if (stack.deployment && stack.deployment.namespace + '/' + stack.deployment.name === event.subject) {
       stacks[stackID].deployment.sha = event.sha;
+      stacks[stackID].deployment.commitMessage = event.commitMessage;
     }
-
   });
 
   return state

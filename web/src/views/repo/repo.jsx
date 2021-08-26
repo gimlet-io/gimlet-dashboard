@@ -215,7 +215,11 @@ export default class Repo extends Component {
                     }
 
                     return (
-                      <ServiceDetail key={service.service.name} service={service} rolloutHistory={appRolloutHistory}/>
+                      <ServiceDetail
+                        key={service.service.name}
+                        service={service}
+                        rolloutHistory={appRolloutHistory}
+                      />
                     )
                   })
 

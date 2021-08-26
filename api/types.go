@@ -76,7 +76,8 @@ type StackUpdate struct {
 	Logs       string `json:"logs"`
 
 	// Deployment
-	SHA string `json:"sha"`
+	SHA           string `json:"sha"`
+	CommitMessage string `json:"commitMessage"` // only used in streamed update to frontend
 
 	// Ingress
 	URL string `json:"url"`
