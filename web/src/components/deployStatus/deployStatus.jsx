@@ -34,7 +34,7 @@ export default class DeployStatus extends Component {
     )
     let appliedWidget = null;
 
-    if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length != 0) {
+    if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length !== 0) {
       gitopsWidget = (
         <div>
           <p className="text-yellow-100 font-semibold">
@@ -53,7 +53,7 @@ export default class DeployStatus extends Component {
     }
 
     if (deploy.gitopsHashes &&
-      Object.keys(deploy.gitopsHashes).length != 0 &&
+      Object.keys(deploy.gitopsHashes).length !== 0 &&
       Object.keys(deploy.gitopsHashes).filter(gitopsHash => deploy.gitopsHashes[gitopsHash].status === 'N/A').length === 0
     ) {
       appliedWidget = (
