@@ -90,7 +90,7 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 	}
 
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "HEAD:refs/heads/HEAD"},
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
@@ -102,22 +102,6 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 	if err != nil {
 		logrus.Errorf("could not fetch: %s", err)
 	}
-}
-
-func (r *RepoCache) updateRepo(repoName string) error {
-	token, user, err := r.tokenManager.Token()
-	if err != nil {
-		return errors.WithMessage(err, "couldn't get scm token")
-	}
-
-	return r.repos[repoName].Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
-		Auth: &http.BasicAuth{
-			Username: user,
-			Password: token,
-		},
-		Depth: 100,
-	})
 }
 
 func (r *RepoCache) InstanceForRead(repoName string) (*git.Repository, error) {
@@ -190,7 +174,7 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 	}
 
 	err = repo.Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "HEAD:refs/heads/HEAD"},
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
