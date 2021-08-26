@@ -1,7 +1,7 @@
 import {Component, Fragment} from 'react'
 import {Transition} from '@headlessui/react'
 import {XIcon} from '@heroicons/react/solid'
-import {ACTION_TYPE_CLEAR_DEPLOY_STATUS, ACTION_TYPE_DEPLOY_STATUS} from "../../redux/redux";
+import {ACTION_TYPE_CLEAR_DEPLOY_STATUS} from "../../redux/redux";
 
 export default class DeployStatus extends Component {
   constructor(props) {
@@ -10,7 +10,6 @@ export default class DeployStatus extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      show: true,
       runningDeploys: reduxState.runningDeploys
     }
 
@@ -23,7 +22,7 @@ export default class DeployStatus extends Component {
   }
 
   render() {
-    const {show, runningDeploys} = this.state;
+    const {runningDeploys} = this.state;
     if (runningDeploys.length === 0) {
       return null;
     }
