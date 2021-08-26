@@ -18,6 +18,8 @@ export default class GimletClient {
 
   getUser = () => this.get('/api/user');
 
+  getGitopsRepo = () => this.get('/api/gitopsRepo');
+
   getEnvs = () => this.get('/api/envs');
 
   getGimletD = () => this.get('/api/gimletd');

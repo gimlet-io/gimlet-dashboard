@@ -14,6 +14,7 @@ export const ACTION_TYPE_BRANCHES = 'branches';
 export const ACTION_TYPE_DEPLOY = 'deploy';
 export const ACTION_TYPE_DEPLOY_STATUS = 'deployStatus';
 export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
+export const ACTION_TYPE_GITOPS_REPO = 'gitopsRepo';
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -47,6 +48,8 @@ export function rootReducer(state = initialState, action) {
   switch (action.type) {
     case ACTION_TYPE_STREAMING:
       return processStreamingEvent(state, action.payload)
+    case ACTION_TYPE_GITOPS_REPO:
+      return eventHandlers.gitopsRepo(state, action.payload);
     case ACTION_TYPE_ENVS:
       return eventHandlers.envsUpdated(state, action.payload)
     case ACTION_TYPE_USER:

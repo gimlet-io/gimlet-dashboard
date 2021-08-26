@@ -8,6 +8,11 @@ export function agentDisconnected(state, event) {
   return state;
 }
 
+export function gitopsRepo(state, event) {
+  state.settings.gitopsRepo = event.gitopsRepo;
+  return state;
+}
+
 export function envsUpdated(state, envs) {
   envs.forEach((env) => {
     state.envs[env.name] = env;

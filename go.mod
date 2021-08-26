@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/drone/go-scm v1.15.1
-	github.com/gimlet-io/gimletd v0.3.3-0.20210826071947-5b1b9749b1ec
+	github.com/gimlet-io/gimletd v0.3.3-0.20210826104949-592e41ad2eca
 	github.com/gimlet-io/go-scm v1.7.1-0.20210805122147-afe9f16f8145
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.3

@@ -16,6 +16,45 @@ import (
 	"strings"
 )
 
+func gitopsRepo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
+
+	if config.GimletD.URL == "" ||
+		config.GimletD.TOKEN == "" {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("{}"))
+	}
+
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: config.GimletD.TOKEN,
+		},
+	)
+
+	client := client.NewClient(config.GimletD.URL, auth)
+	gitopsRepo, err := client.GitopsRepoGet()
+	if err != nil {
+		logrus.Errorf("cannot get gitops repo: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	gitopsRepoString, err := json.Marshal(map[string]interface{}{
+		"gitopsRepo":  gitopsRepo,
+	})
+	if err != nil {
+		logrus.Errorf("cannot serialize gitopsRepo: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(gitopsRepoString)
+}
+
 func gimletd(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := ctx.Value("user").(*model.User)

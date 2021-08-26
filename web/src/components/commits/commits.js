@@ -4,7 +4,7 @@ import DeployWidget from "../deployWidget/deployWidget";
 
 export class Commits extends Component {
   render() {
-    const {commits, envs, rolloutHistory, deployHandler} = this.props;
+    const {commits, envs, rolloutHistory, deployHandler, repo} = this.props;
 
     if (!commits) {
       return null;
@@ -76,6 +76,7 @@ export class Commits extends Component {
                   deployTargets={commit.deployTargets}
                   deployHandler={deployHandler}
                   sha={commit.sha}
+                  repo={repo}
                 />
               </div>
             </div>

@@ -10,7 +10,8 @@ export default class DeployStatus extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      runningDeploys: reduxState.runningDeploys
+      runningDeploys: reduxState.runningDeploys,
+      settings: reduxState.settings
     }
 
     // handling API and streaming state changes
@@ -18,11 +19,14 @@ export default class DeployStatus extends Component {
       let reduxState = this.props.store.getState();
 
       this.setState({runningDeploys: reduxState.runningDeploys});
+      this.setState({settings: reduxState.settings});
     });
   }
 
   render() {
-    const {runningDeploys} = this.state;
+    const {runningDeploys, settings} = this.state;
+    const gitopsRepo = settings.gitopsRepo;
+
     if (runningDeploys.length === 0) {
       return null;
     }
@@ -42,7 +46,14 @@ export default class DeployStatus extends Component {
           </p>
           {Object.keys(deploy.gitopsHashes).map(hash => (
             <p className="pl-2 mb-4">
-              📋 {hash.slice(0, 6)}
+              <span>📋</span>
+              <a
+                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                target="_blank" rel="noopener noreferrer"
+                className='ml-1'
+              >
+                {hash.slice(0, 6)}
+              </a>
             </p>
           ))}
         </div>
@@ -92,7 +103,14 @@ export default class DeployStatus extends Component {
                         🎯 {deploy.env}
                       </p>
                       <p class="pl-2 mb-4">
-                        📎 {deploy.sha.slice(0, 6)}
+                        <span>📎</span>
+                        <a
+                          href={`https://github.com/${deploy.repo}/commit/${deploy.sha}`}
+                          target="_blank" rel="noopener noreferrer"
+                          class='ml-1'
+                        >
+                          {deploy.sha.slice(0, 6)}
+                        </a>
                       </p>
                       {gitopsWidget}
                       {appliedWidget}

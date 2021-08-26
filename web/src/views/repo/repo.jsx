@@ -21,7 +21,8 @@ export default class Repo extends Component {
       rolloutHistory: reduxState.rolloutHistory,
       commits: reduxState.commits,
       branches: reduxState.branches,
-      selectedBranch: ''
+      selectedBranch: '',
+      settings: reduxState.settings
     }
 
     // handling API and streaming state changes
@@ -132,7 +133,7 @@ export default class Repo extends Component {
       });
   }
 
-  deploy(target, sha) {
+  deploy(target, sha, repo) {
     this.props.gimletClient.deploy(target.artifactId, target.env, target.app)
       .then(data => {
         target.sha = sha;
@@ -144,6 +145,7 @@ export default class Repo extends Component {
       });
 
     target.sha = sha;
+    target.repo = repo;
     this.props.store.dispatch({
       type: ACTION_TYPE_DEPLOY, payload: target
     });
@@ -245,6 +247,7 @@ export default class Repo extends Component {
                           envs={filteredEnvs}
                           rolloutHistory={repoRolloutHistory}
                           deployHandler={this.deploy}
+                          repo={repoName}
                         />
                         }
                       </div>
