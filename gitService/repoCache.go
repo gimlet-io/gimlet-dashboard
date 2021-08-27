@@ -12,10 +12,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 const Dir_RWX_RX_R = 0754
+
+var fetchRefSpec = []config.RefSpec{
+	"refs/heads/*:refs/heads/*",
+}
 
 type RepoCache struct {
 	tokenManager NonImpersonatedTokenManager
@@ -90,13 +95,13 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 	}
 
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "HEAD:refs/heads/HEAD"},
+		RefSpecs: fetchRefSpec,
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
 		},
 		Depth: 100,
-		Tags: git.NoTags,
+		Tags:  git.NoTags,
 	})
 	if err == git.NoErrAlreadyUpToDate {
 		return
@@ -106,11 +111,18 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 	}
 }
 
+var mutex = &sync.Mutex{}
+
 func (r *RepoCache) InstanceForRead(repoName string) (*git.Repository, error) {
+	mutex.Lock()
 	if repo, ok := r.repos[repoName]; ok {
+		mutex.Unlock()
 		return repo, nil
 	}
-	return r.clone(repoName)
+	repo, err := r.clone(repoName)
+	mutex.Unlock()
+
+	return repo, err
 }
 
 func (r *RepoCache) InstanceForWrite(repoName string) (*git.Repository, string, error) {
@@ -119,12 +131,15 @@ func (r *RepoCache) InstanceForWrite(repoName string) (*git.Repository, string, 
 		errors.WithMessage(err, "couldn't get temporary directory")
 	}
 
+	mutex.Lock()
 	if _, ok := r.repos[repoName]; !ok {
 		_, err = r.clone(repoName)
+		mutex.Unlock()
 		if err != nil {
 			errors.WithMessage(err, "couldn't clone")
 		}
 	}
+	mutex.Unlock()
 
 	repoPath := filepath.Join(r.cachePath, strings.ReplaceAll(repoName, "/", "%"))
 	err = copy.Copy(repoPath, tmpPath)
@@ -168,7 +183,7 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 			Password: token,
 		},
 		Depth: 100,
-		Tags: git.NoTags,
+		Tags:  git.NoTags,
 	}
 
 	repo, err := git.PlainClone(repoPath, false, opts)
@@ -177,15 +192,15 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 	}
 
 	err = repo.Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "HEAD:refs/heads/HEAD"},
+		RefSpecs: fetchRefSpec,
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
 		},
 		Depth: 100,
-		Tags: git.NoTags,
+		Tags:  git.NoTags,
 	})
-	if err != nil {
+	if err != nil && err != git.NoErrAlreadyUpToDate {
 		return nil, errors.WithMessage(err, "couldn't fetch")
 	}
 

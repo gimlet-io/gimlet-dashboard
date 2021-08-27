@@ -115,7 +115,7 @@ func branches(w http.ResponseWriter, r *http.Request) {
 	branches := []string{}
 	refIter, _ := repo.References()
 	refIter.ForEach(func(r *plumbing.Reference) error {
-		if r.Name().IsRemote() {
+		if r.Name().IsBranch() {
 			branch := r.Name().Short()
 			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
 		}
