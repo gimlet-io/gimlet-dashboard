@@ -67,11 +67,38 @@ export default class DeployStatus extends Component {
       Object.keys(deploy.gitopsHashes).length !== 0 &&
       Object.keys(deploy.gitopsHashes).filter(gitopsHash => deploy.gitopsHashes[gitopsHash].status === 'N/A').length === 0
     ) {
-      appliedWidget = (
-        <p className="font-semibold text-green-300">
-          Gitops changes applied
-        </p>
-      )
+      console.log(deploy.gitopsHashes)
+      appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
+        if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded') {
+          return (
+            <p className="font-semibold text-red-500">
+              <span>❗</span>
+              <a
+                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                target="_blank" rel="noopener noreferrer"
+                class='ml-1'
+              >
+                {hash.slice(0, 6)}
+              </a>
+              <span class='ml-1 block'>{deploy.gitopsHashes[hash].statusDesc}</span>
+            </p>
+          )
+        } else {
+          return (
+            <p className="font-semibold text-green-300">
+              <span>✅</span>
+              <a
+                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                target="_blank" rel="noopener noreferrer"
+                class='ml-1'
+              >
+                {hash.slice(0, 6)}
+              </a>
+              <span class='ml-1'>applied</span>
+            </p>
+          )
+        }
+      })
     }
 
     return (
@@ -113,7 +140,7 @@ export default class DeployStatus extends Component {
                         </a>
                       </p>
                       {gitopsWidget}
-                      {appliedWidget}
+                      <div class='pl-2'>{appliedWidget}</div>
                     </div>
                     <div className="ml-4 flex-shrink-0 flex">
                       <button
