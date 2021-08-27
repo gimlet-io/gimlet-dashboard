@@ -95,6 +95,8 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 			Username: user,
 			Password: token,
 		},
+		Depth: 100,
+		Tags: git.NoTags,
 	})
 	if err == git.NoErrAlreadyUpToDate {
 		return
@@ -166,6 +168,7 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 			Password: token,
 		},
 		Depth: 100,
+		Tags: git.NoTags,
 	}
 
 	repo, err := git.PlainClone(repoPath, false, opts)
@@ -180,6 +183,7 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 			Password: token,
 		},
 		Depth: 100,
+		Tags: git.NoTags,
 	})
 	if err != nil {
 		return nil, errors.WithMessage(err, "couldn't fetch")
