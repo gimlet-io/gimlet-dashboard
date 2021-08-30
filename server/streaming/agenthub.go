@@ -1,4 +1,4 @@
-package server
+package streaming
 
 import (
 	"github.com/gimlet-io/gimlet-dashboard/api"

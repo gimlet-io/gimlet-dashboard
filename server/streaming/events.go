@@ -1,10 +1,13 @@
-package server
+package streaming
 
-import "github.com/gimlet-io/gimlet-dashboard/api"
+import (
+	"github.com/gimlet-io/gimlet-dashboard/api"
+)
 
 const AgentConnectedEventString = "agentConnected"
 const AgentDisconnectedEventString = "agentDisconnected"
 const EnvsUpdatedEventString = "envsUpdated"
+const StaleRepoDataEventString = "staleRepoData"
 
 type StreamingEvent struct {
 	Event string `json:"event"`
@@ -22,5 +25,10 @@ type AgentDisconnectedEvent struct {
 
 type EnvsUpdatedEvent struct {
 	Envs []*api.Env `json:"envs"`
+	StreamingEvent
+}
+
+type StaleRepoDataEvent struct {
+	Repo string `json:"repo"`
 	StreamingEvent
 }
