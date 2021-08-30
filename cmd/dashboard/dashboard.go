@@ -71,6 +71,8 @@ func main() {
 		tokenManager,
 		stopCh,
 		config.RepoCachePath,
+		goScm,
+		config,
 	)
 	if err != nil {
 		panic(err)

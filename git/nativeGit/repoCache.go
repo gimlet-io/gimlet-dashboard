@@ -2,7 +2,10 @@ package nativeGit
 
 import (
 	"fmt"
+	dashboardConfig "github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
+	"github.com/gimlet-io/go-scm/scm"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -29,12 +32,18 @@ type RepoCache struct {
 	stopCh       chan struct{}
 	invalidateCh chan string
 	cachePath    string
+
+	// For webhook registration
+	goScmHelper *genericScm.GoScmHelper
+	config      *dashboardConfig.Config
 }
 
 func NewRepoCache(
 	tokenManager customScm.NonImpersonatedTokenManager,
 	stopCh chan struct{},
 	cachePath string,
+	goScmHelper *genericScm.GoScmHelper,
+	config *dashboardConfig.Config,
 ) (*RepoCache, error) {
 	repoCache := &RepoCache{
 		tokenManager: tokenManager,
@@ -42,6 +51,8 @@ func NewRepoCache(
 		stopCh:       stopCh,
 		invalidateCh: make(chan string),
 		cachePath:    cachePath,
+		goScmHelper:  goScmHelper,
+		config:       config,
 	}
 
 	const DirRwxRxR = 0754
@@ -122,6 +133,7 @@ func (r *RepoCache) InstanceForRead(repoName string) (*git.Repository, error) {
 	}
 	repo, err := r.clone(repoName)
 	mutex.Unlock()
+	go r.registerWebhook(repoName)
 
 	return repo, err
 }
@@ -139,6 +151,7 @@ func (r *RepoCache) InstanceForWrite(repoName string) (*git.Repository, string, 
 		if err != nil {
 			errors.WithMessage(err, "couldn't clone")
 		}
+		go r.registerWebhook(repoName)
 	}
 	mutex.Unlock()
 
@@ -207,4 +220,24 @@ func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 
 	r.repos[repoName] = repo
 	return repo, nil
+}
+
+func (r *RepoCache) registerWebhook(repoName string) {
+	owner, repo := scm.Split(repoName)
+
+	token, _, err := r.tokenManager.Token()
+	if err != nil {
+		logrus.Errorf("couldn't get scm token: %s", err)
+	}
+
+	err = r.goScmHelper.RegisterWebhook(
+		r.config.Host,
+		token,
+		r.config.WebhookSecret,
+		owner,
+		repo,
+	)
+	if err != nil {
+		logrus.Warnf("could not register webhook for %s: %s", repoName, err)
+	}
 }

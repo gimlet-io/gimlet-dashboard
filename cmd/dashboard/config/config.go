@@ -41,6 +41,7 @@ type Config struct {
 	Database      Database
 	GimletD       GimletD
 	RepoCachePath string
+	WebhookSecret string `envconfig:"WEBHOOK_SECRET"`
 }
 
 // Logging provides the logging configuration.
@@ -53,7 +54,6 @@ type Github struct {
 	AppID          string    `envconfig:"GITHUB_APP_ID"`
 	InstallationID string    `envconfig:"GITHUB_INSTALLATION_ID"`
 	PrivateKey     Multiline `envconfig:"GITHUB_PRIVATE_KEY"`
-	WebhookSecret  string    `envconfig:"GITHUB_WEBHOOK_SECRET"`
 	ClientID       string    `envconfig:"GITHUB_CLIENT_ID"`
 	ClientSecret   string    `envconfig:"GITHUB_CLIENT_SECRET"`
 	SkipVerify     bool      `envconfig:"GITHUB_SKIP_VERIFY"`
