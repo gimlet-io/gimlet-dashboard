@@ -147,7 +147,7 @@ func decorateCommitsWithSCMData(
 	gitServiceImpl customScm.CustomGitService,
 	token string,
 ) ([]*Commit, error) {
-	return decorateCommitsWithSCMDataWithReply(
+	return decorateCommitsWithSCMDataWithRetry(
 		repo,
 		commits,
 		dao,
@@ -157,7 +157,7 @@ func decorateCommitsWithSCMData(
 	)
 }
 
-func decorateCommitsWithSCMDataWithReply(
+func decorateCommitsWithSCMDataWithRetry(
 	repo string,
 	commits []*Commit,
 	dao *store.Store,
@@ -201,7 +201,7 @@ func decorateCommitsWithSCMDataWithReply(
 		// fetch remote commit info, then try to decorate again
 		owner, name := scm.Split(repo)
 		fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
-		return decorateCommitsWithSCMDataWithReply(
+		return decorateCommitsWithSCMDataWithRetry(
 			repo,
 			commits,
 			dao,
