@@ -148,13 +148,13 @@ func processStatusHook(
 func convertFromState(from scm.State) string {
 	switch from {
 	case scm.StatePending, scm.StateRunning:
-		return "pending"
+		return "PENDING"
 	case scm.StateSuccess:
-		return "success"
+		return "SUCCESS"
 	case scm.StateFailure:
-		return "failure"
+		return "FAILURE"
 	default:
-		return "error"
+		return "ERROR"
 	}
 }
 
