@@ -8,6 +8,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
@@ -41,10 +42,10 @@ func main() {
 		panic(fmt.Errorf("please provide the JWT_SECRET variable"))
 	}
 
-	agentHub := server.NewAgentHub(config)
+	agentHub := streaming.NewAgentHub(config)
 	go agentHub.Run()
 
-	clientHub := server.NewClientHub()
+	clientHub := streaming.NewClientHub()
 	go clientHub.Run()
 
 	store := store.New(config.Database.Driver, config.Database.Config)
@@ -73,6 +74,7 @@ func main() {
 		config.RepoCachePath,
 		goScm,
 		config,
+		clientHub,
 	)
 	if err != nil {
 		panic(err)

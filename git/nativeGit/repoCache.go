@@ -1,10 +1,12 @@
 package nativeGit
 
 import (
+	"encoding/json"
 	"fmt"
 	dashboardConfig "github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/go-scm/scm"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -36,6 +38,8 @@ type RepoCache struct {
 	// For webhook registration
 	goScmHelper *genericScm.GoScmHelper
 	config      *dashboardConfig.Config
+
+	clientHub *streaming.ClientHub
 }
 
 func NewRepoCache(
@@ -44,6 +48,7 @@ func NewRepoCache(
 	cachePath string,
 	goScmHelper *genericScm.GoScmHelper,
 	config *dashboardConfig.Config,
+	clientHub *streaming.ClientHub,
 ) (*RepoCache, error) {
 	repoCache := &RepoCache{
 		tokenManager: tokenManager,
@@ -53,6 +58,7 @@ func NewRepoCache(
 		cachePath:    cachePath,
 		goScmHelper:  goScmHelper,
 		config:       config,
+		clientHub:    clientHub,
 	}
 
 	const DirRwxRxR = 0754
@@ -95,6 +101,11 @@ func (r *RepoCache) Run() {
 		case repoName := <-r.invalidateCh:
 			logrus.Infof("received cache invalidate message for %s", repoName)
 			r.syncGitRepo(repoName)
+			jsonString, _ := json.Marshal(streaming.StaleRepoDataEvent{
+				Repo:           repoName,
+				StreamingEvent: streaming.StreamingEvent{Event: streaming.StaleRepoDataEventString},
+			})
+			r.clientHub.Broadcast <- jsonString
 		case <-time.After(30 * time.Second):
 		}
 	}

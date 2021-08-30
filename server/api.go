@@ -8,6 +8,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
@@ -33,7 +34,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 }
 
 func envs(w http.ResponseWriter, r *http.Request) {
-	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
+	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 
 	envs := []*api.Env{}
 	for _, a := range agentHub.Agents {

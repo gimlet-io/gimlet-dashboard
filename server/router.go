@@ -6,6 +6,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server/session"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
@@ -22,8 +23,8 @@ var agentAuth *jwtauth.JWTAuth
 
 func SetupRouter(
 	config *config.Config,
-	agentHub *AgentHub,
-	clientHub *ClientHub,
+	agentHub *streaming.AgentHub,
+	clientHub *streaming.ClientHub,
 	store *store.Store,
 	goScmHelper *genericScm.GoScmHelper,
 	gitService customScm.CustomGitService,
@@ -69,8 +70,10 @@ func SetupRouter(
 	r.Get("/logout", logout)
 
 	r.Get("/ws/", func(w http.ResponseWriter, r *http.Request) {
-		ServeWs(clientHub, w, r)
+		streaming.ServeWs(clientHub, w, r)
 	})
+
+	r.Post("/hook", hook)
 
 	filesDir := http.Dir("./web/build")
 	fileServer(r, "/", filesDir)

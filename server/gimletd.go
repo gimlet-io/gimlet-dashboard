@@ -6,6 +6,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimletd/client"
 	"github.com/gimlet-io/gimletd/dx"
 	gimletdModel "github.com/gimlet-io/gimletd/model"
@@ -43,7 +44,7 @@ func gitopsRepo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gitopsRepoString, err := json.Marshal(map[string]interface{}{
-		"gitopsRepo":  gitopsRepo,
+		"gitopsRepo": gitopsRepo,
 	})
 	if err != nil {
 		logrus.Errorf("cannot serialize gitopsRepo: %s", err)
@@ -117,7 +118,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	)
 	client := client.NewClient(config.GimletD.URL, auth)
 
-	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
+	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 	envs := []*api.Env{}
 	for _, a := range agentHub.Agents {
 		for _, stack := range a.Stacks {

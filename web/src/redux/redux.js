@@ -19,6 +19,7 @@ export const ACTION_TYPE_GITOPS_REPO = 'gitopsRepo';
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
 export const EVENT_ENVS_UPDATED = 'envsUpdated';
+export const EVENT_STALE_REPO_DATA = 'staleRepoData';
 
 export const EVENT_POD_CREATED = 'podCreated';
 export const EVENT_POD_UPDATED = 'podUpdated';
@@ -41,7 +42,8 @@ export const initialState = {
   rolloutHistory: {},
   commits: {},
   branches: {},
-  runningDeploys: []
+  runningDeploys: [],
+  repoRefreshQueue: [],
 };
 
 export function rootReducer(state = initialState, action) {
@@ -104,6 +106,8 @@ function processStreamingEvent(state, event) {
       return ingressEventHandlers.ingressUpdated(state, event);
     case EVENT_INGRESS_DELETED:
       return ingressEventHandlers.ingressDeleted(state, event);
+    case EVENT_STALE_REPO_DATA:
+      return eventHandlers.staleRepoData(state, event);
     default:
       console.log('Could not process streaming event: ' + JSON.stringify(event));
       return state;

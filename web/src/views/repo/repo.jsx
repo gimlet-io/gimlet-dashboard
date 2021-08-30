@@ -13,6 +13,8 @@ export default class Repo extends Component {
   constructor(props) {
     super(props);
 
+    const {owner, repo} = this.props.match.params;
+
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
@@ -22,7 +24,8 @@ export default class Repo extends Component {
       commits: reduxState.commits,
       branches: reduxState.branches,
       selectedBranch: '',
-      settings: reduxState.settings
+      settings: reduxState.settings,
+      refreshQueue: reduxState.repoRefreshQueue.filter(repo => repo === `${owner}/${repo}`).length
     }
 
     // handling API and streaming state changes
@@ -34,6 +37,15 @@ export default class Repo extends Component {
       this.setState({rolloutHistory: reduxState.rolloutHistory});
       this.setState({commits: reduxState.commits});
       this.setState({branches: reduxState.branches});
+
+      const queueLength = reduxState.repoRefreshQueue.filter(r => r === `${owner}/${repo}`).length
+      this.setState(prevState => {
+        if ( prevState.refreshQueueLength !== queueLength) {
+          this.refreshBranches(owner, repo);
+          this.refreshCommits(owner, repo, prevState.selectedBranch);
+        }
+        return {refreshQueueLength: queueLength}
+      });
     });
 
     this.branchChange = this.branchChange.bind(this)
@@ -73,6 +85,34 @@ export default class Repo extends Component {
             owner: owner,
             repo: repo,
             branches: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
+  refreshBranches(owner, repo) {
+    this.props.gimletClient.getBranches(owner, repo)
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_BRANCHES, payload: {
+            owner: owner,
+            repo: repo,
+            branches: data
+          }
+        });
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
+  refreshCommits(owner, repo, branch) {
+    this.props.gimletClient.getCommits(owner, repo, branch)
+      .then(data => {
+        this.props.store.dispatch({
+          type: ACTION_TYPE_COMMITS, payload: {
+            owner: owner,
+            repo: repo,
+            commits: data
           }
         });
       }, () => {/* Generic error handler deals with it */

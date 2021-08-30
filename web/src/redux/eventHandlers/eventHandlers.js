@@ -74,3 +74,8 @@ export function clearDeployStatus(state) {
   state.runningDeploys = [];
   return state;
 }
+
+export function staleRepoData(state, event) {
+  state.repoRefreshQueue.push(event.repo);
+  return state;
+}

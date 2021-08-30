@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gimlet-io/gimlet-dashboard/agent"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -41,18 +42,18 @@ func register(w http.ResponseWriter, r *http.Request) {
 		log.Debugf("agent disconnected: %s/%s", name, namespace)
 	}()
 
-	a := &ConnectedAgent{Name: name, Namespace: namespace, EventChannel: eventChannel}
+	a := &streaming.ConnectedAgent{Name: name, Namespace: namespace, EventChannel: eventChannel}
 
-	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
-	agentHub.Register <- a
+	hub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
+	hub.Register <- a
 
-	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
+	clientHub, _ := r.Context().Value("clientHub").(*streaming.ClientHub)
 	broadcastAgentConnectedEvent(clientHub, a)
 
 	for {
 		select {
 		case <-r.Context().Done():
-			agentHub.Unregister <- a
+			hub.Unregister <- a
 			broadcastAgentDisconnectedEvent(clientHub, a)
 			return
 		case <-time.After(time.Second * 30):
@@ -69,17 +70,17 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func broadcastAgentConnectedEvent(clientHub *ClientHub, a *ConnectedAgent) {
-	jsonString, _ := json.Marshal(AgentConnectedEvent{
-		StreamingEvent: StreamingEvent{Event: AgentConnectedEventString},
+func broadcastAgentConnectedEvent(clientHub *streaming.ClientHub, a *streaming.ConnectedAgent) {
+	jsonString, _ := json.Marshal(streaming.AgentConnectedEvent{
+		StreamingEvent: streaming.StreamingEvent{Event: streaming.AgentConnectedEventString},
 		Agent:          *a,
 	})
 	clientHub.Broadcast <- jsonString
 }
 
-func broadcastAgentDisconnectedEvent(clientHub *ClientHub, a *ConnectedAgent) {
-	jsonString, _ := json.Marshal(AgentDisconnectedEvent{
-		StreamingEvent: StreamingEvent{Event: AgentDisconnectedEventString},
+func broadcastAgentDisconnectedEvent(clientHub *streaming.ClientHub, a *streaming.ConnectedAgent) {
+	jsonString, _ := json.Marshal(streaming.AgentDisconnectedEvent{
+		StreamingEvent: streaming.StreamingEvent{Event: streaming.AgentDisconnectedEventString},
 		Agent:          *a,
 	})
 	clientHub.Broadcast <- jsonString
@@ -98,7 +99,7 @@ func state(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	agentHub, _ := r.Context().Value("agentHub").(*AgentHub)
+	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 	agent := agentHub.Agents[name]
 	if agent == nil {
 		time.Sleep(1 * time.Second) // Agenthub has a race condition. Registration is not done when the client sends the state
@@ -125,9 +126,9 @@ func state(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
-	jsonString, _ := json.Marshal(EnvsUpdatedEvent{
-		StreamingEvent: StreamingEvent{Event: EnvsUpdatedEventString},
+	clientHub, _ := r.Context().Value("clientHub").(*streaming.ClientHub)
+	jsonString, _ := json.Marshal(streaming.EnvsUpdatedEvent{
+		StreamingEvent: streaming.StreamingEvent{Event: streaming.EnvsUpdatedEventString},
 		Envs:           envs,
 	})
 	clientHub.Broadcast <- jsonString
@@ -145,7 +146,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 
 	update = decorateDeploymentUpdateWithCommitMessage(update, r)
 
-	clientHub, _ := r.Context().Value("clientHub").(*ClientHub)
+	clientHub, _ := r.Context().Value("clientHub").(*streaming.ClientHub)
 	jsonString, _ := json.Marshal(update)
 	clientHub.Broadcast <- jsonString
 }
