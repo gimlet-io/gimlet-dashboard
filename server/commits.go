@@ -90,17 +90,15 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dao := ctx.Value("store").(*store.Store)
-	commits, hashesToFetch, err := decorateCommitsWithSCMData(repoName, commits, dao)
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+	commits, err = decorateCommitsWithSCMData(repoName, commits, dao, gitServiceImpl, token)
 	if err != nil {
 		logrus.Errorf("cannot decorate commits: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
-	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-	go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
 
 	config := ctx.Value("config").(*config.Config)
 	commits, err = decorateCommitsWithGimletArtifacts(commits, config)
@@ -142,7 +140,31 @@ type Commit struct {
 	DeployTargets []*DeployTarget      `json:"deployTargets,omitempty"`
 }
 
-func decorateCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store) ([]*Commit, []string, error) {
+func decorateCommitsWithSCMData(
+	repo string,
+	commits []*Commit,
+	dao *store.Store,
+	gitServiceImpl customScm.CustomGitService,
+	token string,
+) ([]*Commit, error) {
+	return decorateCommitsWithSCMDataWithReply(
+		repo,
+		commits,
+		dao,
+		gitServiceImpl,
+		token,
+		false,
+	)
+}
+
+func decorateCommitsWithSCMDataWithReply(
+	repo string,
+	commits []*Commit,
+	dao *store.Store,
+	gitServiceImpl customScm.CustomGitService,
+	token string,
+	isRetry bool,
+) ([]*Commit, error) {
 	var hashes []string
 	for _, commit := range commits {
 		hashes = append(hashes, commit.SHA)
@@ -150,7 +172,7 @@ func decorateCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store
 
 	dbCommits, err := dao.CommitsByRepoAndSHA(repo, hashes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get commits from db %s", err)
+		return nil, fmt.Errorf("cannot get commits from db %s", err)
 	}
 
 	dbCommitsByHash := map[string]*model.Commit{}
@@ -174,28 +196,75 @@ func decorateCommitsWithSCMData(repo string, commits []*Commit, dao *store.Store
 		decoratedCommits = append(decoratedCommits, commit)
 	}
 
-	return decoratedCommits, hashesToFetch, nil
+	// if not all commit was decorated, fetch them and try decorating again
+	if len(hashesToFetch) > 0 && !isRetry {
+		// fetch remote commit info, then try to decorate again
+		owner, name := scm.Split(repo)
+		fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
+		return decorateCommitsWithSCMDataWithReply(
+			repo,
+			commits,
+			dao,
+			gitServiceImpl,
+			token,
+			true,
+		)
+	}
+
+	return decoratedCommits, nil
 }
 
-func decorateDeploymentWithSCMData(repo string, deployment *api.Deployment, dao *store.Store) (*api.Deployment, []string, error) {
+func decorateDeploymentWithSCMData(
+	repo string,
+	deployment *api.Deployment,
+	dao *store.Store,
+	gitServiceImpl customScm.CustomGitService,
+	token string,
+) (*api.Deployment, error) {
+	return decorateDeploymentWithSCMDataWithRetry(
+		repo,
+		deployment,
+		dao,
+		gitServiceImpl,
+		token,
+		false,
+	)
+}
+
+func decorateDeploymentWithSCMDataWithRetry(
+	repo string,
+	deployment *api.Deployment,
+	dao *store.Store,
+	gitServiceImpl customScm.CustomGitService,
+	token string,
+	isRetry bool,
+) (*api.Deployment, error) {
 	dbCommits, err := dao.CommitsByRepoAndSHA(repo, []string{deployment.SHA})
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get commits from db %s", err)
+		return nil, fmt.Errorf("cannot get commits from db %s", err)
 	}
 
-	dbCommitsByHash := map[string]*model.Commit{}
-	for _, dbCommit := range dbCommits {
-		dbCommitsByHash[dbCommit.SHA] = dbCommit
-	}
-
-	var hashesToFetch []string
-	if dbCommit, ok := dbCommitsByHash[deployment.SHA]; ok {
-		deployment.CommitMessage = dbCommit.Message
+	if len(dbCommits) > 0 {
+		deployment.CommitMessage = dbCommits[0].Message
 	} else {
-		hashesToFetch = append(hashesToFetch, deployment.SHA)
+		if isRetry { // we only retry once
+			return deployment, nil
+		}
+		owner, name := scm.Split(repo)
+
+		// fetch remote commit info, then try to decorate again
+		fetchCommits(owner, name, gitServiceImpl, token, dao, []string{deployment.SHA})
+		return decorateDeploymentWithSCMDataWithRetry(
+			repo,
+			deployment,
+			dao,
+			gitServiceImpl,
+			token,
+			true,
+		)
 	}
 
-	return deployment, hashesToFetch, nil
+	return deployment, nil
 }
 
 func fetchCommits(

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
@@ -75,14 +74,9 @@ func decorateDeployments(ctx context.Context, envs []*api.Env) error {
 	token, _, _ := tokenManager.Token()
 	for _, env := range envs {
 		for _, stack := range env.Stacks {
-			_, hashesToFetch, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao)
+			_, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao, gitServiceImpl, token)
 			if err != nil {
 				return fmt.Errorf("cannot decorate commits: %s", err)
-			}
-
-			if len(hashesToFetch) > 0 {
-				owner, name := scm.Split(stack.Repo)
-				go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
 			}
 		}
 	}
