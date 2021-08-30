@@ -1,7 +1,7 @@
-package gitService
+package customScm
 
 import "github.com/gimlet-io/gimlet-dashboard/model"
 
-type GitService interface {
+type CustomGitService interface {
 	FetchCommits(owner string, repo string, token string, hashesToFetch []string) ([]*model.Commit, error)
 }

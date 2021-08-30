@@ -1,7 +1,8 @@
-package gitService
+package nativeGit
 
 import (
 	"fmt"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -23,7 +24,7 @@ var fetchRefSpec = []config.RefSpec{
 }
 
 type RepoCache struct {
-	tokenManager NonImpersonatedTokenManager
+	tokenManager customScm.NonImpersonatedTokenManager
 	repos        map[string]*git.Repository
 	stopCh       chan struct{}
 	invalidateCh chan string
@@ -31,7 +32,7 @@ type RepoCache struct {
 }
 
 func NewRepoCache(
-	tokenManager NonImpersonatedTokenManager,
+	tokenManager customScm.NonImpersonatedTokenManager,
 	stopCh chan struct{},
 	cachePath string,
 ) (*RepoCache, error) {

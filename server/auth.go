@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/httputil"
 	"github.com/gimlet-io/gimlet-dashboard/server/token"
@@ -27,7 +27,7 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 	token := login.TokenFrom(ctx)
 
-	goScmHelper, _ := ctx.Value("goScmHelper").(*goScmHelper.GoScmHelper)
+	goScmHelper, _ := ctx.Value("goScmHelper").(*genericScm.GoScmHelper)
 	scmUser, err := goScmHelper.User(token.Access, token.Refresh)
 	if err != nil {
 		log.Errorf("cannot find git user: %s", err)

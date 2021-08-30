@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	gitService "github.com/gimlet-io/gimlet-dashboard/gitService"
-	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm/customGithub"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
@@ -47,14 +49,14 @@ func main() {
 
 	store := store.New(config.Database.Driver, config.Database.Config)
 
-	goScm := goScmHelper.NewGoScmHelper(config)
+	goScm := genericScm.NewGoScmHelper(config)
 
-	var gitSvc gitService.GitService
-	var tokenManager gitService.NonImpersonatedTokenManager
+	var gitSvc customScm.CustomGitService
+	var tokenManager customScm.NonImpersonatedTokenManager
 
 	if config.IsGithub() {
-		gitSvc = &gitService.GithubClient{}
-		tokenManager, err = gitService.NewGithubOrgTokenManager(config)
+		gitSvc = &customGithub.GithubClient{}
+		tokenManager, err = customGithub.NewGithubOrgTokenManager(config)
 		if err != nil {
 			panic(err)
 		}
@@ -65,7 +67,7 @@ func main() {
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 
-	repoCache, err := gitService.NewRepoCache(
+	repoCache, err := nativeGit.NewRepoCache(
 		tokenManager,
 		stopCh,
 		config.RepoCachePath,

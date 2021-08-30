@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"github.com/drone/go-scm/scm"
 	"github.com/gimlet-io/gimlet-dashboard/api"
-	"github.com/gimlet-io/gimlet-dashboard/gitService"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
@@ -69,8 +70,8 @@ func envs(w http.ResponseWriter, r *http.Request) {
 
 func decorateDeployments(ctx context.Context, envs []*api.Env) error {
 	dao := ctx.Value("store").(*store.Store)
-	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
-	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
 	token, _, _ := tokenManager.Token()
 	for _, env := range envs {
 		for _, stack := range env.Stacks {
@@ -103,7 +104,7 @@ func branches(w http.ResponseWriter, r *http.Request) {
 	repoName := fmt.Sprintf("%s/%s", owner, name)
 
 	ctx := r.Context()
-	gitRepoCache, _ := ctx.Value("gitRepoCache").(*gitService.RepoCache)
+	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
 
 	repo, err := gitRepoCache.InstanceForRead(repoName)
 	if err != nil {

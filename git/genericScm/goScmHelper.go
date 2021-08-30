@@ -1,4 +1,4 @@
-package goScmHelper
+package genericScm
 
 import (
 	"context"

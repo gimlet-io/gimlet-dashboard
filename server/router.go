@@ -2,8 +2,9 @@ package server
 
 import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	"github.com/gimlet-io/gimlet-dashboard/gitService"
-	"github.com/gimlet-io/gimlet-dashboard/goScmHelper"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server/session"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/go-chi/chi"
@@ -24,10 +25,10 @@ func SetupRouter(
 	agentHub *AgentHub,
 	clientHub *ClientHub,
 	store *store.Store,
-	goScmHelper *goScmHelper.GoScmHelper,
-	gitService gitService.GitService,
-	tokenManager gitService.NonImpersonatedTokenManager,
-	repoCache *gitService.RepoCache,
+	goScmHelper *genericScm.GoScmHelper,
+	gitService customScm.CustomGitService,
+	tokenManager customScm.NonImpersonatedTokenManager,
+	repoCache *nativeGit.RepoCache,
 ) *chi.Mux {
 	agentAuth = jwtauth.New("HS256", []byte(config.JWTSecret), nil)
 	_, tokenString, _ := agentAuth.Encode(map[string]interface{}{"user_id": "gimlet-agent"})
@@ -124,8 +125,8 @@ func githubOAuthRoutes(config *config.Config, r *chi.Mux) {
 		// Unlike traditional OAuth, the authorization token is limited to the permissions associated
 		// with your GitHub App and those of the user.
 		// https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#identifying-and-authorizing-users-for-github-apps
-		Scope:        []string{""},
-		Dumper:       dumper,
+		Scope:  []string{""},
+		Dumper: dumper,
 	}
 	r.Handle("/auth", loginMiddleware.Handler(
 		http.HandlerFunc(auth),

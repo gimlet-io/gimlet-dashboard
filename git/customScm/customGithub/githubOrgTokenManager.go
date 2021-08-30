@@ -1,4 +1,4 @@
-package gitService
+package customGithub
 
 import (
 	"context"

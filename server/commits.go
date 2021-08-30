@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
-	"github.com/gimlet-io/gimlet-dashboard/gitService"
+	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/gimlet-io/go-scm/scm"
@@ -27,7 +28,7 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	gitRepoCache, _ := ctx.Value("gitRepoCache").(*gitService.RepoCache)
+	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
 
 	var repo *git.Repository
 	if branch != "master" && branch != "main" {
@@ -96,8 +97,8 @@ func commits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gitServiceImpl := ctx.Value("gitService").(gitService.GitService)
-	tokenManager := ctx.Value("tokenManager").(gitService.NonImpersonatedTokenManager)
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
 	token, _, _ := tokenManager.Token()
 	go fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
 
@@ -200,7 +201,7 @@ func decorateDeploymentWithSCMData(repo string, deployment *api.Deployment, dao 
 func fetchCommits(
 	owner string,
 	repo string,
-	gitService gitService.GitService,
+	gitService customScm.CustomGitService,
 	token string,
 	store *store.Store,
 	hashesToFetch []string,
