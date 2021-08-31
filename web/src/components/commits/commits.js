@@ -127,7 +127,6 @@ class StatusIcon extends Component {
           </svg>
         );
       default:
-        console.log(status.state)
         return (
           <svg className="inline fill-current text-red-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15"
                height="20"

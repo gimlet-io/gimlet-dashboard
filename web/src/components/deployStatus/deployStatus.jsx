@@ -69,6 +69,7 @@ export default class DeployStatus extends Component {
     ) {
       console.log(deploy.gitopsHashes)
       appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
+        console.log(deploy.gitopsHashes)
         if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded') {
           return (
             <p className="font-semibold text-red-500">
