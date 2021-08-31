@@ -54,6 +54,39 @@ query {
             targetUrl
           }
         }
+        checkSuites(first: 100){
+          nodes {
+            checkRuns (first: 100) {
+              nodes {
+                permalink
+                name
+                status
+                startedAt
+                completedAt
+              }
+            }
+          }
+        }
+        statusCheckRollup{
+          state
+          contexts(first: 100) {
+            nodes {
+              __typename
+              ... on CheckRun {
+                name
+                detailsUrl
+                completedAt
+                status
+              }
+              ... on StatusContext {
+                context
+                createdAt
+                state
+                targetUrl
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -133,6 +166,21 @@ func translateCommit(commit commit) *model.Commit {
 		})
 	}
 
+	for _, checkSuite := range commit.CheckSuits.Nodes {
+		for _, checkRun := range checkSuite.CheckRuns.Nodes {
+			status := checkRun.Status
+			if checkRun.Conclusion != "" {
+				status = checkRun.Conclusion
+			}
+			contexts = append(contexts, model.Status{
+				State:     status,
+				Context:   checkRun.Name,
+				CreatedAt: checkRun.CompletedAt,
+				TargetUrl: checkRun.Permalink,
+			})
+		}
+	}
+
 	return &model.Commit{
 		SHA:       commit.OID,
 		Message:   commit.Message,
@@ -168,10 +216,30 @@ type commit struct {
 		State    string
 		Contexts []ctx
 	}
+	CheckSuits struct {
+		Nodes []CheckSuite
+	} `graphql:"checkSuites(first: 100)"`
 }
 
 type obj struct {
 	Commit commit `graphql:"... on Commit"`
+}
+
+type CheckSuite struct {
+	CheckRuns checkRuns `graphql:"checkRuns (first: 100)"`
+}
+
+type checkRuns struct {
+	Nodes []checkRun
+}
+
+type checkRun struct {
+	Permalink   string
+	Name        string
+	Status      string
+	Conclusion  string
+	StartedAt   string
+	CompletedAt string
 }
 
 var queryObjects struct {

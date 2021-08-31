@@ -63,9 +63,8 @@ func hook(writer http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// check run is not a hook:
-				// https://dev.to/gr2m/github-api-how-to-retrieve-the-combined-pull-request-status-from-commit-statuses-check-runs-and-github-action-results-2cen
-				processStatusHook(dst.Repository.Owner.Login, dst.Repository.Name, dst.CheckRun.HeadSHA, gitRepoCache, goScmHelper, token, dao)
+				gitService := ctx.Value("gitService").(customScm.CustomGitService)
+				processStatusHook(dst.Repository.Owner.Login, dst.Repository.Name, dst.CheckRun.HeadSHA, gitRepoCache, gitService, token, dao)
 
 				writer.WriteHeader(http.StatusOK)
 				return
@@ -90,7 +89,8 @@ func hook(writer http.ResponseWriter, r *http.Request) {
 		name := webhook.Repository().Name
 		w := webhook.(*scm.StatusHook)
 
-		processStatusHook(owner, name, w.SHA, gitRepoCache, goScmHelper, token, dao)
+		gitService := ctx.Value("gitService").(customScm.CustomGitService)
+		processStatusHook(owner, name, w.SHA, gitRepoCache, gitService, token, dao)
 	case *scm.BranchHook:
 		processBranchHook(webhook, gitRepoCache)
 	}
@@ -113,49 +113,36 @@ func processStatusHook(
 	name string,
 	sha string,
 	repoCache *nativeGit.RepoCache,
-	goScmHelper *genericScm.GoScmHelper,
+	gitService customScm.CustomGitService,
 	token string,
 	dao *store.Store,
 ) {
 	repo := scm.Join(owner, name)
-	gitStatuses, err := goScmHelper.Statuses(owner, name, sha, token)
+	commits, err := gitService.FetchCommits(owner, name, token, []string{sha})
 	if err != nil {
-		logrus.Warnf("could not get status upon status webhook %s - %v", sha, err)
-	}
-
-	var statuses []model.Status
-	for _, s := range gitStatuses {
-		statuses = append(statuses, model.Status{
-			State:       convertFromState(s.State),
-			Context:     s.Label,
-			TargetUrl:   s.Target,
-			Description: s.Desc,
-		})
-	}
-	err = dao.SaveStatusesOnCommits(repo, map[string]*model.CombinedStatus{
-		sha: {
-			Contexts: statuses,
-		},
-	})
-	if err != nil {
-		logrus.Errorf("could not store status for %v, %v", repo, err)
+		logrus.Errorf("Could not fetch commits for %v, %v", repo, err)
 		return
 	}
 
-	repoCache.Invalidate(scm.Join(owner, name))
-}
-
-func convertFromState(from scm.State) string {
-	switch from {
-	case scm.StatePending, scm.StateRunning:
-		return "PENDING"
-	case scm.StateSuccess:
-		return "SUCCESS"
-	case scm.StateFailure:
-		return "FAILURE"
-	default:
-		return "ERROR"
+	err = dao.SaveCommits(repo, commits)
+	if err != nil {
+		logrus.Errorf("Could not store commits for %v, %v", repo, err)
+		return
 	}
+	statusOnCommits := map[string]*model.CombinedStatus{}
+	for _, c := range commits {
+		statusOnCommits[sha] = &c.Status
+	}
+
+	if len(statusOnCommits) != 0 {
+		err = dao.SaveStatusesOnCommits(repo, statusOnCommits)
+		if err != nil {
+			logrus.Errorf("Could not store status for %v, %v", repo, err)
+			return
+		}
+	}
+
+	repoCache.Invalidate(scm.Join(owner, name))
 }
 
 func processBranchHook(webhook scm.Webhook, repoCache *nativeGit.RepoCache) {

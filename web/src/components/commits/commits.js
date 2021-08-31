@@ -106,6 +106,7 @@ class StatusIcon extends Component {
 
     switch (status.state) {
       case 'SUCCESS':
+      case 'COMPLETED':
         return (
           <svg class="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15" height="20"
                role="img"
@@ -115,6 +116,8 @@ class StatusIcon extends Component {
           </svg>
         );
       case 'PENDING':
+      case 'IN_PROGRESS':
+      case 'QUEUED':
         return (
           <svg class="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10" height="20"
                role="img"
@@ -124,6 +127,7 @@ class StatusIcon extends Component {
           </svg>
         );
       default:
+        console.log(status.state)
         return (
           <svg className="inline fill-current text-red-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15"
                height="20"

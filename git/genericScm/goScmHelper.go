@@ -119,21 +119,12 @@ func (helper *GoScmHelper) RegisterWebhook(
 		Target: host + "/hook",
 		Secret: webhookSecret,
 		Events: scm.HookEvents{
-			Push:   true,
-			Status: true,
-			Branch: true,
+			Push:     true,
+			Status:   true,
+			Branch:   true,
+			//CheckRun: true,
 		},
 	}
 
 	return replaceHook(ctx, helper.client, scm.Join(owner, repo), hook)
-}
-
-func (helper *GoScmHelper) Statuses(owner string, repo string, sha string, token string) ([]*scm.Status, error) {
-	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
-		Token:   token,
-		Refresh: "",
-	})
-
-	statuses, _, err := helper.client.Repositories.ListStatus(ctx, owner+"/"+repo, sha, scm.ListOptions{Size: 50})
-	return statuses, err
 }
