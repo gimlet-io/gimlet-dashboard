@@ -108,6 +108,8 @@ func commits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	commits = squashCommitStatuses(commits)
+
 	commitsString, err := json.Marshal(commits)
 	if err != nil {
 		logrus.Errorf("cannot serialize commits: %s", err)
@@ -302,5 +304,30 @@ func fetchCommits(
 			return
 		}
 	}
+}
 
+func squashCommitStatuses(commits []*Commit) ([]*Commit) {
+	var commitsWithSquashedStatuses []*Commit
+
+	for _, commit := range commits {
+		statusMap := map[string]model.Status{}
+		for _, s := range commit.Status.Contexts {
+			// Statuses are returned in reverse chronological order
+			// we only keep the latest
+			if _, ok := statusMap[s.Context]; ok {
+				continue
+			}
+
+			statusMap[s.Context] = s
+		}
+
+		commit.Status.Contexts = []model.Status{}
+		for  _, status := range statusMap {
+			commit.Status.Contexts = append(commit.Status.Contexts, status)
+		}
+
+		commitsWithSquashedStatuses = append(commitsWithSquashedStatuses, commit)
+	}
+
+	return commitsWithSquashedStatuses
 }

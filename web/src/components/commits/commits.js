@@ -35,10 +35,15 @@ export class Commits extends Component {
                   <div className="text-sm">
                     <p href="#" className="font-semibold text-gray-800">{commit.message}
                       <span>
-                      {commit.status && commit.status.statuses &&
-                      commit.status.statuses.map(status => <StatusIcon status={status}/>)
-                      }
-                    </span>
+                        {
+                          commit.status && commit.status.statuses &&
+                          commit.status.statuses.map(status => (
+                            <a href={status.targetURL} target="_blank" rel="noopener noreferrer" title={status.context}>
+                              <StatusIcon status={status}/>
+                            </a>
+                          ))
+                        }
+                      </span>
                     </p>
                   </div>
                   <p className="mt-0.5 text-xs text-gray-800">
@@ -175,7 +180,7 @@ class ReleaseBadges extends Component {
 
     let recentBadges = recent.map((release) => (
       <span key={`${release.app}-${release.env}`}
-        className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800 mr-2"
+            className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800 mr-2"
       >
         was recently {release.app} on {release.env}
       </span>
@@ -183,7 +188,7 @@ class ReleaseBadges extends Component {
 
     let releaseBadges = current.map((release) => (
       <span key={`${release.app}-${release.env}`}
-        className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-pink-100 text-pink-800 mr-2"
+            className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-pink-100 text-pink-800 mr-2"
       >
         {release.app} on {release.env}
       </span>
