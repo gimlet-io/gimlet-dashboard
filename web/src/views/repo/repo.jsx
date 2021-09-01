@@ -9,7 +9,7 @@ import {
 } from "../../redux/redux";
 import {Commits} from "../../components/commits/commits";
 import Dropdown from "../../components/dropdown/dropdown";
-import {emptyStateNoAgents, emptyStateNoServices} from "../services/services";
+import {emptyStateNoAgents} from "../services/services";
 
 export default class Repo extends Component {
   constructor(props) {
@@ -54,6 +54,7 @@ export default class Repo extends Component {
 
     this.branchChange = this.branchChange.bind(this)
     this.deploy = this.deploy.bind(this)
+    this.rollback = this.rollback.bind(this)
   }
 
   componentDidMount() {
@@ -195,6 +196,24 @@ export default class Repo extends Component {
     });
   }
 
+  rollback(env, app, rollbackTo, e) {
+    this.props.gimletClient.rollback(env, app, rollbackTo)
+      .then(data => {
+        // target.sha = sha;
+        // target.trackingId = data.trackingId;
+        // setTimeout(() => {
+        //   this.checkDeployStatus(target);
+        // }, 500);
+      }, () => {/* Generic error handler deals with it */
+      });
+
+    // target.sha = sha;
+    // target.repo = repo;
+    // this.props.store.dispatch({
+    //   type: ACTION_TYPE_DEPLOY, payload: target
+    // });
+  }
+
   render() {
     const {owner, repo} = this.props.match.params;
     const repoName = `${owner}/${repo}`
@@ -271,6 +290,7 @@ export default class Repo extends Component {
                         key={service.service.name}
                         service={service}
                         rolloutHistory={appRolloutHistory}
+                        rollback={this.rollback}
                       />
                     )
                   })

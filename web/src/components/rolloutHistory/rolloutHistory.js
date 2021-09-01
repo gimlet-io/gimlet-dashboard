@@ -20,7 +20,7 @@ export class RolloutHistory extends Component {
   }
 
   render() {
-    let {rolloutHistory} = this.props;
+    let {env, app, rolloutHistory, rollback} = this.props;
     const {open} = this.state;
 
     if (!rolloutHistory) {
@@ -34,16 +34,23 @@ export class RolloutHistory extends Component {
     let previousDateLabel = ''
     const markers = [];
     const rollouts = [];
+    let allPreviousCommitsAreRollbacks = true;
 
+    rolloutHistory.reverse();
     rolloutHistory.forEach((rollout, idx, ar) => {
+      const currentlyReleased = !rollout.rolledBack && allPreviousCommitsAreRollbacks;
+      if (currentlyReleased) {
+        allPreviousCommitsAreRollbacks = false;
+      }
+
       const exactDate = format(rollout.created * 1000, 'h:mm:ss a, MMMM do yyyy')
       const dateLabel = formatDistance(rollout.created * 1000, new Date());
 
       const showDate = previousDateLabel !== dateLabel
       previousDateLabel = dateLabel;
 
-      let color = rollout.rolledBack ? 'bg-red-100' : 'bg-green-100';
-      let ringColor = rollout.rolledBack ? 'ring-red-100' : 'ring-green-100';
+      let color = rollout.rolledBack ? 'bg-red-300' : 'bg-green-100';
+      let ringColor = rollout.rolledBack ? 'ring-red-400' : 'ring-green-200';
       let border = showDate ? 'lg:border-l' : '';
 
       let title = `[${rollout.version.sha.slice(0, 6)}] ${truncate(rollout.version.message)}
@@ -68,7 +75,7 @@ at ${exactDate}`;
             class="hover:bg-yellow-100 p-4 rounded"
         >
           <div className="relative pb-4">
-            {idx !== 0 &&
+            {idx !== ar.length-1 &&
             <span className="absolute top-8 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             }
             <div className="relative flex items-start space-x-3">
@@ -102,21 +109,37 @@ at ${exactDate}`;
                 </div>
               </div>
               <div>
+                {!currentlyReleased && !rollout.rolledBack &&
                 <button
                   type="button"
+                  onClick={(e) => {
+                    // eslint-disable-next-line no-restricted-globals
+                    confirm('Are you sure you want to roll back?') &&
+                    rollback(env, app, rollout.gitopsRef, e);
+                  }}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Rollback to this version
                 </button>
+                }
+                {rollout.rolledBack &&
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  Rolled back
+                </span>
+                }
+                {currentlyReleased &&
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  Current version
+                </span>
+                }
               </div>
             </div>
           </div>
         </li>
       )
-
     })
 
-    rollouts.reverse();
+    markers.reverse();
 
     return (
       <div className="">
@@ -146,7 +169,7 @@ function Commit(props) {
   return (
     <div className="md:flex text-xs text-gray-500">
       <div className="md:flex-initial">
-        <span className="font-semibold leading-none">{version.message && <Emoji text={version.message} />}</span>
+        <span className="font-semibold leading-none">{version.message && <Emoji text={version.message}/>}</span>
         <div className="flex mt-1">
           {version.author &&
           <img

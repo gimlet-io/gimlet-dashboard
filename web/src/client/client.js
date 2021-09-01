@@ -34,6 +34,8 @@ export default class GimletClient {
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
+  rollback = (env, app, rollbackTo) => this.post('/api/rollback', JSON.stringify({ env, app, targetSHA: rollbackTo }));
+
   getDeployStatus = (trackingId) => this.get(`/api/deployStatus?trackingId=${trackingId}`);
 
   get = (path) => fetch(this.url + path, {

@@ -228,6 +228,71 @@ func deploy(w http.ResponseWriter, r *http.Request) {
 	w.Write(trackingString)
 }
 
+func rollback(w http.ResponseWriter, r *http.Request) {
+	var rollbackRequest dx.RollbackRequest
+	err := json.NewDecoder(r.Body).Decode(&rollbackRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
+	if config.GimletD.URL == "" ||
+		config.GimletD.TOKEN == "" {
+		w.WriteHeader(http.StatusNotFound)
+	}
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: config.GimletD.TOKEN,
+		},
+	)
+	adminClient := client.NewClient(config.GimletD.URL, auth)
+
+	user := ctx.Value("user").(*model.User)
+	gimletdUser, err := adminClient.UserGet(user.Login, true)
+	if err != nil {
+		logrus.Errorf("cannot find gimletd user: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	oauth2Config = new(oauth2.Config)
+	auth = oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: gimletdUser.Token,
+		},
+	)
+	impersonatedClient := client.NewClient(config.GimletD.URL, auth)
+
+	trackingID, err := impersonatedClient.RollbackPost(
+		rollbackRequest.Env,
+		rollbackRequest.App,
+		rollbackRequest.TargetSHA,
+	)
+	if err != nil {
+		logrus.Errorf("cannot post rollback: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	trackingString, err := json.Marshal(map[string]interface{}{
+		"trackingId": trackingID,
+	})
+	if err != nil {
+		logrus.Errorf("cannot serialize trackingId: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(trackingString)
+}
+
 func deployStatus(w http.ResponseWriter, r *http.Request) {
 	trackingId := r.URL.Query().Get("trackingId")
 	if trackingId == "" {

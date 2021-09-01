@@ -4,14 +4,19 @@ import {RolloutHistory} from "../rolloutHistory/rolloutHistory";
 import Emoji from "react-emoji-render";
 
 function ServiceDetail(props) {
-  const {service, rolloutHistory} = props;
+  const {service, rolloutHistory, rollback} = props;
 
   return (
     <div class="w-full flex items-center justify-between space-x-6">
       <div class="flex-1 truncate">
         <h3 class="text-lg font-bold">{service.service.name}</h3>
         <div class="my-2 mb-4 sm:my-4 sm:mb-6">
-          <RolloutHistory rolloutHistory={rolloutHistory}/>
+          <RolloutHistory
+            env={service.env}
+            app={service.service.name}
+            rollback={rollback}
+            rolloutHistory={rolloutHistory}
+          />
         </div>
         <div class="flex flex-wrap text-sm">
           <div class="flex-1 min-w-full md:min-w-0">
