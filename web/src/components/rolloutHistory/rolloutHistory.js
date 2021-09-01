@@ -64,10 +64,12 @@ at ${exactDate}`;
       )
 
       rollouts.push(
-        <li key={idx}>
+        <li key={idx}
+            class="hover:bg-yellow-100 p-4 rounded"
+        >
           <div className="relative pb-4">
             {idx !== 0 &&
-            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <span className="absolute top-8 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             }
             <div className="relative flex items-start space-x-3">
               <div className="relative">
@@ -98,6 +100,14 @@ at ${exactDate}`;
                     <Commit version={rollout.version}/>
                   </div>
                 </div>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Rollback to this version
+                </button>
               </div>
             </div>
           </div>

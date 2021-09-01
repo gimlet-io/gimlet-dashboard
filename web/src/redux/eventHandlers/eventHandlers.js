@@ -13,6 +13,11 @@ export function gitopsRepo(state, event) {
   return state;
 }
 
+export function agents(state, event) {
+  state.settings.agents = event.agents;
+  return state;
+}
+
 export function envsUpdated(state, envs) {
   envs.forEach((env) => {
     state.envs[env.name] = env;

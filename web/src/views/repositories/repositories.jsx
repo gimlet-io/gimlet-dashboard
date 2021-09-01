@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import RepoCard from "../../components/repoCard/repoCard";
+import {emptyStateNoAgents, emptyStateNoMatchingService, newService} from "../services/services";
 
 export default class Repositories extends Component {
   constructor(props) {
@@ -9,7 +10,8 @@ export default class Repositories extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       repositories: this.mapToRepositories(reduxState.envs),
-      search: reduxState.search
+      search: reduxState.search,
+      agents: reduxState.settings.agents
     }
 
     // handling API and streaming state changes
@@ -18,6 +20,7 @@ export default class Repositories extends Component {
 
       this.setState({repositories: this.mapToRepositories(reduxState.envs)});
       this.setState({search: reduxState.search});
+      this.setState({agents: reduxState.settings.agents});
     });
 
     this.navigateToRepo = this.navigateToRepo.bind(this);
@@ -46,7 +49,7 @@ export default class Repositories extends Component {
   }
 
   render() {
-    const {repositories, search} = this.state;
+    const {repositories, search, agents} = this.state;
 
     let filteredRepositories = {};
     for (const repoName of Object.keys(repositories)) {
@@ -76,9 +79,10 @@ export default class Repositories extends Component {
         </li>
       )
     })
+    repoCards.push(newService())
 
     const emptyState = search.filter !== '' ?
-      (<p className="text-xs text-gray-800">No service matches the search</p>)
+      emptyStateNoMatchingService()
       :
       (<p className="text-xs text-gray-800">No services</p>);
 
@@ -92,9 +96,12 @@ export default class Repositories extends Component {
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
+              {agents.length === 0 && emptyStateNoAgents()}
+              {agents.length > 0 &&
               <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {repoCards.length > 0 ? repoCards : emptyState}
               </ul>
+              }
             </div>
           </div>
         </main>

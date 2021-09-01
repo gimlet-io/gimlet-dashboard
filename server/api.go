@@ -68,6 +68,27 @@ func envs(w http.ResponseWriter, r *http.Request) {
 	go agentHub.ForceStateSend()
 }
 
+func agents(w http.ResponseWriter, r *http.Request) {
+	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
+
+	agents := []string{}
+	for _, a := range agentHub.Agents {
+		agents = append(agents, a.Name)
+	}
+
+	agentsString, err := json.Marshal(map[string]interface{}{
+		"agents": agents,
+	})
+	if err != nil {
+		logrus.Errorf("cannot serialize agents: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(agentsString)
+}
+
 func decorateDeployments(ctx context.Context, envs []*api.Env) error {
 	dao := ctx.Value("store").(*store.Store)
 	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
