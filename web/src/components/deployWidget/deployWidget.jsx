@@ -9,7 +9,12 @@ export default function DeployWidget(props) {
   const {deployTargets, deployHandler, sha, repo} = props;
 
   if (!deployTargets) {
-    return null;
+    return (
+      // eslint-disable-next-line
+      <a href="https://gimlet.io/gimletd/on-demand-releases/" target="_blank" class="text-xs text-gray-400 cursor-pointer">
+        Want to deploy this version?
+      </a>
+    )
   }
 
   return (

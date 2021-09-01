@@ -9,7 +9,8 @@ export default class Services extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       envs: reduxState.envs,
-      search: reduxState.search
+      search: reduxState.search,
+      agents: reduxState.agents
     }
 
     // handling API and streaming state changes
@@ -18,6 +19,7 @@ export default class Services extends Component {
 
       this.setState({envs: reduxState.envs});
       this.setState({search: reduxState.search});
+      this.setState({agents: reduxState.agents});
     });
 
     this.navigateToRepo = this.navigateToRepo.bind(this);
@@ -28,7 +30,9 @@ export default class Services extends Component {
   }
 
   render() {
-    let {envs, search} = this.state;
+    let {envs, search, agents} = this.state;
+
+    console.log(agents)
 
     let filteredEnvs = {};
     for (const envName of Object.keys(envs)) {

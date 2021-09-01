@@ -103,9 +103,7 @@ func commits(w http.ResponseWriter, r *http.Request) {
 	config := ctx.Value("config").(*config.Config)
 	commits, err = decorateCommitsWithGimletArtifacts(commits, config)
 	if err != nil {
-		logrus.Errorf("cannot get deplyotargets: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		logrus.Warnf("cannot get deplyotargets: %s", err)
 	}
 
 	commits = squashCommitStatuses(commits)

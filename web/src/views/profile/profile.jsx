@@ -102,8 +102,39 @@ source ~/.gimlet/config`}
             </div>
           </div>
           }
+          {!gimletdIntegrationEnabled &&
+          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 my-8">
+            {integrateGimletD()}
+          </div>
+          }
         </main>
       </div>
     )
   }
+}
+
+function integrateGimletD() {
+  return (
+    // eslint-disable-next-line
+    <a
+      href="https://gimlet.io/gimletd/installation/"
+      target="_blank"
+      className="relative block w-full border-2 border-gray-300
+              border-dashed rounded-lg p-12 text-center hover:border-gray-400
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+
+      <span className="mt-2 block text-lg leading-6 font-medium text-gray-900">Integrate GimletD</span>
+    </a>
+  )
 }
