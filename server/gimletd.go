@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -136,30 +137,68 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	since := time.Now().Add(-1 * time.Hour*24*30)
 	limit := 10
 
-	releases := map[string]interface{}{}
+	type fetchResult struct {
+		env string
+		app string
+		releases []*dx.Release
+		err     error
+	}
+
+	c := make(chan *fetchResult)
+	var wg sync.WaitGroup
+
 	for _, env := range envs {
-		appReleases := map[string]interface{}{}
 		for _, stack := range env.Stacks {
 			if stack.Repo != fmt.Sprintf("%s/%s", owner, name) {
 				continue
 			}
 
-			r, err := client.ReleasesGet(
-				stack.Service.Name,
-				env.Name,
-				limit,
-				0,
-				fmt.Sprintf("%s/%s", owner, name),
-				&since, nil,
-			)
-			if err != nil {
-				logrus.Errorf("cannot get releases: %s", err)
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-			appReleases[stack.Service.Name] = r
+			wg.Add(1)
+			go func(wg *sync.WaitGroup, c chan *fetchResult, env string, app string) {
+				defer wg.Done()
+
+				r, err := client.ReleasesGet(
+					app,
+					env,
+					limit,
+					0,
+					"",
+					&since, nil,
+				)
+
+				c <- &fetchResult{
+					env: env,
+					app: app,
+					releases: r,
+					err: err}
+			}(&wg, c, env.Name, stack.Service.Name)
 		}
-		releases[env.Name] = appReleases
+	}
+
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+
+	var result []*fetchResult
+	for r := range c {
+		result = append(result, r)
+	}
+
+	releases := map[string]map[string]interface{}{}
+	for _, r := range result {
+		if r.err != nil {
+			logrus.Errorf("cannot get releases: %s", r.err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		appReleases := releases[r.env]
+		if appReleases == nil {
+			appReleases = map[string]interface{}{}
+		}
+
+		appReleases[r.app] = r.releases
+		releases[r.env] = appReleases
 	}
 
 	releasesString, err := json.Marshal(releases)
