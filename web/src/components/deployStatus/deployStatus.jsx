@@ -34,13 +34,15 @@ export default class DeployStatus extends Component {
     const deploy = runningDeploys[0];
 
     let gitopsWidget = (
-      <Loading/>
+      <div className="mt-2">
+        <Loading/>
+      </div>
     )
     let appliedWidget = null;
 
     if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length !== 0) {
       gitopsWidget = (
-        <div>
+        <div class="mt-2">
           <p className="text-yellow-100 font-semibold">
             Manifests written to git
           </p>
@@ -67,7 +69,6 @@ export default class DeployStatus extends Component {
       Object.keys(deploy.gitopsHashes).length !== 0 &&
       Object.keys(deploy.gitopsHashes).filter(gitopsHash => deploy.gitopsHashes[gitopsHash].status === 'N/A').length === 0
     ) {
-      console.log(deploy.gitopsHashes)
       appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
         console.log(deploy.gitopsHashes)
         if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded') {
@@ -124,13 +125,21 @@ export default class DeployStatus extends Component {
                 <div className="p-4">
                   <div className="flex">
                     <div className="w-0 flex-1 justify-between">
+                      {!deploy.rollback &&
                       <p className="text-yellow-100 font-semibold">
                         Rolling out {deploy.appAlias ? deploy.appAlias : deploy.app}
                       </p>
+                      }
+                      {deploy.rollback &&
+                      <p className="text-yellow-100 font-semibold">
+                        Rolling back {deploy.app}
+                      </p>
+                      }
                       <p class="pl-2  ">
                         🎯 {deploy.env}
                       </p>
-                      <p class="pl-2 mb-4">
+                      {!deploy.rollback &&
+                      <p class="pl-2">
                         <span>📎</span>
                         <a
                           href={`https://github.com/${deploy.repo}/commit/${deploy.sha}`}
@@ -140,8 +149,9 @@ export default class DeployStatus extends Component {
                           {deploy.sha.slice(0, 6)}
                         </a>
                       </p>
+                      }
                       {gitopsWidget}
-                      <div class='pl-2'>{appliedWidget}</div>
+                      <div class='pl-2 mt-4'>{appliedWidget}</div>
                     </div>
                     <div className="ml-4 flex-shrink-0 flex">
                       <button

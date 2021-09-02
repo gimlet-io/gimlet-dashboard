@@ -55,6 +55,7 @@ export default class Repo extends Component {
     this.branchChange = this.branchChange.bind(this)
     this.deploy = this.deploy.bind(this)
     this.rollback = this.rollback.bind(this)
+    this.checkDeployStatus = this.checkDeployStatus.bind(this)
   }
 
   componentDidMount() {
@@ -150,6 +151,8 @@ export default class Repo extends Component {
   }
 
   checkDeployStatus(deployRequest) {
+    const {owner, repo} = this.props.match.params;
+
     this.props.gimletClient.getDeployStatus(deployRequest.trackingId)
       .then(data => {
         deployRequest.status = data.status;
@@ -166,11 +169,24 @@ export default class Repo extends Component {
         }
 
         if (data.status === "processed") {
+
           for (let gitopsHash of Object.keys(data.gitopsHashes)) {
             if (data.gitopsHashes[gitopsHash].status === 'N/A') { // poll until all gitops writes are applied
               setTimeout(() => {
                 this.checkDeployStatus(deployRequest);
               }, 500);
+            } else { // Get rollout history if gitops change is applied
+              this.props.gimletClient.getRolloutHistory(owner, repo)
+                .then(data => {
+                  this.props.store.dispatch({
+                    type: ACTION_TYPE_ROLLOUT_HISTORY, payload: {
+                      owner: owner,
+                      repo: repo,
+                      releases: data
+                    }
+                  });
+                }, () => {/* Generic error handler deals with it */
+                });
             }
           }
         }
@@ -197,21 +213,26 @@ export default class Repo extends Component {
   }
 
   rollback(env, app, rollbackTo, e) {
+    const target = {
+      rollback: true,
+      app: app,
+      env: env,
+    };
     this.props.gimletClient.rollback(env, app, rollbackTo)
       .then(data => {
         // target.sha = sha;
-        // target.trackingId = data.trackingId;
-        // setTimeout(() => {
-        //   this.checkDeployStatus(target);
-        // }, 500);
+        target.trackingId = data.trackingId;
+        setTimeout(() => {
+          this.checkDeployStatus(target);
+        }, 500);
       }, () => {/* Generic error handler deals with it */
       });
 
     // target.sha = sha;
     // target.repo = repo;
-    // this.props.store.dispatch({
-    //   type: ACTION_TYPE_DEPLOY, payload: target
-    // });
+    this.props.store.dispatch({
+      type: ACTION_TYPE_DEPLOY, payload: target
+    });
   }
 
   render() {
@@ -228,7 +249,6 @@ export default class Repo extends Component {
         return service.repo === repoName
       });
       if (search.filter !== '') {
-        console.log(filteredEnvs[env.name])
         filteredEnvs[env.name].stacks = filteredEnvs[env.name].stacks.filter((service) => {
           return service.service.name.includes(search.filter) ||
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
