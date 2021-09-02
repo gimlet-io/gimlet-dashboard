@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func gitopsRepo(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +131,11 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// limiting query scope
+	// without these, for apps released just once, the whole history would be traversed
+	since := time.Now().Add(-1 * time.Hour*24*30)
+	limit := 10
+
 	releases := map[string]interface{}{}
 	for _, env := range envs {
 		appReleases := map[string]interface{}{}
@@ -141,10 +147,10 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 			r, err := client.ReleasesGet(
 				stack.Service.Name,
 				env.Name,
-				10,
+				limit,
 				0,
 				fmt.Sprintf("%s/%s", owner, name),
-				nil, nil,
+				&since, nil,
 			)
 			if err != nil {
 				logrus.Errorf("cannot get releases: %s", err)
