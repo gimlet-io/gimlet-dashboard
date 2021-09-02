@@ -37,7 +37,7 @@ export function Deployment(props) {
   return (
     <div>
       <p className="mb-1">
-        <p className="break-words">{deployment.message}</p>
+        <p className="overflow-hidden">{deployment.message}</p>
         <p className="text-xs italic">
           <a
             href="https://github.com" target="_blank"
