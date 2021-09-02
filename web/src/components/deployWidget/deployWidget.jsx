@@ -44,7 +44,7 @@ export default function DeployWidget(props) {
                         'block px-4 py-2 text-sm w-full text-left'
                       )}
                     >
-                      {target.appAlias ? target.appAlias : target.app} to {target.env}
+                      {target.app} to {target.env}
                     </button>
                   )}
                 </Menu.Item>

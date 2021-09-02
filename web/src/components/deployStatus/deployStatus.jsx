@@ -140,7 +140,7 @@ export default class DeployStatus extends Component {
                     <div className="w-0 flex-1 justify-between">
                       {!deploy.rollback &&
                       <p className="text-yellow-100 font-semibold">
-                        Rolling out {deploy.appAlias ? deploy.appAlias : deploy.app}
+                        Rolling out {deploy.app}
                       </p>
                       }
                       {deploy.rollback &&

@@ -419,12 +419,12 @@ func decorateCommitsWithGimletArtifacts(commits []*Commit, config *config.Config
 	for _, c := range commits {
 		if artifact, ok := artifactsBySha[c.SHA]; ok {
 			for _, targetEnv := range artifact.Environments {
+				targetEnv.ResolveVars(artifact.Context)
 				if c.DeployTargets == nil {
 					c.DeployTargets = []*DeployTarget{}
 				}
 				c.DeployTargets = append(c.DeployTargets, &DeployTarget{
 					App:        targetEnv.App,
-					AppAlias:   targetEnv.AppAlias,
 					Env:        targetEnv.Env,
 					ArtifactId: artifact.ID,
 				})
