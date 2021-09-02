@@ -6,15 +6,25 @@ function classNames(...classes) {
 }
 
 export default function DeployWidget(props) {
-  const {deployTargets, deployHandler, sha, repo} = props;
+  const {deployTargets, deployHandler, deployAllHandler, sha, repo} = props;
 
   if (!deployTargets) {
     return (
       // eslint-disable-next-line
-      <a href="https://gimlet.io/gimletd/on-demand-releases/" target="_blank" class="text-xs text-gray-400 cursor-pointer">
+      <a href="https://gimlet.io/gimletd/on-demand-releases/" target="_blank"
+         class="text-xs text-gray-400 cursor-pointer">
         Want to deploy this version?
       </a>
     )
+  }
+
+  let deployTargetsByEnv = {};
+  for (let target of deployTargets) {
+    if (!deployTargetsByEnv[target.env]) {
+      deployTargetsByEnv[target.env] = [];
+    }
+
+    deployTargetsByEnv[target.env].push(target);
   }
 
   return (
@@ -34,6 +44,27 @@ export default function DeployWidget(props) {
           <Menu.Items
             className="origin-top-right absolute z-50 right-0 mt-2 -mr-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="py-1">
+              {Object.keys(deployTargetsByEnv).map((env) => {
+                if (deployTargetsByEnv[env].length > 1) {
+                  return (
+                    <Menu.Item key={`${env}`}>
+                      {({active}) => (
+                        <button
+                          onClick={() => deployAllHandler(env, sha, repo)}
+                          className={classNames(
+                            active ? 'bg-yellow-100 text-gray-900' : 'bg-yellow-50 text-gray-700',
+                            'block px-4 py-2 text-sm w-full text-left'
+                          )}
+                        >
+                          Deploy all to {env}
+                        </button>
+                      )}
+                    </Menu.Item>
+                  )
+                } else {
+                  return null;
+                }
+              })}
               {deployTargets.map((target) => (
                 <Menu.Item key={`${target.app}-${target.env}`}>
                   {({active}) => (

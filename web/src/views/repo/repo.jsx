@@ -56,6 +56,7 @@ export default class Repo extends Component {
     this.deploy = this.deploy.bind(this)
     this.rollback = this.rollback.bind(this)
     this.checkDeployStatus = this.checkDeployStatus.bind(this)
+    this.deployAll = this.deployAll.bind(this)
   }
 
   componentDidMount() {
@@ -212,6 +213,10 @@ export default class Repo extends Component {
     });
   }
 
+  deployAll(env, sha, repo) {
+    console.log('Deploying all apps to ' + env)
+  }
+
   rollback(env, app, rollbackTo, e) {
     const target = {
       rollback: true,
@@ -341,6 +346,7 @@ export default class Repo extends Component {
                     envs={filteredEnvs}
                     rolloutHistory={repoRolloutHistory}
                     deployHandler={this.deploy}
+                    deployAllHandler={this.deployAll}
                     repo={repoName}
                   />
                   }
