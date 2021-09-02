@@ -56,7 +56,6 @@ export default class Repo extends Component {
     this.deploy = this.deploy.bind(this)
     this.rollback = this.rollback.bind(this)
     this.checkDeployStatus = this.checkDeployStatus.bind(this)
-    this.deployAll = this.deployAll.bind(this)
   }
 
   componentDidMount() {
@@ -170,25 +169,27 @@ export default class Repo extends Component {
         }
 
         if (data.status === "processed") {
-
+          let gitopsCommitsApplied = true;
           for (let gitopsHash of Object.keys(data.gitopsHashes)) {
             if (data.gitopsHashes[gitopsHash].status === 'N/A') { // poll until all gitops writes are applied
+              gitopsCommitsApplied = false;
               setTimeout(() => {
                 this.checkDeployStatus(deployRequest);
               }, 500);
-            } else { // Get rollout history if gitops change is applied
-              this.props.gimletClient.getRolloutHistory(owner, repo)
-                .then(data => {
-                  this.props.store.dispatch({
-                    type: ACTION_TYPE_ROLLOUT_HISTORY, payload: {
-                      owner: owner,
-                      repo: repo,
-                      releases: data
-                    }
-                  });
-                }, () => {/* Generic error handler deals with it */
-                });
             }
+          }
+          if (gitopsCommitsApplied) {
+            this.props.gimletClient.getRolloutHistory(owner, repo)
+              .then(data => {
+                this.props.store.dispatch({
+                  type: ACTION_TYPE_ROLLOUT_HISTORY, payload: {
+                    owner: owner,
+                    repo: repo,
+                    releases: data
+                  }
+                });
+              }, () => {/* Generic error handler deals with it */
+              });
           }
         }
       }, () => {/* Generic error handler deals with it */
@@ -211,10 +212,6 @@ export default class Repo extends Component {
     this.props.store.dispatch({
       type: ACTION_TYPE_DEPLOY, payload: target
     });
-  }
-
-  deployAll(env, sha, repo) {
-    console.log('Deploying all apps to ' + env)
   }
 
   rollback(env, app, rollbackTo, e) {
@@ -346,7 +343,6 @@ export default class Repo extends Component {
                     envs={filteredEnvs}
                     rolloutHistory={repoRolloutHistory}
                     deployHandler={this.deploy}
-                    deployAllHandler={this.deployAll}
                     repo={repoName}
                   />
                   }
