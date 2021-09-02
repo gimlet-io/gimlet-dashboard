@@ -40,6 +40,19 @@ export default class DeployStatus extends Component {
     )
     let appliedWidget = null;
 
+    if (deploy.status === 'error') {
+      gitopsWidget = (
+        <div class="mt-2">
+          <p className="text-red-500 font-semibold">
+            Gitops write failed
+          </p>
+          <p className="text-red-500 font-base">
+            {deploy.statusDesc}
+          </p>
+        </div>
+      )
+    }
+
     if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length !== 0) {
       gitopsWidget = (
         <div class="mt-2">
