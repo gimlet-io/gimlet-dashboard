@@ -60,7 +60,7 @@ export default class DeployStatus extends Component {
             Manifests written to git
           </p>
           {Object.keys(deploy.gitopsHashes).map(hash => (
-            <p className="pl-2 mb-4">
+            <p className="pl-2">
               <span>📋</span>
               <a
                 href={`https://github.com/${gitopsRepo}/commit/${hash}`}
@@ -80,7 +80,7 @@ export default class DeployStatus extends Component {
 
     if (deploy.gitopsHashes &&
       Object.keys(deploy.gitopsHashes).length !== 0 &&
-      Object.keys(deploy.gitopsHashes).filter(gitopsHash => deploy.gitopsHashes[gitopsHash].status === 'N/A').length === 0
+      deploy.gitopsHashes[Object.keys(deploy.gitopsHashes)[Object.keys(deploy.gitopsHashes).length-1]].status !== 'N/A'
     ) {
       appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
         console.log(deploy.gitopsHashes)
