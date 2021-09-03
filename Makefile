@@ -1,4 +1,4 @@
-GO_VERSION=1.16
+	GO_VERSION=1.16
 GOFILES = $(shell find . -type f -name '*.go' -not -path "./.git/*")
 LDFLAGS = '-s -w -extldflags "-static" -X github.com/gimlet-io/gimlet-dashboard/version.Version='${VERSION}
 
@@ -23,16 +23,6 @@ build-agent:
 dist:
 	mkdir -p bin
 	GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-dashboard-linux-x86_64 github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
-	GOOS=linux GOARCH=arm GOARM=6 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-dashboard-linux-armhf github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
-	GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-dashboard-linux-arm64 github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-agent-linux-x86_64 github.com/gimlet-io/gimlet-dashboard/cmd/agent
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-agent-linux-armhf github.com/gimlet-io/gimlet-dashboard/cmd/agent
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-agent-linux-arm64 github.com/gimlet-io/gimlet-dashboard/cmd/agent
-
-fast-dist:
-	mkdir -p bin
-	GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-dashboard-linux-x86_64 github.com/gimlet-io/gimlet-dashboard/cmd/dashboard
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -a -installsuffix cgo -o bin/gimlet-agent-linux-x86_64 github.com/gimlet-io/gimlet-dashboard/cmd/agent
 
 build-frontend:
 	(cd web/; npm install; npm run build)
