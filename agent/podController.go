@@ -34,9 +34,9 @@ func PodController(kubeEnv *KubeEnv, gimletHost string, agentKey string) *Contro
 
 				createdPod := obj.(*v1.Pod)
 				for _, svc := range integratedServices {
-					if hasLabels(svc.Spec.Selector, createdPod.GetObjectMeta().GetLabels()) {
-						for _, deployment := range allDeployments.Items {
-							if selectorsMatch(deployment.Spec.Selector.MatchLabels, svc.Spec.Selector) &&
+					for _, deployment := range allDeployments.Items {
+						if selectorsMatch(deployment.Spec.Selector.MatchLabels, svc.Spec.Selector) {
+							if hasLabels(deployment.Spec.Selector.MatchLabels, createdPod.GetObjectMeta().GetLabels()) &&
 								createdPod.Namespace == deployment.Namespace {
 								update := &api.StackUpdate{
 									Event:   EventPodCreated,
@@ -70,9 +70,10 @@ func PodController(kubeEnv *KubeEnv, gimletHost string, agentKey string) *Contro
 
 				updatedPod := obj.(*v1.Pod)
 				for _, svc := range integratedServices {
-					if hasLabels(svc.Spec.Selector, updatedPod.GetObjectMeta().GetLabels()) {
-						for _, deployment := range allDeployments.Items {
-							if selectorsMatch(deployment.Spec.Selector.MatchLabels, svc.Spec.Selector) {
+					for _, deployment := range allDeployments.Items {
+						if selectorsMatch(deployment.Spec.Selector.MatchLabels, svc.Spec.Selector) {
+							if hasLabels(deployment.Spec.Selector.MatchLabels, updatedPod.GetObjectMeta().GetLabels()) &&
+								updatedPod.Namespace == deployment.Namespace {
 								podStatus := podStatus(*updatedPod)
 								podLogs := ""
 								if "CrashLoopBackOff" == podStatus {
@@ -109,14 +110,19 @@ func PodController(kubeEnv *KubeEnv, gimletHost string, agentKey string) *Contro
 	return podController
 }
 
+// hasLabels determines if all the selectors are present as labels
 func hasLabels(selector map[string]string, labels map[string]string) bool {
-	for label, value := range labels {
-		for selectorLabel, selectorValue := range selector {
+	for selectorLabel, selectorValue := range selector {
+		hasLabel := false
+		for label, value := range labels {
 			if label == selectorLabel && value == selectorValue {
-				return true
+				hasLabel = true
 			}
+		}
+		if !hasLabel {
+			return false
 		}
 	}
 
-	return false
+	return true
 }
