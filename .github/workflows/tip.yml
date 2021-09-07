@@ -37,7 +37,7 @@ jobs:
       run: make build-frontend
 
     - name: Dist
-      run: make fast-dist
+      run: make dist
       env:
         VERSION: ${{ steps.sha_or_tag.outputs.version }}
 
