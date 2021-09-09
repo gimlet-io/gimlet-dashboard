@@ -38,7 +38,7 @@ export class Commits extends Component {
                         {
                           commit.status && commit.status.statuses &&
                           commit.status.statuses.map(status => (
-                            <a href={status.targetURL} target="_blank" rel="noopener noreferrer" title={status.context}>
+                            <a key={status.targetURL} href={status.targetURL} target="_blank" rel="noopener noreferrer" title={status.context}>
                               <StatusIcon status={status}/>
                             </a>
                           ))
@@ -54,9 +54,9 @@ export class Commits extends Component {
                       rel="noopener noreferrer">
                       {commit.authorName}
                     </a>
-                    <span class="ml-1">committed</span>
+                    <span className="ml-1">committed</span>
                     <a
-                      class="ml-1"
+                      className="ml-1"
                       title={exactDate}
                       href={commit.url}
                       target="_blank"
@@ -66,12 +66,12 @@ export class Commits extends Component {
                   </p>
                 </div>
                 <div className="mt-2 text-sm text-gray-700">
-                  <div class="ml-2 md:ml-4">
+                  <div className="ml-2 md:ml-4">
 
                   </div>
                 </div>
               </div>
-              <div class="pr-4">
+              <div className="pr-4">
                 <ReleaseBadges
                   sha={commit.sha}
                   envs={envs}
@@ -108,22 +108,22 @@ class StatusIcon extends Component {
       case 'SUCCESS':
       case 'COMPLETED':
         return (
-          <svg class="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15" height="20"
+          <svg className="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15" height="20"
                role="img"
           >
             <title>{status.context}</title>
-            <path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/>
+            <path fillRule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/>
           </svg>
         );
       case 'PENDING':
       case 'IN_PROGRESS':
       case 'QUEUED':
         return (
-          <svg class="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10" height="20"
+          <svg className="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10" height="20"
                role="img"
           >
             <title>{status.context}</title>
-            <path fill-rule="evenodd" d="M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z"/>
+            <path fillRule="evenodd" d="M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z"/>
           </svg>
         );
       default:
@@ -133,7 +133,7 @@ class StatusIcon extends Component {
                role="img"
           >
             <title>{status.context}</title>
-            <path fill-rule="evenodd"
+            <path fillRule="evenodd"
                   d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/>
           </svg>
         )
@@ -198,7 +198,7 @@ class ReleaseBadges extends Component {
     ))
 
     return (
-      <div class="max-w-sm break-all inline-block text-sm">
+      <div className="max-w-sm break-all inline-block text-sm">
         {recentBadges}
         {releaseBadges}
       </div>

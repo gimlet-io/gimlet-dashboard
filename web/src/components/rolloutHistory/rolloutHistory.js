@@ -60,10 +60,10 @@ Deployed by ${rollout.triggeredBy}
 at ${exactDate}`;
 
       markers.push(
-        <div class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
+        <div key={rollout.created} class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
           <div className={`h-2 ml-1 md:mx-1 ${color} rounded`}></div>
           {showDate &&
-          <div class="hidden lg:block mx-2 mt-2 text-xs text-gray-400">
+          <div className="hidden lg:block mx-2 mt-2 text-xs text-gray-400">
             <span>{dateLabel} ago</span>
           </div>
           }
@@ -72,7 +72,7 @@ at ${exactDate}`;
 
       rollouts.push(
         <li key={idx}
-            class="hover:bg-yellow-100 p-4 rounded"
+            className="hover:bg-yellow-100 p-4 rounded"
         >
           <div className="relative pb-4">
             {idx !== ar.length-1 &&
@@ -103,7 +103,7 @@ at ${exactDate}`;
                   </p>
                 </div>
                 <div className="mt-2 text-sm text-gray-700">
-                  <div class="ml-2 md:ml-4">
+                  <div className="ml-2 md:ml-4">
                     <Commit version={rollout.version}/>
                   </div>
                 </div>
@@ -143,11 +143,11 @@ at ${exactDate}`;
 
     return (
       <div className="">
-        <div class="grid grid-cols-10 p-2">
+        <div className="grid grid-cols-10 p-2">
           {markers}
         </div>
         {open &&
-        <div class="bg-yellow-50 rounded">
+        <div className="bg-yellow-50 rounded">
           <div className="flow-root">
             <ul className="-mb-4 p-2 md:p-4 lg:p-8">
               {rollouts}
@@ -183,7 +183,7 @@ function Commit(props) {
           <div>
             <span className="font-semibold">{version.authorName}</span>
             <a
-              class="ml-1"
+              className="ml-1"
               title={exactDate}
               href={`https://github.com/${version.repositoryName}/commit/${version.sha}`}
               target="_blank"

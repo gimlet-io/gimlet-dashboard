@@ -70,6 +70,11 @@ export function podDeleted(state, event) {
 
   state.envs[env].stacks.forEach((stack, stackID, stacks) => {
     let toRemove = undefined;
+    if (!stack.deployment) {
+      // happens when a deployment is deleted
+      // deploymentDeleted event may arrive faster than podDeleted
+      return
+    }
     stack.deployment.pods.forEach((pod, podID) => {
       if (pod.namespace + '/' + pod.name === event.subject) {
         toRemove = podID;
