@@ -146,13 +146,28 @@ func update(w http.ResponseWriter, r *http.Request) {
 
 	update = decorateDeploymentUpdateWithCommitMessage(update, r)
 
+	poorMansNewServiceHandler(update, r)
+
 	clientHub, _ := r.Context().Value("clientHub").(*streaming.ClientHub)
 	jsonString, _ := json.Marshal(update)
 	clientHub.Broadcast <- jsonString
 }
 
+func poorMansNewServiceHandler(update api.StackUpdate, r *http.Request) {
+	// delete it when properly handling svc created event in agents,
+	// and covered all eventual consistency cases
+	if update.Event == agent.EventDeploymentCreated {
+		agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			agentHub.ForceStateSend()
+		}()
+	}
+}
+
 func decorateDeploymentUpdateWithCommitMessage(update api.StackUpdate, r *http.Request) api.StackUpdate {
-	if update.Event == agent.EventDeploymentUpdated {
+	if update.Event == agent.EventDeploymentUpdated ||
+		update.Event == agent.EventDeploymentCreated {
 		dao := r.Context().Value("store").(*store.Store)
 
 		dbCommits, err := dao.CommitsByRepoAndSHA(update.Repo, []string{update.SHA})

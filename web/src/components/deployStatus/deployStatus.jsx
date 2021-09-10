@@ -60,7 +60,7 @@ export default class DeployStatus extends Component {
             Manifests written to git
           </p>
           {Object.keys(deploy.gitopsHashes).map(hash => (
-            <p className="pl-2">
+            <p key={hash} className="pl-2">
               <span>📋</span>
               <a
                 href={`https://github.com/${gitopsRepo}/commit/${hash}`}
@@ -78,6 +78,7 @@ export default class DeployStatus extends Component {
       )
     }
 
+    console.log(deploy.gitopsHashes);
     if (deploy.gitopsHashes &&
       Object.keys(deploy.gitopsHashes).length !== 0 &&
       deploy.gitopsHashes[Object.keys(deploy.gitopsHashes)[Object.keys(deploy.gitopsHashes).length-1]].status !== 'N/A'
@@ -85,7 +86,7 @@ export default class DeployStatus extends Component {
       appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
         if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded') {
           return (
-            <p className="font-semibold text-red-500">
+            <p key={hash} className="font-semibold text-red-500">
               <span>❗</span>
               <a
                 href={`https://github.com/${gitopsRepo}/commit/${hash}`}
@@ -99,7 +100,7 @@ export default class DeployStatus extends Component {
           )
         } else {
           return (
-            <p className="font-semibold text-green-300">
+            <p key={hash} className="font-semibold text-green-300">
               <span>✅</span>
               <a
                 href={`https://github.com/${gitopsRepo}/commit/${hash}`}

@@ -38,7 +38,8 @@ export class Commits extends Component {
                         {
                           commit.status && commit.status.statuses &&
                           commit.status.statuses.map(status => (
-                            <a key={status.targetURL} href={status.targetURL} target="_blank" rel="noopener noreferrer" title={status.context}>
+                            <a key={status.createdAt} href={status.targetURL} target="_blank" rel="noopener noreferrer"
+                               title={status.context}>
                               <StatusIcon status={status}/>
                             </a>
                           ))
@@ -108,7 +109,8 @@ class StatusIcon extends Component {
       case 'SUCCESS':
       case 'COMPLETED':
         return (
-          <svg className="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15" height="20"
+          <svg className="inline fill-current text-green-400 ml-1" viewBox="0 0 12 16" version="1.1" width="15"
+               height="20"
                role="img"
           >
             <title>{status.context}</title>
@@ -119,7 +121,8 @@ class StatusIcon extends Component {
       case 'IN_PROGRESS':
       case 'QUEUED':
         return (
-          <svg className="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10" height="20"
+          <svg className="inline fill-current text-yellow-400 ml-1" viewBox="0 0 8 16" version="1.1" width="10"
+               height="20"
                role="img"
           >
             <title>{status.context}</title>
