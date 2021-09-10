@@ -78,42 +78,47 @@ export default class DeployStatus extends Component {
       )
     }
 
-    console.log(deploy.gitopsHashes);
-    if (deploy.gitopsHashes &&
-      Object.keys(deploy.gitopsHashes).length !== 0 &&
-      deploy.gitopsHashes[Object.keys(deploy.gitopsHashes)[Object.keys(deploy.gitopsHashes).length-1]].status !== 'N/A'
-    ) {
-      appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
-        if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded') {
-          return (
-            <p key={hash} className="font-semibold text-red-500">
-              <span>❗</span>
-              <a
-                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
-                target="_blank" rel="noopener noreferrer"
-                class='ml-1'
-              >
-                {hash.slice(0, 6)}
-              </a>
-              <span class='ml-1 block'>{deploy.gitopsHashes[hash].statusDesc}</span>
-            </p>
-          )
-        } else {
-          return (
-            <p key={hash} className="font-semibold text-green-300">
-              <span>✅</span>
-              <a
-                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
-                target="_blank" rel="noopener noreferrer"
-                class='ml-1'
-              >
-                {hash.slice(0, 6)}
-              </a>
-              <span class='ml-1'>applied</span>
-            </p>
-          )
-        }
-      })
+    if (deploy.gitopsHashes) {
+      const numberOfGitopsHashes = Object.keys(deploy.gitopsHashes).length;
+      const latestGitopsHash = Object.keys(deploy.gitopsHashes)[0];
+      const latestGitopsHashMetadata = deploy.gitopsHashes[latestGitopsHash];
+      if (numberOfGitopsHashes !== 0 &&
+        latestGitopsHashMetadata.status !== 'N/A' &&
+        latestGitopsHashMetadata.status !== 'Progressing'
+      ) {
+        appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
+          if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded' &&
+            deploy.gitopsHashes[hash].status !== 'N/A') {
+            return (
+              <p key={hash} className="font-semibold text-red-500">
+                <span>❗</span>
+                <a
+                  href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                  target="_blank" rel="noopener noreferrer"
+                  class='ml-1'
+                >
+                  {hash.slice(0, 6)}
+                </a>
+                <span class='ml-1 block'>{deploy.gitopsHashes[hash].statusDesc}</span>
+              </p>
+            )
+          } else {
+            return (
+              <p key={hash} className="font-semibold text-green-300">
+                <span>✅</span>
+                <a
+                  href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                  target="_blank" rel="noopener noreferrer"
+                  class='ml-1'
+                >
+                  {hash.slice(0, 6)}
+                </a>
+                <span class='ml-1'>applied</span>
+              </p>
+            )
+          }
+        })
+      }
     }
 
     return (
@@ -190,7 +195,9 @@ export default class DeployStatus extends Component {
   }
 }
 
-function Loading() {
+function
+
+Loading() {
   return (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
          viewBox="0 0 24 24">
