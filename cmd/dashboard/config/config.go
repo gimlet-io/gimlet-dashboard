@@ -25,6 +25,9 @@ func defaults(c *Config) {
 	if c.RepoCachePath == "" {
 		c.RepoCachePath = "/tmp/gimlet-dashboard"
 	}
+	if c.ReleaseHistorySinceDays == 0 {
+		c.ReleaseHistorySinceDays = 30
+	}
 }
 
 // String returns the configuration in string format.
@@ -34,14 +37,15 @@ func (c *Config) String() string {
 }
 
 type Config struct {
-	Logging       Logging
-	Host          string `envconfig:"HOST"`
-	JWTSecret     string `envconfig:"JWT_SECRET"`
-	Github        Github
-	Database      Database
-	GimletD       GimletD
-	RepoCachePath string
-	WebhookSecret string `envconfig:"WEBHOOK_SECRET"`
+	Logging                 Logging
+	Host                    string `envconfig:"HOST"`
+	JWTSecret               string `envconfig:"JWT_SECRET"`
+	Github                  Github
+	Database                Database
+	GimletD                 GimletD
+	RepoCachePath           string
+	WebhookSecret           string `envconfig:"WEBHOOK_SECRET"`
+	ReleaseHistorySinceDays int    `envconfig:"RELEASE_HISTORY_SINCE_DAYS"`
 }
 
 // Logging provides the logging configuration.

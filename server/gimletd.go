@@ -134,7 +134,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 
 	// limiting query scope
 	// without these, for apps released just once, the whole history would be traversed
-	since := time.Now().Add(-1 * time.Hour*24*30)
+	since := time.Now().Add(-1 * time.Hour*24*time.Duration(config.ReleaseHistorySinceDays))
 	limit := 10
 
 	type fetchResult struct {
