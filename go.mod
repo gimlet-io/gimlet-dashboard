@@ -11,8 +11,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/jwtauth/v5 v5.0.1
-	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-git/go-git-fixtures/v4 v4.2.1 // indirect
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-github/v37 v37.0.0
@@ -44,3 +42,5 @@ require (
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1
 )
+
+replace github.com/go-git/go-git/v5 => github.com/gimlet-io/go-git/v5 v5.2.1-0.20210917081253-a2ab483ba818

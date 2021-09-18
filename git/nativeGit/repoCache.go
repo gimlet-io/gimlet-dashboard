@@ -115,6 +115,7 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 	token, user, err := r.tokenManager.Token()
 	if err != nil {
 		logrus.Errorf("couldn't get scm token: %s", err)
+		return
 	}
 
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
@@ -125,13 +126,21 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 		},
 		Depth: 100,
 		Tags:  git.NoTags,
+		Prune: true,
 	})
 	if err == git.NoErrAlreadyUpToDate {
 		return
 	}
 	if err != nil {
 		logrus.Errorf("could not fetch: %s", err)
+		r.cleanRepo(repoName)
 	}
+}
+
+func (r *RepoCache) cleanRepo(repoName string) {
+	mutex.Lock()
+	delete(r.repos, repoName)
+	mutex.Unlock()
 }
 
 var mutex = &sync.Mutex{}
@@ -191,6 +200,7 @@ func (r *RepoCache) Invalidate(repoName string) {
 func (r *RepoCache) clone(repoName string) (*git.Repository, error) {
 	repoPath := filepath.Join(r.cachePath, strings.ReplaceAll(repoName, "/", "%"))
 
+	os.RemoveAll(repoPath)
 	err := os.MkdirAll(repoPath, Dir_RWX_RX_R)
 	if err != nil {
 		return nil, errors.WithMessage(err, "couldn't create folder")
