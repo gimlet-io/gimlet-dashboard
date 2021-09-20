@@ -118,6 +118,11 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 		return
 	}
 
+	if _, ok := r.repos[repoName]; !ok {
+		logrus.Warnf("could not get repo by name from cache: %s", repoName)
+		return // preventing a race condition in cleanup
+	}
+
 	err = r.repos[repoName].Fetch(&git.FetchOptions{
 		RefSpecs: fetchRefSpec,
 		Auth: &http.BasicAuth{
