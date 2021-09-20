@@ -303,7 +303,7 @@ export default class Repo extends Component {
                 </div>
                 }
 
-                {Object.keys(filteredEnvs).map((envName) => {
+                {Object.keys(filteredEnvs).sort().map((envName) => {
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
                     let appRolloutHistory = undefined;
