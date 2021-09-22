@@ -53,21 +53,21 @@ export default class DeployStatus extends Component {
       )
     }
 
-    if (deploy.gitopsHashes && Object.keys(deploy.gitopsHashes).length !== 0) {
+    if (deploy.gitopsHashes && deploy.gitopsHashes.length !== 0) {
       gitopsWidget = (
         <div class="mt-2">
           <p className="text-yellow-100 font-semibold">
             Manifests written to git
           </p>
-          {Object.keys(deploy.gitopsHashes).map(hash => (
-            <p key={hash} className="pl-2">
+          {deploy.gitopsHashes.map(hashStatus => (
+            <p key={hashStatus.hash} className="pl-2">
               <span>📋</span>
               <a
-                href={`https://github.com/${gitopsRepo}/commit/${hash}`}
+                href={`https://github.com/${gitopsRepo}/commit/${hashStatus.hash}`}
                 target="_blank" rel="noopener noreferrer"
                 className='ml-1'
               >
-                {hash.slice(0, 6)}
+                {hashStatus.hash.slice(0, 6)}
               </a>
             </p>
           ))}
@@ -79,45 +79,45 @@ export default class DeployStatus extends Component {
     }
 
     if (deploy.gitopsHashes) {
-      const numberOfGitopsHashes = Object.keys(deploy.gitopsHashes).length;
-      const latestGitopsHash = Object.keys(deploy.gitopsHashes)[0];
-      const latestGitopsHashMetadata = deploy.gitopsHashes[latestGitopsHash];
-      if (numberOfGitopsHashes !== 0 &&
-        latestGitopsHashMetadata.status !== 'N/A' &&
-        latestGitopsHashMetadata.status !== 'Progressing'
-      ) {
-        appliedWidget = Object.keys(deploy.gitopsHashes).map(hash => {
-          if (deploy.gitopsHashes[hash].status !== 'ReconciliationSucceeded' &&
-            deploy.gitopsHashes[hash].status !== 'N/A') {
-            return (
-              <p key={hash} className="font-semibold text-red-500">
-                <span>❗</span>
-                <a
-                  href={`https://github.com/${gitopsRepo}/commit/${hash}`}
-                  target="_blank" rel="noopener noreferrer"
-                  class='ml-1'
-                >
-                  {hash.slice(0, 6)}
-                </a>
-                <span class='ml-1 block'>{deploy.gitopsHashes[hash].statusDesc}</span>
-              </p>
-            )
-          } else {
-            return (
-              <p key={hash} className="font-semibold text-green-300">
-                <span>✅</span>
-                <a
-                  href={`https://github.com/${gitopsRepo}/commit/${hash}`}
-                  target="_blank" rel="noopener noreferrer"
-                  class='ml-1'
-                >
-                  {hash.slice(0, 6)}
-                </a>
-                <span class='ml-1'>applied</span>
-              </p>
-            )
-          }
-        })
+      const numberOfGitopsHashes = deploy.gitopsHashes.length;
+      if (numberOfGitopsHashes > 0) {
+        const latestGitopsHashMetadata = deploy.gitopsHashes[0];
+        if (latestGitopsHashMetadata.status !== 'N/A' &&
+          latestGitopsHashMetadata.status !== 'Progressing'
+        ) {
+          appliedWidget = deploy.gitopsHashes.map(hashStatus => {
+            if (hashStatus.status !== 'ReconciliationSucceeded' &&
+              hashStatus.status !== 'N/A') {
+              return (
+                <p key={hashStatus.hash} className="font-semibold text-red-500">
+                  <span>❗</span>
+                  <a
+                    href={`https://github.com/${gitopsRepo}/commit/${hashStatus.hash}`}
+                    target="_blank" rel="noopener noreferrer"
+                    class='ml-1'
+                  >
+                    {hashStatus.hash.slice(0, 6)}
+                  </a>
+                  <span class='ml-1 block'>{hashStatus.statusDesc}</span>
+                </p>
+              )
+            } else {
+              return (
+                <p key={hashStatus.hash} className="font-semibold text-green-300">
+                  <span>✅</span>
+                  <a
+                    href={`https://github.com/${gitopsRepo}/commit/${hashStatus.hash}`}
+                    target="_blank" rel="noopener noreferrer"
+                    class='ml-1'
+                  >
+                    {hashStatus.hash.slice(0, 6)}
+                  </a>
+                  <span class='ml-1'>applied</span>
+                </p>
+              )
+            }
+          })
+        }
       }
     }
 
