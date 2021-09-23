@@ -7,6 +7,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/store/sql"
 	"github.com/russross/meddler"
+	"github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -107,6 +108,7 @@ func (db *Store) SaveStatusesOnCommits(repo string, statuses map[string]*model.C
 			tx.Rollback()
 			return err
 		}
+		logrus.Infof("Saving status on commit %s %s: %s", sha, repo, statusJson)
 		stmt := "UPDATE commits set status = ? where repo = ? and sha = ?"
 		_, err = tx.Exec(stmt, statusJson, repo, sha)
 		if err != nil {

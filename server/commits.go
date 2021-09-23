@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 )
 
 func commits(w http.ResponseWriter, r *http.Request) {
@@ -197,6 +198,7 @@ func decorateCommitsWithSCMDataWithRetry(
 
 	// if not all commit was decorated, fetch them and try decorating again
 	if len(hashesToFetch) > 0 && !isRetry {
+		logrus.Infof("Fetching scm data for %s", strings.Join(hashesToFetch, ","))
 		// fetch remote commit info, then try to decorate again
 		owner, name := scm.Split(repo)
 		fetchCommits(owner, name, gitServiceImpl, token, dao, hashesToFetch)
