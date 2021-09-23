@@ -9,7 +9,7 @@ export default class Repositories extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      repositories: this.mapToRepositories(reduxState.envs),
+      repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos),
       search: reduxState.search,
       agents: reduxState.settings.agents
     }
@@ -18,7 +18,7 @@ export default class Repositories extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({repositories: this.mapToRepositories(reduxState.envs)});
+      this.setState({repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos)});
       this.setState({search: reduxState.search});
       this.setState({agents: reduxState.settings.agents});
     });
@@ -26,8 +26,14 @@ export default class Repositories extends Component {
     this.navigateToRepo = this.navigateToRepo.bind(this);
   }
 
-  mapToRepositories(envs) {
+  mapToRepositories(envs, gitRepos) {
     const repositories = {}
+
+    for (const r of gitRepos) {
+      if (repositories[r] === undefined) {
+        repositories[r] = [];
+      }
+    }
 
     for (const envName of Object.keys(envs)) {
       const env = envs[envName];
@@ -60,7 +66,7 @@ export default class Repositories extends Component {
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
         })
-        if (filteredRepositories[repoName].length === 0) {
+        if (filteredRepositories[repoName].length === 0 && !repoName.includes(search.filter)) {
           delete filteredRepositories[repoName];
         }
       }

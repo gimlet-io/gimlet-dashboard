@@ -14,7 +14,7 @@ export function gitopsRepo(state, event) {
 }
 
 export function gitRepos(state, event) {
-  state.settings.gitRepos = event.gitRepos;
+  state.gitRepos = event;
   return state;
 }
 
