@@ -2,9 +2,11 @@ package customGithub
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/shurcooL/githubv4"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
@@ -150,6 +152,9 @@ func (c *GithubClient) FetchCommits(
 	commits = append(commits, translateCommit(queryObjects.Repository.Object7.Commit))
 	commits = append(commits, translateCommit(queryObjects.Repository.Object8.Commit))
 	commits = append(commits, translateCommit(queryObjects.Repository.Object9.Commit))
+
+	response, _ := json.Marshal(queryObjects)
+	logrus.Infof("Github response: %s", response)
 
 	return commits[:10-toPadWidth], nil
 }
