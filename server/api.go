@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
@@ -31,6 +32,54 @@ func user(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write(userString)
+}
+
+func gitRepos(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := ctx.Value("user").(*model.User)
+
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+	orgRepos, err := gitServiceImpl.OrgRepos(token)
+	if err != nil {
+		logrus.Errorf("cannot get org repos: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	goScmHelper, _ := ctx.Value("goScmHelper").(*genericScm.GoScmHelper)
+	userRepos, err := goScmHelper.UserRepos(user.AccessToken, user.RefreshToken)
+	if err != nil {
+		logrus.Errorf("cannot get user repos: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	reposString, err := json.Marshal(intersection(orgRepos, userRepos))
+	if err != nil {
+		logrus.Errorf("cannot serialize repos: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(reposString)
+}
+
+func intersection(s1, s2 []string) (inter []string) {
+	hash := make(map[string]bool)
+	for _, e := range s1 {
+		hash[e] = true
+	}
+	for _, e := range s2 {
+		// If elements present in the hashmap then append intersection list.
+		if hash[e] {
+			inter = append(inter, e)
+		}
+	}
+
+	return
 }
 
 func envs(w http.ResponseWriter, r *http.Request) {
