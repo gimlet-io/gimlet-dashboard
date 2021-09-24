@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import RepoCard from "../../components/repoCard/repoCard";
-import {emptyStateNoAgents, emptyStateNoMatchingService, newService} from "../services/services";
+import {emptyStateNoAgents, emptyStateNoMatchingService} from "../services/services";
 
 export default class Repositories extends Component {
   constructor(props) {
@@ -85,7 +85,6 @@ export default class Repositories extends Component {
         </li>
       )
     })
-    repoCards.push(newService())
 
     const emptyState = search.filter !== '' ?
       emptyStateNoMatchingService()
