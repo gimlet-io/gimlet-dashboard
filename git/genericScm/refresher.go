@@ -2,18 +2,21 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package oauth2
+package genericScm
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/drone/go-scm/scm"
+	"github.com/gimlet-io/go-scm/scm"
 )
 
 // expiryDelta determines how earlier a token should be considered
@@ -34,6 +37,8 @@ type Refresher struct {
 
 	Source scm.TokenSource
 	Client *http.Client
+
+	tokenUpdater func(token *scm.Token)
 }
 
 // Token returns a token. If the token is missing or
@@ -58,8 +63,6 @@ func (t *Refresher) Refresh(token *scm.Token) error {
 	values := url.Values{}
 	values.Set("grant_type", "refresh_token")
 	values.Set("refresh_token", token.Refresh)
-	values.Set("client_id", t.ClientID)
-	values.Set("client_secret", t.ClientSecret)
 
 	reader := strings.NewReader(
 		values.Encode(),
@@ -68,14 +71,14 @@ func (t *Refresher) Refresh(token *scm.Token) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Accept", "application/json")
+	req.SetBasicAuth(t.ClientID, t.ClientSecret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
 
 	res, err := t.client().Do(req)
 	if err != nil {
 		return err
 	}
-	httputil.DumpResponse(res, true)
 	defer res.Body.Close()
 
 	if res.StatusCode > 299 {
@@ -87,10 +90,21 @@ func (t *Refresher) Refresh(token *scm.Token) error {
 		return out
 	}
 
+	buf, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		return err
+	}
+
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	res.Body = rdr2
+
 	out := new(tokenGrant)
 	err = json.NewDecoder(res.Body).Decode(out)
 	if err != nil {
-		return err
+		buf := new(strings.Builder)
+		io.Copy(buf, rdr1)
+		return fmt.Errorf("could not parse token response %s: %s", err, buf.String())
 	}
 
 	token.Token = out.Access
@@ -98,6 +112,11 @@ func (t *Refresher) Refresh(token *scm.Token) error {
 	token.Expires = time.Now().Add(
 		time.Duration(out.Expires) * time.Second,
 	)
+
+	if t.tokenUpdater != nil {
+		t.tokenUpdater(token)
+	}
+
 	return nil
 }
 

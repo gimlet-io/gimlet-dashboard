@@ -3,7 +3,6 @@ package server
 import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
-	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server/session"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
@@ -26,7 +25,6 @@ func SetupRouter(
 	agentHub *streaming.AgentHub,
 	clientHub *streaming.ClientHub,
 	store *store.Store,
-	goScmHelper *genericScm.GoScmHelper,
 	gitService customScm.CustomGitService,
 	tokenManager customScm.NonImpersonatedTokenManager,
 	repoCache *nativeGit.RepoCache,
@@ -46,7 +44,6 @@ func SetupRouter(
 	r.Use(middleware.WithValue("agentHub", agentHub))
 	r.Use(middleware.WithValue("clientHub", clientHub))
 	r.Use(middleware.WithValue("store", store))
-	r.Use(middleware.WithValue("goScmHelper", goScmHelper))
 	r.Use(middleware.WithValue("config", config))
 	r.Use(middleware.WithValue("gitService", gitService))
 	r.Use(middleware.WithValue("tokenManager", tokenManager))

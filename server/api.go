@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
+	"github.com/gimlet-io/go-scm/scm"
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -48,8 +50,18 @@ func gitRepos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	goScmHelper, _ := ctx.Value("goScmHelper").(*genericScm.GoScmHelper)
-	userRepos, err := goScmHelper.UserRepos(user.AccessToken, user.RefreshToken)
+	config := ctx.Value("config").(*config.Config)
+	dao := ctx.Value("store").(*store.Store)
+	goScmHelper := genericScm.NewGoScmHelper(config, func(token *scm.Token) {
+		user.AccessToken = token.Token
+		user.RefreshToken = token.Refresh
+		user.Expires = token.Expires.Unix()
+		err = dao.UpdateUser(user)
+		if err != nil {
+			logrus.Errorf("could not refresh user's oauth access_token")
+		}
+	})
+	userRepos, err := goScmHelper.UserRepos(user.AccessToken, user.RefreshToken, time.Unix(user.Expires, 0))
 	if err != nil {
 		logrus.Errorf("cannot get user repos: %s", err)
 		http.Error(w, http.StatusText(500), 500)

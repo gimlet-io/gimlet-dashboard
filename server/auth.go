@@ -27,7 +27,8 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 	token := login.TokenFrom(ctx)
 
-	goScmHelper, _ := ctx.Value("goScmHelper").(*genericScm.GoScmHelper)
+	config := ctx.Value("config").(*config.Config)
+	goScmHelper := genericScm.NewGoScmHelper(config, nil)
 	scmUser, err := goScmHelper.User(token.Access, token.Refresh)
 	if err != nil {
 		log.Errorf("cannot find git user: %s", err)
@@ -42,7 +43,6 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config, _ := ctx.Value("config").(*config.Config)
 	if config.IsGithub() {
 		member := validateOrganizationMembership(orgList, config.Github.Org, scmUser.Login)
 		if !member {
