@@ -10,6 +10,7 @@ export default class Repositories extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos),
+      favorites: [],
       search: reduxState.search,
       agents: reduxState.settings.agents
     }
@@ -24,6 +25,7 @@ export default class Repositories extends Component {
     });
 
     this.navigateToRepo = this.navigateToRepo.bind(this);
+    this.favoriteHandler = this.favoriteHandler.bind(this);
   }
 
   mapToRepositories(envs, gitRepos) {
@@ -50,12 +52,27 @@ export default class Repositories extends Component {
     return repositories;
   }
 
+  favoriteHandler(repo) {
+    this.setState(prevState => {
+      let favorites = prevState.favorites
+      if (!favorites.includes(repo)) {
+        favorites.push(repo);
+      } else {
+        favorites = favorites.filter(fav => fav !== repo);
+      }
+
+      return {
+        favorites: favorites
+      }
+    });
+  }
+
   navigateToRepo(repo) {
     this.props.history.push(`/repo/${repo}`)
   }
 
   render() {
-    const {repositories, search, agents} = this.state;
+    const {repositories, search, agents, favorites} = this.state;
 
     let filteredRepositories = {};
     for (const repoName of Object.keys(repositories)) {
@@ -75,12 +92,15 @@ export default class Repositories extends Component {
     const filteredRepoNames = Object.keys(filteredRepositories);
     filteredRepoNames.sort();
     const repoCards = filteredRepoNames.map(repoName => {
+
       return (
         <li key={repoName} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
           <RepoCard
             name={repoName}
             services={filteredRepositories[repoName]}
             navigateToRepo={this.navigateToRepo}
+            favorite={favorites.includes(repoName)}
+            favoriteHandler={this.favoriteHandler}
           />
         </li>
       )
