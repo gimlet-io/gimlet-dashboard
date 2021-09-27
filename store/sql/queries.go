@@ -24,7 +24,7 @@ var queries = map[string]map[string]string{
 SELECT 1;
 `,
 		SelectUserByLogin: `
-SELECT id, login, name, email, access_token, refresh_token, expires, secret
+SELECT id, login, name, email, access_token, refresh_token, expires, secret, repos, favorite_repos, favorite_services
 FROM users
 WHERE login = ?;
 `,
