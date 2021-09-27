@@ -50,25 +50,11 @@ func gitRepos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := ctx.Value("config").(*config.Config)
-	dao := ctx.Value("store").(*store.Store)
-	goScmHelper := genericScm.NewGoScmHelper(config, func(token *scm.Token) {
-		user.AccessToken = token.Token
-		user.RefreshToken = token.Refresh
-		user.Expires = token.Expires.Unix()
-		err = dao.UpdateUser(user)
-		if err != nil {
-			logrus.Errorf("could not refresh user's oauth access_token")
-		}
-	})
-	userRepos, err := goScmHelper.UserRepos(user.AccessToken, user.RefreshToken, time.Unix(user.Expires, 0))
-	if err != nil {
-		logrus.Errorf("cannot get user repos: %s", err)
-		http.Error(w, http.StatusText(500), 500)
-		return
+	userHasAccessToRepos := intersection(orgRepos, user.Repos)
+	if userHasAccessToRepos == nil {
+		userHasAccessToRepos = []string{}
 	}
-
-	reposString, err := json.Marshal(intersection(orgRepos, userRepos))
+	reposString, err := json.Marshal(userHasAccessToRepos)
 	if err != nil {
 		logrus.Errorf("cannot serialize repos: %s", err)
 		http.Error(w, http.StatusText(500), 500)
@@ -77,6 +63,34 @@ func gitRepos(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write(reposString)
+
+	config := ctx.Value("config").(*config.Config)
+	dao := ctx.Value("store").(*store.Store)
+	go updateUserRepos(config, dao, user)
+}
+
+func updateUserRepos(config *config.Config, dao *store.Store, user *model.User) {
+	goScmHelper := genericScm.NewGoScmHelper(config, func(token *scm.Token) {
+		user.AccessToken = token.Token
+		user.RefreshToken = token.Refresh
+		user.Expires = token.Expires.Unix()
+		err := dao.UpdateUser(user)
+		if err != nil {
+			logrus.Errorf("could not refresh user's oauth access_token")
+		}
+	})
+	userRepos, err := goScmHelper.UserRepos(user.AccessToken, user.RefreshToken, time.Unix(user.Expires, 0))
+	if err != nil {
+		logrus.Warnf("cannot get user repos: %s", err)
+		return
+	}
+
+	user.Repos = userRepos
+	err = dao.UpdateUser(user)
+	if err != nil {
+		logrus.Warnf("cannot get user repos: %s", err)
+		return
+	}
 }
 
 func intersection(s1, s2 []string) (inter []string) {
