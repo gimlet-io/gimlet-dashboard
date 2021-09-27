@@ -8,9 +8,14 @@ export default class Repositories extends Component {
 
     // default state
     let reduxState = this.props.store.getState();
+    let favoriteRepos = [];
+    if (reduxState.user) {
+      favoriteRepos = reduxState.user.favoriteRepos;
+    }
+
     this.state = {
       repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos),
-      favorites: [],
+      favorites: favoriteRepos,
       search: reduxState.search,
       agents: reduxState.settings.agents
     }
@@ -19,9 +24,15 @@ export default class Repositories extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
+      let favoriteRepos = [];
+      if (reduxState.user) {
+        favoriteRepos = reduxState.user.favoriteRepos;
+      }
+
       this.setState({repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos)});
       this.setState({search: reduxState.search});
       this.setState({agents: reduxState.settings.agents});
+      this.setState({favorites: favoriteRepos});
     });
 
     this.navigateToRepo = this.navigateToRepo.bind(this);
@@ -53,14 +64,16 @@ export default class Repositories extends Component {
   }
 
   favoriteHandler(repo) {
-    this.setState(prevState => {
-      let favorites = prevState.favorites
-      if (!favorites.includes(repo)) {
-        favorites.push(repo);
-      } else {
-        favorites = favorites.filter(fav => fav !== repo);
-      }
+    let favorites = this.state.favorites;
+    if (!favorites.includes(repo)) {
+      favorites.push(repo);
+    } else {
+      favorites = favorites.filter(fav => fav !== repo);
+    }
 
+    this.props.gimletClient.saveFavoriteRepos(favorites);
+
+    this.setState(prevState => {
       return {
         favorites: favorites
       }
@@ -92,7 +105,6 @@ export default class Repositories extends Component {
     const filteredRepoNames = Object.keys(filteredRepositories);
     filteredRepoNames.sort();
     const repoCards = filteredRepoNames.map(repoName => {
-
       return (
         <li key={repoName} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
           <RepoCard
@@ -104,7 +116,22 @@ export default class Repositories extends Component {
           />
         </li>
       )
-    })
+    });
+
+    const filteredFavorites = filteredRepoNames.filter(repo => favorites.includes(repo))
+    const favoriteRepoCards = filteredFavorites.map(repoName => {
+      return (
+        <li key={repoName} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+          <RepoCard
+            name={repoName}
+            services={filteredRepositories[repoName]}
+            navigateToRepo={this.navigateToRepo}
+            favorite={favorites.includes(repoName)}
+            favoriteHandler={this.favoriteHandler}
+          />
+        </li>
+      )
+    });
 
     const emptyState = search.filter !== '' ?
       emptyStateNoMatchingService()
@@ -120,12 +147,25 @@ export default class Repositories extends Component {
         </header>
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div className="px-4 py-8 sm:px-0">
+            {favorites.length > 0 &&
+            <div className="px-4 pt-8 sm:px-0">
+              <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Favorites</h4>
+              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {favoriteRepoCards}
+              </ul>
+            </div>
+            }
+            <div className="px-4 pt-8 sm:px-0">
               {agents.length === 0 && emptyStateNoAgents()}
               {agents.length > 0 &&
-              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {repoCards.length > 0 ? repoCards : emptyState}
-              </ul>
+              <div>
+                {favorites.length > 0 &&
+                <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Repositories</h4>
+                }
+                <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {repoCards.length > 0 ? repoCards : emptyState}
+                </ul>
+              </div>
               }
             </div>
           </div>

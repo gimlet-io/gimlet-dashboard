@@ -101,6 +101,8 @@ func userRoutes(r *chi.Mux) {
 		r.Post("/api/rollback", rollback)
 		r.Get("/api/deployStatus", deployStatus)
 		r.Get("/api/repo/{owner}/{name}/branches", branches)
+		r.Post("/api/saveFavoriteRepos", saveFavoriteRepos)
+		r.Post("/api/saveFavoriteServices", saveFavoriteServices)
 	})
 }
 

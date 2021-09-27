@@ -40,6 +40,10 @@ export default class GimletClient {
 
   getDeployStatus = (trackingId) => this.get(`/api/deployStatus?trackingId=${trackingId}`);
 
+  saveFavoriteRepos = (favoriteRepos) => this.post('/api/saveFavoriteRepos', JSON.stringify({ favoriteRepos }));
+
+  saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
+
   get = (path) => fetch(this.url + path, {
     credentials: 'include'
   })
