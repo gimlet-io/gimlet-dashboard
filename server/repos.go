@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"encoding/json"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
@@ -9,6 +10,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/gimlet-io/go-scm/scm"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
 	"net/http"
 	"time"
 )
@@ -17,12 +19,21 @@ func gitRepos(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := ctx.Value("user").(*model.User)
 
-	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
-	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-	orgRepos, err := gitServiceImpl.OrgRepos(token)
+	var orgRepos []string
+	dao := ctx.Value("store").(*store.Store)
+	orgReposJson, err := dao.KeyValue(model.OrgRepos)
+	if err != nil && err != sql.ErrNoRows {
+		logrus.Errorf("cannot load org repos: %s", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	if orgReposJson.Value == "" {
+		orgReposJson.Value = "[]"
+	}
+
+	err = json.Unmarshal([]byte(orgReposJson.Value), &orgRepos)
 	if err != nil {
-		logrus.Errorf("cannot get org repos: %s", err)
+		logrus.Errorf("cannot unmarshal org repos: %s", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
@@ -42,8 +53,37 @@ func gitRepos(w http.ResponseWriter, r *http.Request) {
 	w.Write(reposString)
 
 	config := ctx.Value("config").(*config.Config)
-	dao := ctx.Value("store").(*store.Store)
+
+	go updateOrgRepos(ctx)
 	go updateUserRepos(config, dao, user)
+}
+
+func updateOrgRepos(ctx context.Context) {
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+
+	orgRepos, err := gitServiceImpl.OrgRepos(token)
+	if err != nil {
+		logrus.Warnf("cannot get org repos: %s", err)
+		return
+	}
+
+	orgReposString, err := json.Marshal(orgRepos)
+	if err != nil {
+		logrus.Warnf("cannot serialize org repos: %s", err)
+		return
+	}
+
+	dao := ctx.Value("store").(*store.Store)
+	err = dao.SaveKeyValue(&model.KeyValue{
+		Key:   model.OrgRepos,
+		Value: string(orgReposString),
+	})
+	if err != nil {
+		logrus.Warnf("cannot store org repos: %s", err)
+		return
+	}
 }
 
 func updateUserRepos(config *config.Config, dao *store.Store, user *model.User) {

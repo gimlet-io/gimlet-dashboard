@@ -27,6 +27,7 @@ const addFavoriteServicesColumnToUsersTable = "addFavoriteServicesColumnToUsersT
 const defaultValueForRepos = "defaultValueForRepos"
 const defaultValueForFavoriteRepos = "defaultValueForFavoriteRepos"
 const defaultValueForFavoriteServices = "defaultValueForFavoriteServices"
+const createTableKeyValues = "create-table-key-values"
 
 type migration struct {
 	name string
@@ -109,6 +110,17 @@ UNIQUE(sha,repo)
 		{
 			name: defaultValueForFavoriteServices,
 			stmt: `update users set favorite_services='[]' where favorite_services is null;`,
+		},
+		{
+			name: createTableKeyValues,
+			stmt: `
+CREATE TABLE IF NOT EXISTS key_values (
+	id        INTEGER PRIMARY KEY AUTOINCREMENT,
+	key       TEXT,
+	value      TEXT,
+	UNIQUE(key)
+	);
+`,
 		},
 	},
 	"postgres": {},
