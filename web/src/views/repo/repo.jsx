@@ -262,11 +262,6 @@ export default class Repo extends Component {
       }
     }
 
-    const emptyState = search.filter !== '' ?
-      (<p className="text-xs text-gray-800">No service matches the search</p>)
-      :
-      emptyStateDeployThisRepo();
-
     let repoRolloutHistory = undefined;
     if (rolloutHistory && rolloutHistory[repoName]) {
       repoRolloutHistory = rolloutHistory[repoName]
@@ -303,6 +298,11 @@ export default class Repo extends Component {
                 }
 
                 {Object.keys(filteredEnvs).sort().map((envName) => {
+                  const emptyState = search.filter !== '' ?
+                    (<p className="text-xs text-gray-800">No service matches the search</p>)
+                    :
+                    emptyStateDeployThisRepo(envName);
+
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
                     let appRolloutHistory = undefined;
@@ -359,7 +359,7 @@ export default class Repo extends Component {
   }
 }
 
-function emptyStateDeployThisRepo() {
+function emptyStateDeployThisRepo(env) {
   return <a
     href="https://gimlet.io/gimlet-cli/manage-environments-with-gimlet-and-gitops/"
     target="_blank"
@@ -378,8 +378,8 @@ function emptyStateDeployThisRepo() {
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
     </svg>
-    <span className="mt-2 block text-sm font-bold text-gray-500">
-                            Deploy this repository
-                          </span>
+    <div className="mt-2 block text-sm font-bold text-gray-500">
+      Deploy this repository to <span className="capitalize">{env}</span>
+    </div>
   </a>
 }
