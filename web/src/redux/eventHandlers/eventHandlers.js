@@ -13,6 +13,11 @@ export function gitopsRepo(state, event) {
   return state;
 }
 
+export function gitRepos(state, event) {
+  state.gitRepos = event;
+  return state;
+}
+
 export function agents(state, event) {
   state.settings.agents = event.agents;
   return state;

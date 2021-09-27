@@ -17,6 +17,9 @@ func TestUserCRUD(t *testing.T) {
 		Login:        "aLogin",
 		AccessToken:  "aGithubToken",
 		RefreshToken: "refreshToken",
+		Repos: []string{"first", "second"},
+		FavoriteRepos: []string{"first", "second"},
+		FavoriteServices: []string{"first", "second"},
 	}
 
 	err := s.CreateUser(&user)
@@ -30,4 +33,7 @@ func TestUserCRUD(t *testing.T) {
 	assert.Equal(t, user.Login, u.Login)
 	assert.Equal(t, user.AccessToken, u.AccessToken)
 	assert.Equal(t, user.RefreshToken, u.RefreshToken)
+	assert.Equal(t, user.Repos, u.Repos)
+	assert.Equal(t, user.FavoriteRepos, u.FavoriteRepos)
+	assert.Equal(t, user.FavoriteServices, u.FavoriteServices)
 }

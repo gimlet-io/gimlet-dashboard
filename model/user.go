@@ -28,4 +28,10 @@ type User struct {
 
 	// Secret is the PEM formatted RSA private key used to sign JWT and CSRF tokens
 	Secret string `json:"-" meddler:"secret"`
+
+	Repos []string `json:"-" meddler:"repos,json"`
+
+	FavoriteRepos []string `json:"favoriteRepos"  meddler:"favorite_repos,json"`
+
+	FavoriteServices []string `json:"favoriteServices"  meddler:"favorite_services,json"`
 }

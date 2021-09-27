@@ -10,13 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httputil"
+	"time"
 )
 
 type GoScmHelper struct {
 	client *scm.Client
 }
 
-func NewGoScmHelper(config *config.Config) *GoScmHelper {
+func NewGoScmHelper(config *config.Config, tokenUpdateCallback func(token *scm.Token)) *GoScmHelper {
 	client, err := github.New("https://api.github.com")
 	if err != nil {
 		logrus.WithError(err).
@@ -25,10 +26,16 @@ func NewGoScmHelper(config *config.Config) *GoScmHelper {
 	if config.Github.Debug {
 		client.DumpResponse = httputil.DumpResponse
 	}
+
 	client.Client = &http.Client{
 		Transport: &oauth2.Transport{
-			Source: oauth2.ContextTokenSource(),
-			Base:   defaultTransport(config.Github.SkipVerify),
+			Source: &Refresher{
+				ClientID:     config.Github.ClientID,
+				ClientSecret: config.Github.ClientSecret,
+				Endpoint:     "https://github.com/login/oauth/access_token",
+				Source:       oauth2.ContextTokenSource(),
+				tokenUpdater: tokenUpdateCallback,
+			},
 		},
 	}
 
@@ -52,12 +59,13 @@ func (helper *GoScmHelper) Parse(req *http.Request, fn scm.SecretFunc) (scm.Webh
 	return helper.client.Webhooks.Parse(req, fn)
 }
 
-func (helper *GoScmHelper) UserRepos(accessToken string, refreshToken string) ([]string, error) {
+func (helper *GoScmHelper) UserRepos(accessToken string, refreshToken string, expires time.Time) ([]string, error) {
 	var repos []string
 
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: refreshToken,
+		Expires: expires,
 	})
 
 	opts := scm.ListOptions{Size: 100}
@@ -119,9 +127,9 @@ func (helper *GoScmHelper) RegisterWebhook(
 		Target: host + "/hook",
 		Secret: webhookSecret,
 		Events: scm.HookEvents{
-			Push:     true,
-			Status:   true,
-			Branch:   true,
+			Push:   true,
+			Status: true,
+			Branch: true,
 			//CheckRun: true,
 		},
 	}

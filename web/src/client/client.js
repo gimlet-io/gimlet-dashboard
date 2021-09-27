@@ -24,6 +24,8 @@ export default class GimletClient {
 
   getEnvs = () => this.get('/api/envs');
 
+  getGitRepos = () => this.get('/api/gitRepos');
+
   getGimletD = () => this.get('/api/gimletd');
 
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
@@ -37,6 +39,10 @@ export default class GimletClient {
   rollback = (env, app, rollbackTo) => this.post('/api/rollback', JSON.stringify({ env, app, targetSHA: rollbackTo }));
 
   getDeployStatus = (trackingId) => this.get(`/api/deployStatus?trackingId=${trackingId}`);
+
+  saveFavoriteRepos = (favoriteRepos) => this.post('/api/saveFavoriteRepos', JSON.stringify({ favoriteRepos }));
+
+  saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
 
   get = (path) => fetch(this.url + path, {
     credentials: 'include'

@@ -1,7 +1,9 @@
 import React from "react";
+import {StarIcon} from "@heroicons/react/outline";
+import {StarIcon as SolidStarIcon} from "@heroicons/react/solid";
 
 function RepoCard(props) {
-  const {name, services, navigateToRepo} = props;
+  const {name, services, navigateToRepo, favorite, favoriteHandler} = props;
 
   const serviceWidgets = services.map(service => {
     let ingressWidgets = [];
@@ -42,12 +44,28 @@ function RepoCard(props) {
   })
 
   return (
-    <div className="w-full flex items-center justify-between p-6 space-x-6 cursor-pointer"
-         onClick={() => navigateToRepo(name)}>
-      <div className="flex-1 truncate">
-        <p className="text-sm font-bold">{name}</p>
-        <div className="p-2 space-y-2">
-          {serviceWidgets}
+    <div className="relative">
+      <div className="absolute top-0 right-0 m-6">
+        {favorite &&
+        <SolidStarIcon
+          className="h-4 w-4 text-green-400 hover:text-gray-400 cursor-pointer"
+          onClick={() => favoriteHandler(name)}
+        />
+        }
+        {!favorite &&
+        <StarIcon
+          className="h-4 w-4 text-gray-400 hover:text-green-400 cursor-pointer"
+          onClick={() => favoriteHandler(name)}
+        />
+        }
+      </div>
+      <div className="w-full flex items-center justify-between p-6 space-x-6 cursor-pointer"
+           onClick={() => navigateToRepo(name)}>
+        <div className="flex-1 truncate">
+          <p className="text-sm font-bold">{name}</p>
+          <div className="p-2 space-y-2">
+            {serviceWidgets}
+          </div>
         </div>
       </div>
     </div>

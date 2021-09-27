@@ -50,7 +50,7 @@ func main() {
 
 	store := store.New(config.Database.Driver, config.Database.Config)
 
-	goScm := genericScm.NewGoScmHelper(config)
+	goScm := genericScm.NewGoScmHelper(config, nil)
 
 	var gitSvc customScm.CustomGitService
 	var tokenManager customScm.NonImpersonatedTokenManager
@@ -91,7 +91,6 @@ func main() {
 		agentHub,
 		clientHub,
 		store,
-		goScm,
 		gitSvc,
 		tokenManager,
 		repoCache,

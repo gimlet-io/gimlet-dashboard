@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gimlet-io/gimlet-dashboard/model"
+	"github.com/google/go-github/v37/github"
 	"github.com/shurcooL/githubv4"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"net/http"
 )
 
 type GithubClient struct {
@@ -269,4 +271,37 @@ var queryObjects struct {
 		Object8 obj `graphql:"obj8: object(oid: $sha8)"`
 		Object9 obj `graphql:"obj9: object(oid: $sha9)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
+}
+
+// OrgRepos returns all repos of an org using the installation
+func (c *GithubClient) OrgRepos(installationToken string) ([]string, error) {
+	client := github.NewClient(
+		&http.Client{
+			Transport: &transport{
+				underlyingTransport: http.DefaultTransport,
+				token:               installationToken,
+			},
+		},
+	)
+
+	opt := &github.ListOptions{PerPage: 100}
+	var allRepos []string
+	for {
+		repos, resp, err := client.Apps.ListRepos(context.Background(), opt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, r := range repos.Repositories {
+			repo := *r.Owner.Login + "/" + *r.Name
+			allRepos = append(allRepos, repo)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return allRepos, nil
 }

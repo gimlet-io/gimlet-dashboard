@@ -76,8 +76,6 @@ export default class Services extends Component {
                     )
                   })
 
-                  renderedServices.push(newService());
-
                   return (
                     <div>
                       <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
@@ -138,31 +136,4 @@ export function emptyStateNoAgents() {
       </div>
     </div>
   )
-}
-
-export function newService() {
-  return <li key="add-service" className="col-span-1 rounded-lg divide-y divide-gray-200">
-    <a
-      href="https://gimlet.io/gimlet-cli/manage-environments-with-gimlet-and-gitops/"
-      target="_blank"
-      rel="noreferrer"
-      className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="mx-auto h-12 w-12 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-      </svg>
-      <span className="mt-2 block text-sm font-bold text-gray-700">
-                            Deploy a new service
-                          </span>
-    </a>
-  </li>;
 }

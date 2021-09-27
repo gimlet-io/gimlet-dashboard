@@ -3,7 +3,6 @@ package server
 import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
-	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/server/session"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
@@ -26,7 +25,6 @@ func SetupRouter(
 	agentHub *streaming.AgentHub,
 	clientHub *streaming.ClientHub,
 	store *store.Store,
-	goScmHelper *genericScm.GoScmHelper,
 	gitService customScm.CustomGitService,
 	tokenManager customScm.NonImpersonatedTokenManager,
 	repoCache *nativeGit.RepoCache,
@@ -46,7 +44,6 @@ func SetupRouter(
 	r.Use(middleware.WithValue("agentHub", agentHub))
 	r.Use(middleware.WithValue("clientHub", clientHub))
 	r.Use(middleware.WithValue("store", store))
-	r.Use(middleware.WithValue("goScmHelper", goScmHelper))
 	r.Use(middleware.WithValue("config", config))
 	r.Use(middleware.WithValue("gitService", gitService))
 	r.Use(middleware.WithValue("tokenManager", tokenManager))
@@ -96,6 +93,7 @@ func userRoutes(r *chi.Mux) {
 		r.Get("/api/user", user)
 		r.Get("/api/gimletd", gimletd)
 		r.Get("/api/envs", envs)
+		r.Get("/api/gitRepos", gitRepos)
 		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
 		r.Get("/api/repo/{owner}/{name}/commits", commits)
 		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
@@ -103,6 +101,8 @@ func userRoutes(r *chi.Mux) {
 		r.Post("/api/rollback", rollback)
 		r.Get("/api/deployStatus", deployStatus)
 		r.Get("/api/repo/{owner}/{name}/branches", branches)
+		r.Post("/api/saveFavoriteRepos", saveFavoriteRepos)
+		r.Post("/api/saveFavoriteServices", saveFavoriteServices)
 	})
 }
 

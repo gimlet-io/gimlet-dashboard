@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import RepoCard from "../../components/repoCard/repoCard";
-import {emptyStateNoAgents, emptyStateNoMatchingService, newService} from "../services/services";
+import {emptyStateNoAgents, emptyStateNoMatchingService} from "../services/services";
 
 export default class Repositories extends Component {
   constructor(props) {
@@ -8,8 +8,14 @@ export default class Repositories extends Component {
 
     // default state
     let reduxState = this.props.store.getState();
+    let favoriteRepos = [];
+    if (reduxState.user) {
+      favoriteRepos = reduxState.user.favoriteRepos;
+    }
+
     this.state = {
-      repositories: this.mapToRepositories(reduxState.envs),
+      repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos),
+      favorites: favoriteRepos,
       search: reduxState.search,
       agents: reduxState.settings.agents
     }
@@ -18,16 +24,29 @@ export default class Repositories extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({repositories: this.mapToRepositories(reduxState.envs)});
+      let favoriteRepos = [];
+      if (reduxState.user) {
+        favoriteRepos = reduxState.user.favoriteRepos;
+      }
+
+      this.setState({repositories: this.mapToRepositories(reduxState.envs, reduxState.gitRepos)});
       this.setState({search: reduxState.search});
       this.setState({agents: reduxState.settings.agents});
+      this.setState({favorites: favoriteRepos});
     });
 
     this.navigateToRepo = this.navigateToRepo.bind(this);
+    this.favoriteHandler = this.favoriteHandler.bind(this);
   }
 
-  mapToRepositories(envs) {
+  mapToRepositories(envs, gitRepos) {
     const repositories = {}
+
+    for (const r of gitRepos) {
+      if (repositories[r] === undefined) {
+        repositories[r] = [];
+      }
+    }
 
     for (const envName of Object.keys(envs)) {
       const env = envs[envName];
@@ -44,12 +63,29 @@ export default class Repositories extends Component {
     return repositories;
   }
 
+  favoriteHandler(repo) {
+    let favorites = this.state.favorites;
+    if (!favorites.includes(repo)) {
+      favorites.push(repo);
+    } else {
+      favorites = favorites.filter(fav => fav !== repo);
+    }
+
+    this.props.gimletClient.saveFavoriteRepos(favorites);
+
+    this.setState(prevState => {
+      return {
+        favorites: favorites
+      }
+    });
+  }
+
   navigateToRepo(repo) {
     this.props.history.push(`/repo/${repo}`)
   }
 
   render() {
-    const {repositories, search, agents} = this.state;
+    const {repositories, search, agents, favorites} = this.state;
 
     let filteredRepositories = {};
     for (const repoName of Object.keys(repositories)) {
@@ -60,7 +96,7 @@ export default class Repositories extends Component {
             (service.deployment !== undefined && service.deployment.name.includes(search.filter)) ||
             (service.ingresses !== undefined && service.ingresses.filter((ingress) => ingress.url.includes(search.filter)).length > 0)
         })
-        if (filteredRepositories[repoName].length === 0) {
+        if (filteredRepositories[repoName].length === 0 && !repoName.includes(search.filter)) {
           delete filteredRepositories[repoName];
         }
       }
@@ -75,11 +111,27 @@ export default class Repositories extends Component {
             name={repoName}
             services={filteredRepositories[repoName]}
             navigateToRepo={this.navigateToRepo}
+            favorite={favorites.includes(repoName)}
+            favoriteHandler={this.favoriteHandler}
           />
         </li>
       )
-    })
-    repoCards.push(newService())
+    });
+
+    const filteredFavorites = filteredRepoNames.filter(repo => favorites.includes(repo))
+    const favoriteRepoCards = filteredFavorites.map(repoName => {
+      return (
+        <li key={repoName} className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+          <RepoCard
+            name={repoName}
+            services={filteredRepositories[repoName]}
+            navigateToRepo={this.navigateToRepo}
+            favorite={favorites.includes(repoName)}
+            favoriteHandler={this.favoriteHandler}
+          />
+        </li>
+      )
+    });
 
     const emptyState = search.filter !== '' ?
       emptyStateNoMatchingService()
@@ -95,12 +147,25 @@ export default class Repositories extends Component {
         </header>
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div className="px-4 py-8 sm:px-0">
+            {favorites.length > 0 &&
+            <div className="px-4 pt-8 sm:px-0">
+              <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Favorites</h4>
+              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {favoriteRepoCards}
+              </ul>
+            </div>
+            }
+            <div className="px-4 pt-8 sm:px-0">
               {agents.length === 0 && emptyStateNoAgents()}
               {agents.length > 0 &&
-              <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {repoCards.length > 0 ? repoCards : emptyState}
-              </ul>
+              <div>
+                {favorites.length > 0 &&
+                <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Repositories</h4>
+                }
+                <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {repoCards.length > 0 ? repoCards : emptyState}
+                </ul>
+              </div>
               }
             </div>
           </div>

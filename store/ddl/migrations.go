@@ -21,6 +21,12 @@ const addMessageColumnToCommitsTable = "add-message-column-to-commits-table"
 const addCreatedColumnToCommitsTable = "add-created-column-to-commits-table"
 const defaultValueForMessage = "default-value-for-message"
 const defaultValueForCreated = "default-value-for-created"
+const addReposColumnToUsersTable = "addReposColumnToUsersTable"
+const addFavoriteReposColumnToUsersTable = "addFavoriteReposColumnToUsersTable"
+const addFavoriteServicesColumnToUsersTable = "addFavoriteServicesColumnToUsersTable"
+const defaultValueForRepos = "defaultValueForRepos"
+const defaultValueForFavoriteRepos = "defaultValueForFavoriteRepos"
+const defaultValueForFavoriteServices = "defaultValueForFavoriteServices"
 
 type migration struct {
 	name string
@@ -79,6 +85,30 @@ UNIQUE(sha,repo)
 		{
 			name: defaultValueForCreated,
 			stmt: `update commits set created=0 where created is null;`,
+		},
+		{
+			name: addReposColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN repos TEXT;`,
+		},
+		{
+			name: addFavoriteReposColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN favorite_repos TEXT;`,
+		},
+		{
+			name: addFavoriteServicesColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN favorite_services TEXT;`,
+		},
+		{
+			name: defaultValueForRepos,
+			stmt: `update users set repos='[]' where repos is null;`,
+		},
+		{
+			name: defaultValueForFavoriteRepos,
+			stmt: `update users set favorite_repos='[]' where favorite_repos is null;`,
+		},
+		{
+			name: defaultValueForFavoriteServices,
+			stmt: `update users set favorite_services='[]' where favorite_services is null;`,
 		},
 	},
 	"postgres": {},
