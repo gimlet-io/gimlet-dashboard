@@ -102,6 +102,8 @@ func getOrCreateUser(store *store.Store, scmUser *scm.User, token *login.Token) 
 				Secret: base32.StdEncoding.EncodeToString(
 					securecookie.GenerateRandomKey(32),
 				),
+				FavoriteRepos:    []string{},
+				FavoriteServices: []string{},
 			}
 			err = store.CreateUser(user)
 			if err != nil {
