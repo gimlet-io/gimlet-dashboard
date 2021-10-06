@@ -22,8 +22,9 @@ import (
 // triggers async data fetches
 func hook(writer http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	goScmHelper, _ := ctx.Value("goScmHelper").(*genericScm.GoScmHelper)
-	config, _ := ctx.Value("config").(*config.Config)
+
+	config := ctx.Value("config").(*config.Config)
+	goScmHelper := genericScm.NewGoScmHelper(config, nil)
 	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
 
 	// duplicating request body as we exhaust it twice
