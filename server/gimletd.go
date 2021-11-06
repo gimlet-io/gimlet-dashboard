@@ -163,7 +163,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 
 		for _, release := range releases {
 			if _, ok := appReleasesInEnv[release.App]; ok {
-				if len(appReleasesInEnv[release.App]) <= perAppLimit {
+				if len(appReleasesInEnv[release.App]) < perAppLimit {
 					appReleasesInEnv[release.App] = append(appReleasesInEnv[release.App], release)
 				}
 			}
