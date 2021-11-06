@@ -138,13 +138,6 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	// without these, for apps released just once, the whole history would be traversed
 	since := time.Now().Add(-1 * time.Hour * 24 * time.Duration(config.ReleaseHistorySinceDays))
 
-	type fetchResult struct {
-		env      string
-		app      string
-		releases []*dx.Release
-		err      error
-	}
-
 	appReleasesInAllEnvs := map[string]map[string][]*dx.Release{}
 	for _, env := range envs {
 		appReleasesInEnv := map[string][]*dx.Release{}
@@ -158,7 +151,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 			"",
 			env.Name,
 			0,
-			0,
+			-1,
 			repoName,
 			&since, nil,
 		)
