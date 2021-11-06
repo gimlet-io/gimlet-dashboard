@@ -96,7 +96,6 @@ func userRoutes(r *chi.Mux) {
 		r.Get("/api/gitRepos", gitRepos)
 		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
 		r.Get("/api/repo/{owner}/{name}/commits", commits)
-		r.Get("/api/repo/{owner}/{name}/rolloutHistory", rolloutHistory)
 		r.Post("/api/deploy", deploy)
 		r.Post("/api/rollback", rollback)
 		r.Get("/api/deployStatus", deployStatus)
