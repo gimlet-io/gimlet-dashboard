@@ -150,8 +150,8 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 		releases, err := client.ReleasesGet(
 			"",
 			env.Name,
-			0,
 			-1,
+			0,
 			repoName,
 			&since, nil,
 		)
