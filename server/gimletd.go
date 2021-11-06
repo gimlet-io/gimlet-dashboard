@@ -3,6 +3,10 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
@@ -13,10 +17,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"net/http"
-	"strings"
-	"sync"
-	"time"
 )
 
 func gitopsRepo(w http.ResponseWriter, r *http.Request) {
@@ -104,6 +104,8 @@ func gimletd(w http.ResponseWriter, r *http.Request) {
 func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
 	name := chi.URLParam(r, "name")
+	repoName := fmt.Sprintf("%s/%s", owner, name)
+	perAppLimit := 10
 
 	ctx := r.Context()
 	config := ctx.Value("config").(*config.Config)
@@ -134,74 +136,49 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 
 	// limiting query scope
 	// without these, for apps released just once, the whole history would be traversed
-	since := time.Now().Add(-1 * time.Hour*24*time.Duration(config.ReleaseHistorySinceDays))
-	limit := 10
+	since := time.Now().Add(-1 * time.Hour * 24 * time.Duration(config.ReleaseHistorySinceDays))
 
 	type fetchResult struct {
-		env string
-		app string
+		env      string
+		app      string
 		releases []*dx.Release
-		err     error
+		err      error
 	}
 
-	c := make(chan *fetchResult)
-	var wg sync.WaitGroup
-
+	appReleasesInAllEnvs := map[string]map[string][]*dx.Release{}
 	for _, env := range envs {
-		for _, stack := range env.Stacks {
-			if stack.Repo != fmt.Sprintf("%s/%s", owner, name) {
-				continue
-			}
+		appReleasesInEnv := map[string][]*dx.Release{}
 
-			wg.Add(1)
-			go func(wg *sync.WaitGroup, c chan *fetchResult, env string, app string) {
-				defer wg.Done()
-
-				r, err := client.ReleasesGet(
-					app,
-					env,
-					limit,
-					0,
-					"",
-					&since, nil,
-				)
-
-				c <- &fetchResult{
-					env: env,
-					app: app,
-					releases: r,
-					err: err}
-			}(&wg, c, env.Name, stack.Service.Name)
+		apps := appsInEnv(env, repoName)
+		for _, app := range apps {
+			appReleasesInEnv[app] = []*dx.Release{}
 		}
-	}
 
-	go func() {
-		wg.Wait()
-		close(c)
-	}()
-
-	var result []*fetchResult
-	for r := range c {
-		result = append(result, r)
-	}
-
-	releases := map[string]map[string]interface{}{}
-	for _, r := range result {
-		if r.err != nil {
-			logrus.Errorf("cannot get releases: %s", r.err)
+		releases, err := client.ReleasesGet(
+			"",
+			env.Name,
+			0,
+			0,
+			repoName,
+			&since, nil,
+		)
+		if err != nil {
+			logrus.Errorf("cannot get releases for git repo: %s", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		appReleases := releases[r.env]
-		if appReleases == nil {
-			appReleases = map[string]interface{}{}
-		}
 
-		appReleases[r.app] = r.releases
-		releases[r.env] = appReleases
+		for _, release := range releases {
+			if _, ok := appReleasesInEnv[release.App]; ok {
+				if len(appReleasesInEnv[release.App]) <= perAppLimit {
+					appReleasesInEnv[release.App] = append(appReleasesInEnv[release.App], release)
+				}
+			}
+		}
+		appReleasesInAllEnvs[env.Name] = appReleasesInEnv
 	}
 
-	releasesString, err := json.Marshal(releases)
+	releasesString, err := json.Marshal(appReleasesInAllEnvs)
 	if err != nil {
 		logrus.Errorf("cannot serialize releases: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -210,6 +187,19 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(releasesString)
+}
+
+func appsInEnv(env *api.Env, repo string) []string {
+	apps := []string{}
+	for _, stack := range env.Stacks {
+		if stack.Repo != repo {
+			continue
+		}
+
+		apps = append(apps, stack.Service.Name)
+	}
+
+	return apps
 }
 
 func deploy(w http.ResponseWriter, r *http.Request) {
