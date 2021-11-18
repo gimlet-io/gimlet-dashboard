@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
@@ -14,9 +18,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strings"
-	"time"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -96,6 +97,9 @@ func decorateDeployments(ctx context.Context, envs []*api.Env) error {
 	token, _, _ := tokenManager.Token()
 	for _, env := range envs {
 		for _, stack := range env.Stacks {
+			if stack.Deployment == nil {
+				continue
+			}
 			_, err := decorateDeploymentWithSCMData(stack.Repo, stack.Deployment, dao, gitServiceImpl, token)
 			if err != nil {
 				return fmt.Errorf("cannot decorate commits: %s", err)
