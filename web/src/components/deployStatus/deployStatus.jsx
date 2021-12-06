@@ -82,11 +82,9 @@ export default class DeployStatus extends Component {
       const numberOfGitopsHashes = deploy.gitopsHashes.length;
       if (numberOfGitopsHashes > 0) {
         const latestGitopsHashMetadata = deploy.gitopsHashes[0];
-        if (latestGitopsHashMetadata.status !== 'N/A' &&
-          latestGitopsHashMetadata.status !== 'Progressing'
-        ) {
+        if (latestGitopsHashMetadata.status !== 'N/A') {
           appliedWidget = deploy.gitopsHashes.map(hashStatus => {
-            if (hashStatus.status !== 'ReconciliationSucceeded' &&
+            if (hashStatus.status !== 'Progressing' &&
               hashStatus.status !== 'N/A') {
               return (
                 <p key={hashStatus.hash} className="font-semibold text-red-500">

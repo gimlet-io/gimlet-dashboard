@@ -173,8 +173,7 @@ export default class Repo extends Component {
           const numberOfGitopsHashes = data.gitopsHashes.length;
           if (numberOfGitopsHashes > 0) {
             const latestGitopsHashMetadata = data.gitopsHashes[0];
-            if (latestGitopsHashMetadata.status === 'N/A' ||
-              latestGitopsHashMetadata.status === 'Progressing') { // poll until all gitops writes are applied
+            if (latestGitopsHashMetadata.status === 'N/A') { // poll until all gitops writes are applied
               gitopsCommitsApplied = false;
               setTimeout(() => {
                 this.checkDeployStatus(deployRequest);
