@@ -24,7 +24,7 @@
     "web-vitals": "^1.1.1"
   },
   "scripts": {
-    "start": "craco start",
+    "start": "craco start --config craco.config.js",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
@@ -51,5 +51,6 @@
     "autoprefixer": "^9.8.6",
     "postcss": "^7.0.35",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2"
-  }
+  },
+  "proxy": "https://9000-tomato-toad-uaedu7n0.ws.workstation.laszlo.cloud"
 }

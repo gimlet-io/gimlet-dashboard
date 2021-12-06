@@ -1,16 +1,5 @@
 export default class GimletClient {
   constructor(onError) {
-    if (typeof window !== 'undefined') {
-      let port = window.location.port;
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        port = 9000;
-      }
-      this.url = window.location.protocol + '//' + window.location.hostname;
-      if (port && port !== '') {
-        this.url = this.url + ':' + port;
-      }
-    }
-
     this.onError = onError
   }
 
@@ -44,7 +33,7 @@ export default class GimletClient {
 
   saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
 
-  get = (path) => fetch(this.url + path, {
+  get = (path) => fetch(path, {
     credentials: 'include'
   })
     .then(response => {
@@ -58,7 +47,7 @@ export default class GimletClient {
       throw error;
     });
 
-  post = (path, body) => fetch(this.url + path, {
+  post = (path, body) => fetch(path, {
     method: 'post',
     credentials: 'include',
     headers: {
@@ -78,7 +67,7 @@ export default class GimletClient {
       throw error;
     });
 
-  postWithoutCreds = (path, body) => fetch(this.url + path, {
+  postWithoutCreds = (path, body) => fetch(path, {
     method: 'post',
     headers: {
       Accept: 'application/json',

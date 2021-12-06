@@ -1,5 +1,12 @@
 tasks:
   - init: |
+      cat << EOF > $PWD/.env
+      HOST=$(gp url 9000)
+      JWT_SECRET=$(openssl rand -hex 32)
+      GIMLETD_URL=
+      GIMLETD_TOKEN=
+      EOF
+
       sudo cp docker/known_hosts /etc/ssh/ssh_known_hosts
 
       curl -L https://github.com/gimlet-io/gimlet-cli/releases/download/v0.9.7/gimlet-$(uname)-$(uname -m) -o gimlet
@@ -18,6 +25,15 @@ tasks:
         }
       EOF
       exit
+
+ports:
+  - port: 9000
+    onOpen: ignore
+    visibility: public
+  - port: 9001
+    onOpen: ignore
+  - port: 3000
+    onOpen: open-browser
 
 vscode:
   extensions:

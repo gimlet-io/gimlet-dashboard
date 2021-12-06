@@ -7,4 +7,7 @@ module.exports = {
             ],
         },
     },
+    devServer: {
+        allowedHosts: ['localhost','.gitpod.io','.ws.workstation.laszlo.cloud'],
+    },
 }
