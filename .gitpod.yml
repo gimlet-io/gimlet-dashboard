@@ -17,7 +17,7 @@ tasks:
       EOF
 
       # Replace proxy url
-      sed -i -e "s/<<REPLACE ME>>/$(gp url 9000)/" web/package.json
+      sed -i -e "s|<<REPLACE ME>>|$(gp url 9000)|" web/package.json
 
       # Known hosts for SSH
       sudo cp docker/known_hosts /etc/ssh/ssh_known_hosts
