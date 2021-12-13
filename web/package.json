@@ -52,5 +52,5 @@
     "postcss": "^7.0.35",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2"
   },
-  "proxy": "https://9000-tomato-toad-uaedu7n0.ws.workstation.laszlo.cloud"
+  "proxy": "<<REPLACE ME>>"
 }
