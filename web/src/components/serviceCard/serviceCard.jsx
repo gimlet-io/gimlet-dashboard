@@ -1,6 +1,7 @@
 import React from 'react';
 import './serviceCard.css';
 import * as PropTypes from "prop-types";
+import Emoji from "react-emoji-render";
 
 function ServiceCard(props) {
   const {service, navigateToRepo} = props;
@@ -16,11 +17,12 @@ function ServiceCard(props) {
           </span>
         </p>
         <div className="flex items-center space-x-3">
-          <h3 className="text-gray-900 text-sm font-medium truncate">{service.repo}</h3>
+          <h3 className="text-gray-500 mb-2 text-xs font-medium truncate">{service.repo}</h3>
         </div>
         <Deployment
           envName={service.env}
           deployment={service.deployment}
+          repo={service.repo}
         />
       </div>
     </div>
@@ -28,7 +30,7 @@ function ServiceCard(props) {
 }
 
 export function Deployment(props) {
-  const {deployment} = props;
+  const {deployment, repo} = props;
 
   if (!deployment) {
     return null;
@@ -37,11 +39,18 @@ export function Deployment(props) {
   return (
     <div>
       <p className="mb-1">
-        <p className="overflow-hidden">{deployment.message}</p>
+        <p className="truncate">{deployment.message}</p>
+        <p className="truncate text-xs"><a href={`https://github.com/${repo}/commit/${deployment.sha}`} target="_blank"
+                                    rel="noopener noreferrer" onClick={(e) => {
+                                      e.stopPropagation();
+                                      return true
+                                    }}>{deployment.commitMessage && <Emoji text={deployment.commitMessage}/>}</a></p>
         <p className="text-xs italic">
-          <a
-            href="https://github.com" target="_blank"
-            rel="noopener noreferrer">
+        <a href={`https://github.com/${repo}/commit/${deployment.sha}`} target="_blank"
+                                       rel="noopener noreferrer" onClick={(e) => {
+                                        e.stopPropagation();
+                                        return true
+                                      }}>
             {deployment.sha.slice(0, 6)}
           </a>
         </p>
