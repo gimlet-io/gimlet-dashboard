@@ -268,7 +268,6 @@ export default class Repo extends Component {
     }
 
     const setStateByEnvName = (envName) => {
-      console.log(this.state.isClosed);
       this.setState((prevState) => ({
         isClosed: {
           ...prevState.isClosed,
