@@ -4,8 +4,8 @@ import {StarIcon as SolidStarIcon} from "@heroicons/react/solid";
 
 function RepoCard(props) {
   const {name, services, navigateToRepo, favorite, favoriteHandler} = props;
-  const numberOfReposOnCard = 5;
-  const truncatedServices = services.length > numberOfReposOnCard ? services.slice(0, numberOfReposOnCard) : services;
+  const numberOfServicesOnCard = 5;
+  const truncatedServices = services.length > numberOfServicesOnCard ? services.slice(0, numberOfServicesOnCard) : services;
 
   const serviceWidgets = truncatedServices.map(service => {
     let ingressWidgets = [];
@@ -41,7 +41,6 @@ function RepoCard(props) {
         <ul className="text-xs pl-2">
           {ingressWidgets}
         </ul>
-        {services.length > numberOfReposOnCard ?  <p>...</p> : null}
       </div>
     )
   })
@@ -68,6 +67,7 @@ function RepoCard(props) {
           <p className="text-sm font-bold">{name}</p>
           <div className="p-2 space-y-2">
             {serviceWidgets}
+            {services.length > numberOfServicesOnCard ?  <p>...</p> : null}
           </div>
         </div>
       </div>
