@@ -28,7 +28,8 @@ export default class Repo extends Component {
       selectedBranch: '',
       settings: reduxState.settings,
       refreshQueue: reduxState.repoRefreshQueue.filter(repo => repo === `${owner}/${repo}`).length,
-      agents: reduxState.settings.agents
+      agents: reduxState.settings.agents,
+      isClosed: {}
     }
 
     // handling API and streaming state changes
@@ -266,6 +267,15 @@ export default class Repo extends Component {
       repoRolloutHistory = rolloutHistory[repoName]
     }
 
+    const setStateByEnvName = (envName) => {
+      this.setState((prevState) => ({
+        isClosed: {
+          ...prevState.isClosed,
+          [envName]: !prevState.isClosed[envName]
+        }
+      }));
+    };
+
     return (
       <div>
         <header>
@@ -321,10 +331,37 @@ export default class Repo extends Component {
 
                   return (
                     <div>
-                      <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">{envName}</h4>
-                      <div class="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
-                        {renderedServices.length > 0 ? renderedServices : emptyState}
-                      </div>
+                      <h4 className="flex items-stretch select-none text-xl font-medium capitalize leading-tight text-gray-900 my-4">
+                          {envName}
+                          <svg
+                            onClick={() => {
+                              setStateByEnvName(envName);
+                            }}
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 cursor-pointer"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d={
+                                this.state.isClosed[envName]
+                                  ? "M9 5l7 7-7 7"
+                                  : "M19 9l-7 7-7-7"
+                              }
+                            />
+                          </svg>
+                        </h4>
+                       {this.state.isClosed[envName] ? null : (
+                          <div class="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
+                            {renderedServices.length > 0
+                              ? renderedServices
+                              : emptyState}
+                          </div>
+                        )}
                     </div>
                   )
                 })
