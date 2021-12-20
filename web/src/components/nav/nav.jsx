@@ -114,7 +114,25 @@ export default class Nav extends Component {
                     </div>
                   </div>
                 </div>
-                <div className="hidden sm:ml-6 sm:flex sm:items-center">
+                <div className="hidden sm:-my-px sm:ml-6 sm:flex">
+                  <a
+                    href="https://gimlet.io/docs"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-500 inline-flex items-center px-1 pt-1 text-sm"
+                  >
+                    Docs
+                  </a>
+                  <a
+                    href="https://discord.com/invite/ZwQDxPkYzE"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-500 inline-flex items-center px-1 pt-1 text-sm"
+                  >
+                    Community
+                  </a>
+                </div>
+                <div className="hidden sm:ml-2 sm:flex sm:items-center">
                   {/*<button*/}
                   {/*  className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">*/}
                   {/*  <span className="sr-only">View notifications</span>*/}
@@ -122,7 +140,7 @@ export default class Nav extends Component {
                   {/*</button>*/}
 
                   {/* Profile dropdown */}
-                  <Menu as="div" className="ml-3 relative">
+                  <Menu as="div" className="relative">
                     {({open}) => (
                       <>
                         <div>
