@@ -4,7 +4,7 @@ import {ACTION_TYPE_STREAMING} from "./redux/redux"
 let URL = '';
 if (typeof window !== 'undefined') {
   let protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  URL = protocol + '://' + window.location.hostname + ":9000";
+  URL = protocol + '://' + window.location.hostname;
 }
 
 export default class StreamingBackend extends Component {
