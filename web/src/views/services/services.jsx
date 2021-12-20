@@ -110,7 +110,7 @@ function emptyStateNoServices() {
 
 export function emptyStateNoAgents() {
   return (
-    <div className="text-center">
+    <div className="text-center mt-8 mb-16">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="mx-auto h-12 w-12 text-gray-400"

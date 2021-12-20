@@ -157,16 +157,16 @@ export default class Repositories extends Component {
             }
             <div className="px-4 pt-8 sm:px-0">
               {agents.length === 0 && emptyStateNoAgents()}
-              {agents.length > 0 &&
+              
               <div>
                 {favorites.length > 0 &&
                 <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Repositories</h4>
                 }
                 <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {repoCards.length > 0 ? repoCards : emptyState}
+                  {repoCards}
                 </ul>
               </div>
-              }
+              
             </div>
           </div>
         </main>
