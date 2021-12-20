@@ -118,6 +118,7 @@ export default class Nav extends Component {
                   <a
                     href="https://gimlet.io/docs"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-gray-500 inline-flex items-center px-1 pt-1 text-sm"
                   >
                     Docs
@@ -125,6 +126,7 @@ export default class Nav extends Component {
                   <a
                     href="https://discord.com/invite/ZwQDxPkYzE"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-gray-500 inline-flex items-center px-1 pt-1 text-sm"
                   >
                     Community
