@@ -163,7 +163,7 @@ export default class Repositories extends Component {
                 <h4 className="text-xl font-medium capitalize leading-tight text-gray-900 my-4">Repositories</h4>
                 }
                 <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {repoCards}
+                  {repoCards.length > 0 ? repoCards : emptyState}
                 </ul>
               </div>
               
