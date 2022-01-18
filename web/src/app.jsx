@@ -12,6 +12,7 @@ import Profile from "./views/profile/profile";
 import Services from "./views/services/services";
 import Repo from "./views/repo/repo";
 import DeployStatus from "./components/deployStatus/deployStatus";
+import LoginPage from './views/login/loginPage';
 
 
 export default class App extends Component {
@@ -73,18 +74,9 @@ export default class App extends Component {
               </Route>
 
               <Route path="/login">
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.replace("/auth");
-                  }}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md
-                 text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                  focus:ring-indigo-500">
-                  Login
-                </button>
+                <LoginPage/>
               </Route>
-
+              
               <Route path="/repo/:owner/:repo">
                 <RepoWithRouting store={store}/>
               </Route>
