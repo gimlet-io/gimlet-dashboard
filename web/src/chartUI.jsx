@@ -46,11 +46,16 @@ class ChartUI extends Component {
   }
 
   render() {
-
     return (
       <div>
         <div className="fixed bottom-0 right-0">
-          <span className="inline-flex rounded-md shadow-sm m-8">
+          <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
+            <button
+              type="button"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-gray-600 hover:bg-gray-500 focus:outline-none focus:border-gray-700 focus:shadow-outline-indigo active:bg-gray-700 transition ease-in-out duration-150 opacity-50 cursor-not-allowed"
+            >
+              Reset
+            </button>
             <button
               type="button"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700 transition ease-in-out duration-150"
