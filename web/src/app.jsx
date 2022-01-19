@@ -13,6 +13,7 @@ import Services from "./views/services/services";
 import Repo from "./views/repo/repo";
 import DeployStatus from "./components/deployStatus/deployStatus";
 import LoginPage from './views/login/loginPage';
+import ChartUI from './chartUI'
 
 
 export default class App extends Component {
@@ -75,6 +76,10 @@ export default class App extends Component {
 
               <Route path="/login">
                 <LoginPage/>
+              </Route>
+
+              <Route path="/chart">
+                <ChartUI/>
               </Route>
               
               <Route path="/repo/:owner/:repo">
