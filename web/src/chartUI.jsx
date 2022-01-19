@@ -47,8 +47,8 @@ class ChartUI extends Component {
 
   render() {
     return (
-      <div>
-        <div className="fixed bottom-0 right-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="fixed bottom-0 right-20">
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
