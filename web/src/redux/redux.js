@@ -2,6 +2,9 @@ import * as eventHandlers from './eventHandlers/eventHandlers';
 import * as podEventHandlers from './eventHandlers/podEventHandlers';
 import * as deploymentEventHandlers from './eventHandlers/deploymentEventHandlers';
 import * as ingressEventHandlers from './eventHandlers/ingressEventHandlers';
+import * as schema from './values.schema.json'
+import * as helmUIConfig from './helm-ui.json'
+
 
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
@@ -47,6 +50,17 @@ export const initialState = {
   runningDeploys: [],
   repoRefreshQueue: [],
   gitRepos: [],
+  chartSchema: schema.default,
+  chartUISchema: helmUIConfig.default,
+  envConfigs: {
+    "dzsak/gimlet-dashboard": {
+      vars: {
+        myvar: "myvalue",
+        myvar2: "myvalue3",
+      }
+    },
+    dzsakgimletcli: {}
+  }
 };
 
 export function rootReducer(state = initialState, action) {

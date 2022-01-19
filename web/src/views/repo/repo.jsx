@@ -14,7 +14,6 @@ import {emptyStateNoAgents} from "../services/services";
 export default class Repo extends Component {
   constructor(props) {
     super(props);
-
     const {owner, repo} = this.props.match.params;
 
     // default state
@@ -296,7 +295,7 @@ export default class Repo extends Component {
             className="text-gray-500 hover:text-gray-700"
             onClick={
               () => {
-                window.location.replace("/chart");
+                window.location.replace(`/repo/${owner}/${repo}/envs/staging`);
               }
             }>
             Deploy me immediately!
