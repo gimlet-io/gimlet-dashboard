@@ -23,6 +23,8 @@ class ChartUI extends Component {
         },
       },
       nonDefaultValues: {},
+      defaultState: {},
+      configIsLoaded: false
     };
 
     this.props.store.subscribe(() => {
@@ -47,9 +49,21 @@ class ChartUI extends Component {
     this.setState({ values: values, nonDefaultValues: nonDefaultValues });
   }
 
+  getSnapshotBeforeUpdate() {
+    if (!this.state.configIsLoaded) {
+      this.setState({ configIsLoaded: true })
+      this.setState({ defaultState: Object.assign({}, this.state.values) })
+    }
+  }
+
   render() {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
+    // console.log(this.state.values);
+    // console.log(this.state.nonDefaultValues);
+    // console.log(this.state.defaultState);
+    console.log(JSON.stringify(this.state.values))
+    console.log(JSON.stringify(this.state.defaultState))
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}/envs/{env}
@@ -70,7 +84,9 @@ class ChartUI extends Component {
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
+              disabled={JSON.stringify(this.state.values) === JSON.stringify(this.state.defaultState)}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-gray-600 hover:bg-gray-500 focus:outline-none focus:border-gray-700 focus:shadow-outline-indigo active:bg-gray-700 transition ease-in-out duration-150 opacity-50 cursor-not-allowed"
+              onClick={() => { this.setState({ values: this.state.defaultState }); this.setState({ envConfig: Object.assign({}, this.state.defaultState) }) }}
             >
               Reset
             </button>
