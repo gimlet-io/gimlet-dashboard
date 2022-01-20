@@ -63,6 +63,9 @@ class ChartUI extends Component {
             </svg>
           </a>
         </h1>
+        <button class="text-gray-500 hover:text-gray-700" onClick={() => this.props.history.goBack()}>
+          &laquo; back
+        </button>
         <div className="fixed bottom-0 right-20">
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
