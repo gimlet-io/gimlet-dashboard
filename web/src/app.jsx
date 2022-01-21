@@ -48,7 +48,7 @@ export default class App extends Component {
     const RepoWithRouting = withRouter(props => <Repo {...props} store={store} gimletClient={gimletClient}/>);
     const ServicesWithRouting = withRouter(props => <Services {...props} store={store}/>);
     const RepositoriesWithRouting = withRouter(props => <Repositories {...props} store={store} gimletClient={gimletClient}/>);
-    const ChartUIWithRouting = withRouter(props => <ChartUI {...props} store={store} />);
+    const ChartUIWithRouting = withRouter(props => <ChartUI {...props} store={store} gimletClient={gimletClient}/>);
 
 
     return (

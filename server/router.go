@@ -1,6 +1,9 @@
 package server
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
@@ -14,8 +17,6 @@ import (
 	"github.com/laszlocph/go-login/login/github"
 	"github.com/laszlocph/go-login/login/logger"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strings"
 )
 
 var agentAuth *jwtauth.JWTAuth
@@ -100,6 +101,7 @@ func userRoutes(r *chi.Mux) {
 		r.Post("/api/rollback", rollback)
 		r.Get("/api/deployStatus", deployStatus)
 		r.Get("/api/repo/{owner}/{name}/branches", branches)
+		r.Get("/api/repo/{owner}/{name}/env/{env}", envConfig)
 		r.Post("/api/saveFavoriteRepos", saveFavoriteRepos)
 		r.Post("/api/saveFavoriteServices", saveFavoriteServices)
 	})

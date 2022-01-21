@@ -23,6 +23,8 @@ export default class GimletClient {
 
   getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
 
+  getEnvConfig = (owner, name, env) => this.get(`/api/repo/${owner}/${name}/env/${env}`);
+
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
   rollback = (env, app, rollbackTo) => this.post('/api/rollback', JSON.stringify({ env, app, targetSHA: rollbackTo }));
@@ -32,6 +34,7 @@ export default class GimletClient {
   saveFavoriteRepos = (favoriteRepos) => this.post('/api/saveFavoriteRepos', JSON.stringify({ favoriteRepos }));
 
   saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
+
 
   get = (path) => fetch(path, {
     credentials: 'include'

@@ -153,3 +153,15 @@ func branches(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(branchesString)
 }
+
+func envConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`
+{
+  "vars": {
+    "myvar": "myvalue",
+    "myvar2": "myvalue3"
+  }
+}
+`))
+}

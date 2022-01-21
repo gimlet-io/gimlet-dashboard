@@ -15,13 +15,8 @@ class ChartUI extends Component {
       envs: reduxState.envs,
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
-      envConfig: reduxState.envConfigs[`${owner}/${repo}`],
-      values: {
-        vars: {
-          myvar: "myvalue",
-          myvar2: "myvalue2",
-        },
-      },
+      // envConfig: reduxState.envConfigs[`${owner}/${repo}`],
+      values: {},
       nonDefaultValues: {},
       defaultState: {},
       configIsLoaded: false
@@ -33,10 +28,20 @@ class ChartUI extends Component {
       this.setState({ envs: reduxState.envs });
       this.setState({ chartSchema: reduxState.chartSchema });
       this.setState({ chartUISchema: reduxState.chartUISchema });
-      this.setState({ envConfig: reduxState.envConfigs[`${owner}/${repo}`] });
+      // this.setState({ envConfig: reduxState.envConfigs[`${owner}/${repo}`] });
     });
 
     this.setValues = this.setValues.bind(this);
+  }
+
+  componentDidMount() {
+    const { owner, repo } = this.props.match.params;
+    this.props.gimletClient.getEnvConfig(owner, repo, "staging")
+      .then(data => {
+        this.setState({ values: data });
+        this.setState({ defaultState: Object.assign({}, data) });
+      }, () => {/* Generic error handler deals with it */
+      });
   }
 
   validationCallback(errors) {
@@ -49,21 +54,20 @@ class ChartUI extends Component {
     this.setState({ values: values, nonDefaultValues: nonDefaultValues });
   }
 
-  getSnapshotBeforeUpdate() {
-    if (!this.state.configIsLoaded) {
-      this.setState({ configIsLoaded: true })
-      this.setState({ defaultState: Object.assign({}, this.state.values) })
-    }
-  }
-
   render() {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    // console.log(this.state.values);
-    // console.log(this.state.nonDefaultValues);
-    // console.log(this.state.defaultState);
-    console.log(JSON.stringify(this.state.values))
-    console.log(JSON.stringify(this.state.defaultState))
+
+    if (!this.state.values) {
+      return null
+    }
+
+    console.log(this.state.values)
+    console.log(this.state.nonDefaultValues)
+    console.log(this.state.defaultState)
+
+    const resetDisabled = JSON.stringify(this.state.nonDefaultValues) === JSON.stringify(this.state.defaultState);
+
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}/envs/{env}
@@ -84,15 +88,18 @@ class ChartUI extends Component {
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
-              disabled={JSON.stringify(this.state.values) === JSON.stringify(this.state.defaultState)}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-gray-600 hover:bg-gray-500 focus:outline-none focus:border-gray-700 focus:shadow-outline-indigo active:bg-gray-700 transition ease-in-out duration-150 opacity-50 cursor-not-allowed"
-              onClick={() => { this.setState({ values: this.state.defaultState }); this.setState({ envConfig: Object.assign({}, this.state.defaultState) }) }}
+              disabled={resetDisabled}
+              className={(resetDisabled ? `bg-gray-600 cursor-default` : `cursor-pointer bg-red-600 hover:bg-red-500 focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150`}
+              onClick={() => {
+                this.setState({ values: Object.assign({}, this.state.defaultState) });
+                this.setState({ nonDefaultValues: Object.assign({}, this.state.defaultState) });
+              }}
             >
               Reset
             </button>
             <button
               type="button"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700 transition ease-in-out duration-150"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700 transition ease-in-out duration-150"
               onClick={() => {
                 console.log(this.state.values);
                 console.log(this.state.nonDefaultValues);
@@ -106,7 +113,7 @@ class ChartUI extends Component {
           <HelmUI
             schema={this.state.chartSchema}
             config={this.state.chartUISchema}
-            values={this.state.envConfig}
+            values={this.state.values}
             setValues={this.setValues}
             validate={true}
             validationCallback={this.validationCallback}

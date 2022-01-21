@@ -52,15 +52,7 @@ export const initialState = {
   gitRepos: [],
   chartSchema: schema.default,
   chartUISchema: helmUIConfig.default,
-  envConfigs: {
-    "dzsak/gimlet-dashboard": {
-      vars: {
-        myvar: "myvalue",
-        myvar2: "myvalue3",
-      }
-    },
-    dzsakgimletcli: {}
-  }
+  envConfigs: {}
 };
 
 export function rootReducer(state = initialState, action) {
