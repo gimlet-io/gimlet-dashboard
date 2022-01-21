@@ -165,3 +165,18 @@ func envConfig(w http.ResponseWriter, r *http.Request) {
 }
 `))
 }
+
+func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
+	var configPayload map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&configPayload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	fmt.Println(configPayload)
+
+	w.WriteHeader(200)
+	w.Write([]byte("{}"))
+}

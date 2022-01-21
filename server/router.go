@@ -102,6 +102,7 @@ func userRoutes(r *chi.Mux) {
 		r.Get("/api/deployStatus", deployStatus)
 		r.Get("/api/repo/{owner}/{name}/branches", branches)
 		r.Get("/api/repo/{owner}/{name}/env/{env}", envConfig)
+		r.Post("/api/repo/{owner}/{name}/env/{env}", saveEnvConfig)
 		r.Post("/api/saveFavoriteRepos", saveFavoriteRepos)
 		r.Post("/api/saveFavoriteServices", saveFavoriteServices)
 	})

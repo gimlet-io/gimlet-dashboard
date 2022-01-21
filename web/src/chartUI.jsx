@@ -54,6 +54,17 @@ class ChartUI extends Component {
     this.setState({ values: values, nonDefaultValues: nonDefaultValues });
   }
 
+  save() {
+    console.log('Saving');
+    const { owner, repo } = this.props.match.params;
+    this.props.gimletClient.saveEnvConfig(owner, repo, "staging", this.state.nonDefaultValues)
+      .then(data => {
+        console.log('Saved');
+        this.setState({ defaultState: Object.assign({}, this.state.nonDefaultValues) });
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
   render() {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
@@ -62,11 +73,9 @@ class ChartUI extends Component {
       return null
     }
 
-    console.log(this.state.values)
-    console.log(this.state.nonDefaultValues)
-    console.log(this.state.defaultState)
-
-    const resetDisabled = JSON.stringify(this.state.nonDefaultValues) === JSON.stringify(this.state.defaultState);
+    const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);
+    const hasChange = nonDefaultValuesString !== '{}' &&
+      nonDefaultValuesString !== JSON.stringify(this.state.defaultState);
 
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,8 +97,8 @@ class ChartUI extends Component {
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
-              disabled={resetDisabled}
-              className={(resetDisabled ? `bg-gray-600 cursor-default` : `cursor-pointer bg-red-600 hover:bg-red-500 focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150`}
+              disabled={!hasChange}
+              className={(hasChange ? `cursor-pointer bg-red-600 hover:bg-red-500 focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700` : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150`}
               onClick={() => {
                 this.setState({ values: Object.assign({}, this.state.defaultState) });
                 this.setState({ nonDefaultValues: Object.assign({}, this.state.defaultState) });
@@ -99,11 +108,9 @@ class ChartUI extends Component {
             </button>
             <button
               type="button"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700 transition ease-in-out duration-150"
-              onClick={() => {
-                console.log(this.state.values);
-                console.log(this.state.nonDefaultValues);
-              }}
+              disabled={!hasChange}
+              className={(hasChange ? 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700' : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}
+              onClick={() => this.save()}
             >
               Save
             </button>

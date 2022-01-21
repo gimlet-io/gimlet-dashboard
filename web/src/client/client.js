@@ -25,6 +25,8 @@ export default class GimletClient {
 
   getEnvConfig = (owner, name, env) => this.get(`/api/repo/${owner}/${name}/env/${env}`);
 
+  saveEnvConfig = (owner, name, env, config) => this.post(`/api/repo/${owner}/${name}/env/${env}`, JSON.stringify( config ));
+
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
   rollback = (env, app, rollbackTo) => this.post('/api/rollback', JSON.stringify({ env, app, targetSHA: rollbackTo }));
