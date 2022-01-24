@@ -291,15 +291,6 @@ export default class Repo extends Component {
               </a>
             </h1>
             <h1>
-            <button 
-            className="text-gray-500 hover:text-gray-700"
-            onClick={
-              () => {
-                this.props.history.push(`/repo/${owner}/${repo}/envs/staging`);
-              }
-            }>
-            Deploy me immediately!
-            </button>
             </h1>
             <button class="text-gray-500 hover:text-gray-700" onClick={() => this.props.history.goBack()}>
               &laquo; back
