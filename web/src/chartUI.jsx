@@ -90,7 +90,7 @@ class ChartUI extends Component {
             </svg>
           </a>
         </h1>
-        <button class="text-gray-500 hover:text-gray-700" onClick={() => window.location.href.indexOf("#") > -1 ? this.props.history.go(-2) : this.props.history.go(-1)}>
+        <button class="text-gray-500 hover:text-gray-700" onClick={() => window.location.href.indexOf(`${env}#`) > -1 ? this.props.history.go(-2) : this.props.history.go(-1)}>
           &laquo; back
         </button>
         <div className="fixed bottom-0 right-20">
