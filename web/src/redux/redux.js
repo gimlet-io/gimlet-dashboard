@@ -2,7 +2,7 @@ import * as eventHandlers from './eventHandlers/eventHandlers';
 import * as podEventHandlers from './eventHandlers/podEventHandlers';
 import * as deploymentEventHandlers from './eventHandlers/deploymentEventHandlers';
 import * as ingressEventHandlers from './eventHandlers/ingressEventHandlers';
-import * as schema from './values.schema.json'
+// import * as schema from './values.schema.json'
 import * as helmUIConfig from './helm-ui.json'
 
 
@@ -10,6 +10,7 @@ export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
 export const ACTION_TYPE_USER = 'user';
 export const ACTION_TYPE_GIMLETD = 'gimletd';
+export const ACTION_TYPE_CHARTSCHEMA = 'chartSchema';
 export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
@@ -43,14 +44,14 @@ export const initialState = {
     agents: []
   },
   envs: {},
-  search: {filter: ''},
+  search: { filter: '' },
   rolloutHistory: {},
   commits: {},
   branches: {},
   runningDeploys: [],
   repoRefreshQueue: [],
   gitRepos: [],
-  chartSchema: schema.default,
+  chartSchema: undefined,
   chartUISchema: helmUIConfig.default,
   envConfigs: {}
 };
@@ -71,6 +72,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.user(state, action.payload)
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
+    case ACTION_TYPE_CHARTSCHEMA:
+      return eventHandlers.chartSchema(state, action.payload)
     case ACTION_TYPE_SEARCH:
       return eventHandlers.search(state, action.payload)
     case ACTION_TYPE_ROLLOUT_HISTORY:

@@ -40,6 +40,11 @@ export function gimletd(state, gimletd) {
   return state;
 }
 
+export function chartSchema(state, chartSchema) {
+  state.chartSchema = chartSchema;
+  return state;
+}
+
 export function search(state, search) {
   state.search = search;
   return state;

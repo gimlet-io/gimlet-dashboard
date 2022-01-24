@@ -15,6 +15,8 @@ export default class GimletClient {
 
   getGitRepos = () => this.get('/api/gitRepos');
 
+  getChartSchema = () => this.get('/api/chartSchema');
+
   getGimletD = () => this.get('/api/gimletd');
 
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
@@ -25,7 +27,7 @@ export default class GimletClient {
 
   getEnvConfig = (owner, name, env) => this.get(`/api/repo/${owner}/${name}/env/${env}`);
 
-  saveEnvConfig = (owner, name, env, config) => this.post(`/api/repo/${owner}/${name}/env/${env}`, JSON.stringify( config ));
+  saveEnvConfig = (owner, name, env, config) => this.post(`/api/repo/${owner}/${name}/env/${env}`, JSON.stringify(config));
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
@@ -42,7 +44,7 @@ export default class GimletClient {
     credentials: 'include'
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();
@@ -62,7 +64,7 @@ export default class GimletClient {
     body
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();
@@ -81,7 +83,7 @@ export default class GimletClient {
     body
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();

@@ -1,6 +1,4 @@
 import React, { Component } from "react";
-import * as schema from "./redux/values.schema.json";
-import * as helmUIConfig from "./redux/helm-ui.json";
 import HelmUI from "helm-react-ui";
 import "./style.css";
 
@@ -8,14 +6,11 @@ class ChartUI extends Component {
   constructor(props) {
     super(props);
 
-    const { owner, repo } = this.props.match.params;
-
     let reduxState = this.props.store.getState();
     this.state = {
       envs: reduxState.envs,
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
-      // envConfig: reduxState.envConfigs[`${owner}/${repo}`],
       values: {},
       nonDefaultValues: {},
       defaultState: {},
@@ -28,7 +23,6 @@ class ChartUI extends Component {
       this.setState({ envs: reduxState.envs });
       this.setState({ chartSchema: reduxState.chartSchema });
       this.setState({ chartUISchema: reduxState.chartUISchema });
-      // this.setState({ envConfig: reduxState.envConfigs[`${owner}/${repo}`] });
     });
 
     this.setValues = this.setValues.bind(this);
@@ -40,7 +34,6 @@ class ChartUI extends Component {
       .then(data => {
         this.setState({ values: data });
         this.setState({ defaultState: Object.assign({}, data) });
-        console.log(data);
       }, () => {/* Generic error handler deals with it */
       });
   }
@@ -70,12 +63,19 @@ class ChartUI extends Component {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
 
-    console.log(this.state.values);
-    console.log(this.state.nonDefaultValues);
-    console.log(this.state.defaultState);
+    // console.log(this.state.values);
+    // console.log(this.state.nonDefaultValues);
+    // console.log(this.state.defaultState);
+    console.log(this.state.chartSchema)
+    console.log(this.state.chartUISchema)
+
 
     if (!this.state.values) {
-      return null
+      return null;
+    }
+
+    if (!this.state.chartSchema) {
+      return null;
     }
 
     const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);

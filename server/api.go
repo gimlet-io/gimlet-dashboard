@@ -157,6 +157,18 @@ func branches(w http.ResponseWriter, r *http.Request) {
 }
 
 func envConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`
+{
+	"vars": {
+		"myvar": "myvalue",
+		"myvar2": "myvalue3"
+	}
+}
+`))
+}
+
+func chartSchema(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
 	token, _, _ := tokenManager.Token()
