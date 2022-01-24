@@ -320,7 +320,7 @@ export default class Repo extends Component {
                   const emptyState = search.filter !== '' ?
                     (<p className="text-xs text-gray-800">No service matches the search</p>)
                     :
-                    emptyStateDeployThisRepo(envName);
+                    emptyStateDeployThisRepo(owner, repo,envName, this.props.history);
 
                   const env = filteredEnvs[envName];
                   const renderedServices = env.stacks.map((service) => {
@@ -405,12 +405,14 @@ export default class Repo extends Component {
   }
 }
 
-function emptyStateDeployThisRepo(env) {
+function emptyStateDeployThisRepo(owner, repo, env, history) {
   return <a
-    href="https://gimlet.io/gimlet-cli/manage-environments-with-gimlet-and-gitops/"
     target="_blank"
     rel="noreferrer"
-    className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    onClick={() => {
+      history.push(`/repo/${owner}/${repo}/envs/${env}`);
+    }}
+    className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
