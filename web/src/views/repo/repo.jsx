@@ -397,7 +397,7 @@ export default class Repo extends Component {
 }
 
 function emptyStateDeployThisRepo(owner, repo, env, history) {
-  return <a
+  return <div
     target="_blank"
     rel="noreferrer"
     onClick={() => {
@@ -420,5 +420,5 @@ function emptyStateDeployThisRepo(owner, repo, env, history) {
     <div className="mt-2 block text-sm font-bold text-gray-500">
       Deploy this repository to <span className="capitalize">{env}</span>
     </div>
-  </a>
+  </div>
 }
