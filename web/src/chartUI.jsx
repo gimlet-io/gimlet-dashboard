@@ -35,11 +35,12 @@ class ChartUI extends Component {
   }
 
   componentDidMount() {
-    const { owner, repo } = this.props.match.params;
-    this.props.gimletClient.getEnvConfig(owner, repo, "staging")
+    const { owner, repo, env } = this.props.match.params;
+    this.props.gimletClient.getEnvConfig(owner, repo, env)
       .then(data => {
         this.setState({ values: data });
         this.setState({ defaultState: Object.assign({}, data) });
+        console.log(data);
       }, () => {/* Generic error handler deals with it */
       });
   }
@@ -56,8 +57,8 @@ class ChartUI extends Component {
 
   save() {
     console.log('Saving');
-    const { owner, repo } = this.props.match.params;
-    this.props.gimletClient.saveEnvConfig(owner, repo, "staging", this.state.nonDefaultValues)
+    const { owner, repo, env } = this.props.match.params;
+    this.props.gimletClient.saveEnvConfig(owner, repo, env, this.state.nonDefaultValues)
       .then(data => {
         console.log('Saved');
         this.setState({ defaultState: Object.assign({}, this.state.nonDefaultValues) });
@@ -68,6 +69,10 @@ class ChartUI extends Component {
   render() {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
+
+    console.log(this.state.values);
+    console.log(this.state.nonDefaultValues);
+    console.log(this.state.defaultState);
 
     if (!this.state.values) {
       return null
