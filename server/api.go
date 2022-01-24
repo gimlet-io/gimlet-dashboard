@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
@@ -155,15 +157,25 @@ func branches(w http.ResponseWriter, r *http.Request) {
 }
 
 func envConfig(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+
+	config := ctx.Value("config").(*config.Config)
+	goScm := genericScm.NewGoScmHelper(config, nil)
+
+	repo := "gimlet-io/onechart"
+	path := "charts/onechart/values.schema.json"
+
+	content, err := goScm.Content(token, repo, path)
+	if err != nil {
+		logrus.Errorf("cannot fetch schema from github: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`
-{
-  "vars": {
-    "myvar": "myvalue",
-    "myvar2": "myvalue3"
-  }
-}
-`))
+	w.Write([]byte(content))
 }
 
 func saveEnvConfig(w http.ResponseWriter, r *http.Request) {

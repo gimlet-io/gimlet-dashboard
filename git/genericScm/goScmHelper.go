@@ -3,14 +3,15 @@ package genericScm
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
+	"net/http/httputil"
+	"time"
+
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/go-scm/scm"
 	"github.com/gimlet-io/go-scm/scm/driver/github"
 	"github.com/gimlet-io/go-scm/scm/transport/oauth2"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"net/http/httputil"
-	"time"
 )
 
 type GoScmHelper struct {
@@ -108,6 +109,20 @@ func (helper *GoScmHelper) Organizations(accessToken string, refreshToken string
 	})
 
 	return organizations, err
+}
+
+func (helper *GoScmHelper) Content(accessToken string, repo string,	path string) (string, error) {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	content, _, err := helper.client.Contents.Find(
+		ctx,
+		repo,
+		path,
+		"HEAD")
+
+	return string(content.Data), err
 }
 
 func (helper *GoScmHelper) RegisterWebhook(
