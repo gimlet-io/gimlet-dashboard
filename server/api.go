@@ -21,6 +21,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +300,7 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 	config := ctx.Value("config").(*config.Config)
 	goScm := genericScm.NewGoScmHelper(config, nil)
 
-	toSaveString, err := json.Marshal(toSave)
+	toSaveString, err := yaml.Marshal(toSave)
 	if err != nil {
 		logrus.Errorf("cannot marshal manifest: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
