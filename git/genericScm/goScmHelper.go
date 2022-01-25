@@ -111,7 +111,7 @@ func (helper *GoScmHelper) Organizations(accessToken string, refreshToken string
 	return organizations, err
 }
 
-func (helper *GoScmHelper) Content(accessToken string, repo string,	path string) (string, error) {
+func (helper *GoScmHelper) Content(accessToken string, repo string, path string) (string, error) {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: "",
@@ -123,6 +123,30 @@ func (helper *GoScmHelper) Content(accessToken string, repo string,	path string)
 		"HEAD")
 
 	return string(content.Data), err
+}
+
+// DirectoryContents returns a map of file paths as keys and their file contents in the values
+func (helper *GoScmHelper) DirectoryContents(accessToken string, repo string, directoryPath string) (map[string]string, error) {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	directoryFiles, _, err := helper.client.Contents.List(
+		ctx,
+		repo,
+		directoryPath,
+		"HEAD",
+		scm.ListOptions{
+			Size: 50,
+		},
+	)
+
+	files := map[string]string{}
+	for _, file := range directoryFiles {
+		files[file.Path] = file.BlobID
+	}
+
+	return files, err
 }
 
 func (helper *GoScmHelper) RegisterWebhook(

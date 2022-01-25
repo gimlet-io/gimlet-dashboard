@@ -16,6 +16,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
+	"github.com/gimlet-io/gimletd/dx"
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -39,7 +40,12 @@ func user(w http.ResponseWriter, r *http.Request) {
 func envs(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 
-	envs := []*api.Env{}
+	envs := []*api.Env{
+		// {
+		// 	Name:   "staging",
+		// 	Stacks: []*api.Stack{},
+		// },
+	}
 	for _, a := range agentHub.Agents {
 		for _, stack := range a.Stacks {
 			stack.Env = a.Name
@@ -172,6 +178,10 @@ func envConfig(w http.ResponseWriter, r *http.Request) {
 	config := ctx.Value("config").(*config.Config)
 	goScm := genericScm.NewGoScmHelper(config, nil)
 
+	// TODO call goScm.DirectoryContents to get all Gimlet manifest from .gimlet/
+	// then parse them as dx.Manifest
+	// if dx.Manifest.Env equals to the $env then return the manifest
+
 	envConfigString, err := goScm.Content(token, repoPath, envConfigPath)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not Found") {
@@ -247,15 +257,36 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
-	var configPayload map[string]interface{}
-	err := json.NewDecoder(r.Body).Decode(&configPayload)
+	var values map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&values)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	fmt.Println(configPayload)
+	fmt.Println(values)
+
+	// TODO find existing manifest in $owner/$repo/.gimlet/$env.yaml
+
+	repoName := chi.URLParam(r, "repoName")
+	env := chi.URLParam(r, "env")
+
+	toSave := &dx.Manifest{
+		App: repoName,
+		Env: env,
+		Chart: dx.Chart{
+			Name:       "onechart",
+			Repository: "https://chart.onechart.dev",
+			Version:    "0.32.0",
+		},
+		Namespace: "staging",
+	}
+	toSave.Values = values
+	fmt.Println(toSave)
+
+	// TODO Save to $owner/$repo/.gimlet/$env.yaml
+	// TODO Update if exist
 
 	w.WriteHeader(200)
 	w.Write([]byte("{}"))

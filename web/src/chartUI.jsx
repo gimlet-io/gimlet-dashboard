@@ -30,8 +30,8 @@ class ChartUI extends Component {
     const { owner, repo, env } = this.props.match.params;
     this.props.gimletClient.getEnvConfig(owner, repo, env)
       .then(envConfig => {
-        this.setState({ values: envConfig });
-        this.setState({ defaultState: Object.assign({}, envConfig) });
+        this.setState({ values: envConfig.values });
+        this.setState({ defaultState: Object.assign({}, envConfig.values) });
       }, () => {/* Generic error handler deals with it */
       });
   }
