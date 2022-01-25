@@ -158,21 +158,35 @@ func branches(w http.ResponseWriter, r *http.Request) {
 
 // envConfig fetches the environment config from source control
 func envConfig(w http.ResponseWriter, r *http.Request) {
+	owner := chi.URLParam(r, "owner")
+	repoName := chi.URLParam(r, "repoName")
+	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
 
-	// extract owner, repo, env from API path vars
-	// fetch .gimlet/$env.yaml from SCM (Github)
-	// handle if file does not exist - return empty JSON object
-	// otherwise return the file contents as string
+	env := chi.URLParam(r, "env")
+	envConfigPath := fmt.Sprintf(".gimlet/%s.yaml", env)
+
+	ctx := r.Context()
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+
+	config := ctx.Value("config").(*config.Config)
+	goScm := genericScm.NewGoScmHelper(config, nil)
+
+	envConfigString, err := goScm.Content(token, repoPath, envConfigPath)
+	if err != nil {
+		if strings.Contains(err.Error(), "Not Found") {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("{}"))
+		} else {
+			logrus.Errorf("cannot fetch envConfig from github: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			w.Write([]byte("{}"))
+		}
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`
-{
-	"vars": {
-		"myvar": "myvalue",
-		"myvar2": "myvalue3"
-	}
-}
-`))
+	w.Write([]byte(envConfigString))
 }
 
 func chartSchema(w http.ResponseWriter, r *http.Request) {
