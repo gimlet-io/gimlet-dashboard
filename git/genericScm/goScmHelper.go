@@ -125,6 +125,27 @@ func (helper *GoScmHelper) Content(accessToken string, repo string, path string)
 	return string(content.Data), err
 }
 
+func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path string, content []byte) error {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	_, err := helper.client.Contents.Create(
+		ctx,
+		repo,
+		path,
+		&scm.ContentParams{
+			Data:   content,
+			Branch: "main",
+			Signature: scm.Signature{
+				Name:  "gimlet",
+				Email: "noreply@gimlet.io",
+			},
+		})
+
+	return err
+}
+
 // DirectoryContents returns a map of file paths as keys and their file contents in the values
 func (helper *GoScmHelper) DirectoryContents(accessToken string, repo string, directoryPath string) (map[string]string, error) {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{

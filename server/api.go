@@ -165,7 +165,7 @@ func branches(w http.ResponseWriter, r *http.Request) {
 // envConfig fetches the environment config from source control
 func envConfig(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
-	repoName := chi.URLParam(r, "repoName")
+	repoName := chi.URLParam(r, "name")
 	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
 
 	env := chi.URLParam(r, "env")
@@ -269,8 +269,12 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 
 	// TODO find existing manifest in $owner/$repo/.gimlet/$env.yaml
 
-	repoName := chi.URLParam(r, "repoName")
+	owner := chi.URLParam(r, "owner")
+	repoName := chi.URLParam(r, "name")
+	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
+
 	env := chi.URLParam(r, "env")
+	envConfigPath := fmt.Sprintf(".gimlet/%s.yaml", env)
 
 	toSave := &dx.Manifest{
 		App: repoName,
@@ -287,6 +291,27 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 
 	// TODO Save to $owner/$repo/.gimlet/$env.yaml
 	// TODO Update if exist
+
+	ctx := r.Context()
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
+
+	config := ctx.Value("config").(*config.Config)
+	goScm := genericScm.NewGoScmHelper(config, nil)
+
+	toSaveString, err := json.Marshal(toSave)
+	if err != nil {
+		logrus.Errorf("cannot marshal manifest: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	err = goScm.CreateContent(token, repoPath, envConfigPath, toSaveString)
+	if err != nil {
+		logrus.Errorf("cannot save manifest: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(200)
 	w.Write([]byte("{}"))
