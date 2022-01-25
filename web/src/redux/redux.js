@@ -2,9 +2,6 @@ import * as eventHandlers from './eventHandlers/eventHandlers';
 import * as podEventHandlers from './eventHandlers/podEventHandlers';
 import * as deploymentEventHandlers from './eventHandlers/deploymentEventHandlers';
 import * as ingressEventHandlers from './eventHandlers/ingressEventHandlers';
-// import * as schema from './values.schema.json'
-import * as helmUIConfig from './helm-ui.json'
-
 
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
@@ -52,7 +49,7 @@ export const initialState = {
   repoRefreshQueue: [],
   gitRepos: [],
   chartSchema: undefined,
-  chartUISchema: helmUIConfig.default,
+  chartUISchema: undefined,
   envConfigs: {}
 };
 
@@ -73,7 +70,7 @@ export function rootReducer(state = initialState, action) {
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
     case ACTION_TYPE_CHARTSCHEMA:
-      return eventHandlers.chartSchema(state, action.payload)
+      return eventHandlers.schemas(state, action.payload)
     case ACTION_TYPE_SEARCH:
       return eventHandlers.search(state, action.payload)
     case ACTION_TYPE_ROLLOUT_HISTORY:

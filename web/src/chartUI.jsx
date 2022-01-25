@@ -8,19 +8,17 @@ class ChartUI extends Component {
 
     let reduxState = this.props.store.getState();
     this.state = {
-      envs: reduxState.envs,
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
+
       values: {},
       nonDefaultValues: {},
       defaultState: {},
-      configIsLoaded: false
     };
 
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({ envs: reduxState.envs });
       this.setState({ chartSchema: reduxState.chartSchema });
       this.setState({ chartUISchema: reduxState.chartUISchema });
     });
@@ -31,9 +29,9 @@ class ChartUI extends Component {
   componentDidMount() {
     const { owner, repo, env } = this.props.match.params;
     this.props.gimletClient.getEnvConfig(owner, repo, env)
-      .then(data => {
-        this.setState({ values: data });
-        this.setState({ defaultState: Object.assign({}, data) });
+      .then(envConfig => {
+        this.setState({ values: envConfig });
+        this.setState({ defaultState: Object.assign({}, envConfig) });
       }, () => {/* Generic error handler deals with it */
       });
   }
@@ -77,6 +75,8 @@ class ChartUI extends Component {
     if (!this.state.chartSchema) {
       return null;
     }
+
+    return null;
 
     const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);
     const hasChange = nonDefaultValuesString !== '{}' &&

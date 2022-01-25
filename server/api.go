@@ -179,15 +179,34 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 	repo := "gimlet-io/onechart"
 	path := "charts/onechart/values.schema.json"
 
-	content, err := goScm.Content(token, repo, path)
+	schemaString, err := goScm.Content(token, repo, path)
 	if err != nil {
 		logrus.Errorf("cannot fetch schema from github: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	var schema interface{}
+	err = json.Unmarshal([]byte(schemaString), &schema)
+	if err != nil {
+		logrus.Errorf("cannot parse schema: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	schemas := map[string]interface{}{}
+	schemas["chartSchema"] = schema
+	schemas["uiSchema"] = schema //TODO
+
+	schemasString, err := json.Marshal(schemas)
+	if err != nil {
+		logrus.Errorf("cannot serialize schemas: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(content))
+	w.Write([]byte(schemasString))
 }
 
 func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
