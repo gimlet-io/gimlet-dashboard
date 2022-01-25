@@ -76,7 +76,9 @@ class ChartUI extends Component {
       return null;
     }
 
-    return null;
+    if(!this.state.chartUISchema) {
+      return null;
+    }
 
     const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);
     const hasChange = nonDefaultValuesString !== '{}' &&

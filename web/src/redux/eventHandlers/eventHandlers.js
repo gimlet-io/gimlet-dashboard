@@ -42,7 +42,7 @@ export function gimletd(state, gimletd) {
 
 export function schemas(state, schemas) {
   state.chartSchema = schemas.chartSchema;
-  state.uiSchema = schemas.uiSchema;
+  state.chartUISchema = schemas.uiSchema;
   return state;
 }
 

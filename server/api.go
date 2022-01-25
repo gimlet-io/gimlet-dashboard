@@ -198,11 +198,19 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 	goScm := genericScm.NewGoScmHelper(config, nil)
 
 	repo := "gimlet-io/onechart"
-	path := "charts/onechart/values.schema.json"
+	schemaPath := "charts/onechart/values.schema.json"
+	helmUIPath := "charts/onechart/helm-ui.json"
 
-	schemaString, err := goScm.Content(token, repo, path)
+	schemaString, err := goScm.Content(token, repo, schemaPath)
 	if err != nil {
 		logrus.Errorf("cannot fetch schema from github: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	helmUIString, err := goScm.Content(token, repo, helmUIPath)
+	if err != nil {
+		logrus.Errorf("cannot fetch UI schema from github: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -215,9 +223,17 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var helmUI interface{}
+	err = json.Unmarshal([]byte(helmUIString), &helmUI)
+	if err != nil {
+		logrus.Errorf("cannot parse UI schema: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	schemas := map[string]interface{}{}
 	schemas["chartSchema"] = schema
-	schemas["uiSchema"] = schema //TODO
+	schemas["uiSchema"] = helmUI
 
 	schemasString, err := json.Marshal(schemas)
 	if err != nil {
