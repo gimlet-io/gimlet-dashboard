@@ -156,7 +156,14 @@ func branches(w http.ResponseWriter, r *http.Request) {
 	w.Write(branchesString)
 }
 
+// envConfig fetches the environment config from source control
 func envConfig(w http.ResponseWriter, r *http.Request) {
+
+	// extract owner, repo, env from API path vars
+	// fetch .gimlet/$env.yaml from SCM (Github)
+	// handle if file does not exist - return empty JSON object
+	// otherwise return the file contents as string
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`
 {
