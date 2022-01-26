@@ -21,7 +21,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -196,8 +196,23 @@ func envConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var envConfig dx.Manifest
+	err = yaml.Unmarshal([]byte(envConfigString), &envConfig)
+	if err != nil {
+		logrus.Errorf("cannot parse Env config string: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	envConfigJson, err := json.Marshal(envConfig)
+	if err != nil {
+		logrus.Errorf("cannot convert yaml to json: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(envConfigString))
+	w.Write([]byte(envConfigJson))
 }
 
 func chartSchema(w http.ResponseWriter, r *http.Request) {
