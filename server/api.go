@@ -183,7 +183,7 @@ func envConfig(w http.ResponseWriter, r *http.Request) {
 	// then parse them as dx.Manifest
 	// if dx.Manifest.Env equals to the $env then return the manifest
 
-	envConfigString, err := goScm.Content(token, repoPath, envConfigPath)
+	envConfigString, _, err := goScm.Content(token, repoPath, envConfigPath)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not Found") {
 			w.WriteHeader(http.StatusOK)
@@ -212,14 +212,14 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 	schemaPath := "charts/onechart/values.schema.json"
 	helmUIPath := "charts/onechart/helm-ui.json"
 
-	schemaString, err := goScm.Content(token, repo, schemaPath)
+	schemaString, _, err := goScm.Content(token, repo, schemaPath)
 	if err != nil {
 		logrus.Errorf("cannot fetch schema from github: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	helmUIString, err := goScm.Content(token, repo, helmUIPath)
+	helmUIString, _, err := goScm.Content(token, repo, helmUIPath)
 	if err != nil {
 		logrus.Errorf("cannot fetch UI schema from github: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -307,11 +307,28 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = goScm.CreateContent(token, repoPath, envConfigPath, toSaveString)
+	_, blobID, err := goScm.Content(token, repoPath, envConfigPath)
 	if err != nil {
-		logrus.Errorf("cannot save manifest: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		if strings.Contains(err.Error(), "Not Found") {
+			err = goScm.CreateContent(token, repoPath, envConfigPath, toSaveString)
+			if err != nil {
+				logrus.Errorf("cannot create manifest: %s", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			logrus.Errorf("cannot fetch envConfig from github: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			w.Write([]byte("{}"))
+		}
 		return
+	} else {
+		err = goScm.UpdateContent(token, repoPath, envConfigPath, toSaveString, blobID)
+		if err != nil {
+			logrus.Errorf("cannot update manifest: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(200)
