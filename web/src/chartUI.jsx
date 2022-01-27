@@ -10,7 +10,7 @@ class ChartUI extends Component {
     this.state = {
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
-
+      isSaved: false,
       values: {},
       nonDefaultValues: {},
       defaultState: {},
@@ -59,15 +59,23 @@ class ChartUI extends Component {
       });
   }
 
+  popupWindow() {
+    return (<div
+      className="fixed inset-0 flex px-4 py-6 pointer-events-none sm:p-6 w-full flex-col items-end space-y-4"
+    >
+          <div
+            className="max-w-lg w-full bg-gray-800 text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
+            <div className="flex p-4">
+                 Config file saved succesfully.
+                </div>
+          </div>
+    </div>
+    )
+  }
+
   render() {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`
-
-    // console.log(this.state.values);
-    // console.log(this.state.nonDefaultValues);
-    // console.log(this.state.defaultState);
-    // console.log(this.state.chartSchema)
-    // console.log(this.state.chartUISchema)
 
     const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);
     const hasChange = nonDefaultValuesString !== '{ }' &&
@@ -114,10 +122,13 @@ class ChartUI extends Component {
               type="button"
               disabled={!hasChange}
               className={(hasChange ? 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700' : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}
-              onClick={() => this.save()}
+              onClick={() => {this.save(); this.setState({isSaved: true}); setTimeout(() => {
+                this.setState({isSaved: false})
+             }, 3000);}}
             >
               Save
             </button>
+            {this.state.isSaved && this.popupWindow()}
           </span>
         </div>
         <div className="container mx-auto m-8">
