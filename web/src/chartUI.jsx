@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import HelmUI from "helm-react-ui";
 import "./style.css";
+import PopUpWindow from "./popUpWindow";
 
 class ChartUI extends Component {
   constructor(props) {
@@ -10,7 +11,10 @@ class ChartUI extends Component {
     this.state = {
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
-      isSaved: false,
+      saveButtonTriggered: false,
+      savedSuccess: false,
+      isError: false,
+      errorMessage: "",
       values: {},
       nonDefaultValues: {},
       defaultState: {},
@@ -50,27 +54,18 @@ class ChartUI extends Component {
 
   save() {
     console.log('Saving');
+    this.setState({ saveButtonTriggered: true });
     const { owner, repo, env } = this.props.match.params;
     this.props.gimletClient.saveEnvConfig(owner, repo, env, this.state.nonDefaultValues)
       .then(data => {
         console.log('Saved');
-        this.setState({ defaultState: Object.assign({}, this.state.nonDefaultValues) });
-      }, () => {/* Generic error handler deals with it */
+        this.setState({ savedSuccess: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
+      }, err => {
+        this.setState({ isError: true, errorMessage: err.statusText })
       });
-  }
-
-  popupWindow() {
-    return (<div
-      className="fixed inset-0 flex px-4 py-6 pointer-events-none sm:p-6 w-full flex-col items-end space-y-4"
-    >
-          <div
-            className="max-w-lg w-full bg-gray-800 text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
-            <div className="flex p-4">
-                 Config file saved succesfully.
-                </div>
-          </div>
-    </div>
-    )
+    setTimeout(() => {
+      this.setState({ saveButtonTriggered: false, savedSuccess: false, errorMessage: "", isError: false })
+    }, 3000);
   }
 
   render() {
@@ -109,8 +104,8 @@ class ChartUI extends Component {
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
-              disabled={!hasChange}
-              className={(hasChange ? `cursor-pointer bg-red-600 hover:bg-red-500 focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700` : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150`}
+              disabled={!hasChange || this.state.saveButtonTriggered}
+              className={(hasChange && !this.state.saveButtonTriggered ? `cursor-pointer bg-red-600 hover:bg-red-500 focus:border-red-700 focus:shadow-outline-indigo active:bg-red-700` : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150`}
               onClick={() => {
                 this.setState({ values: Object.assign({}, this.state.defaultState) });
                 this.setState({ nonDefaultValues: Object.assign({}, this.state.defaultState) });
@@ -120,15 +115,13 @@ class ChartUI extends Component {
             </button>
             <button
               type="button"
-              disabled={!hasChange}
-              className={(hasChange ? 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700' : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}
-              onClick={() => {this.save(); this.setState({isSaved: true}); setTimeout(() => {
-                this.setState({isSaved: false})
-             }, 3000);}}
+              disabled={!hasChange || this.state.saveButtonTriggered}
+              className={(hasChange && !this.state.saveButtonTriggered ? 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700' : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}
+              onClick={() => this.save()}
             >
               Save
             </button>
-            {this.state.isSaved && this.popupWindow()}
+            {this.state.saveButtonTriggered && <PopUpWindow savedSuccess={this.state.savedSuccess} errorMessage={this.state.errorMessage} isError={this.state.isError} />}
           </span>
         </div>
         <div className="container mx-auto m-8">
