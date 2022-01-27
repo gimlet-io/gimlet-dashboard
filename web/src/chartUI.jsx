@@ -30,8 +30,10 @@ class ChartUI extends Component {
     const { owner, repo, env } = this.props.match.params;
     this.props.gimletClient.getEnvConfig(owner, repo, env)
       .then(envConfig => {
-        this.setState({ values: envConfig.values });
-        this.setState({ defaultState: Object.assign({}, envConfig.values) });
+        if (Object.keys(envConfig).length !== 0) {
+          this.setState({ values: envConfig.values });
+          this.setState({ defaultState: Object.assign({}, envConfig.values) });
+        }
       }, () => {/* Generic error handler deals with it */
       });
   }
@@ -64,24 +66,11 @@ class ChartUI extends Component {
     // console.log(this.state.values);
     // console.log(this.state.nonDefaultValues);
     // console.log(this.state.defaultState);
-    console.log(this.state.chartSchema)
-    console.log(this.state.chartUISchema)
-
-
-    if (!this.state.values) {
-      return null;
-    }
-
-    if (!this.state.chartSchema) {
-      return null;
-    }
-
-    if(!this.state.chartUISchema) {
-      return null;
-    }
+    // console.log(this.state.chartSchema)
+    // console.log(this.state.chartUISchema)
 
     const nonDefaultValuesString = JSON.stringify(this.state.nonDefaultValues);
-    const hasChange = nonDefaultValuesString !== '{}' &&
+    const hasChange = nonDefaultValuesString !== '{ }' &&
       nonDefaultValuesString !== JSON.stringify(this.state.defaultState);
 
     return (
