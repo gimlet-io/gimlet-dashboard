@@ -179,10 +179,6 @@ func envConfig(w http.ResponseWriter, r *http.Request) {
 	config := ctx.Value("config").(*config.Config)
 	goScm := genericScm.NewGoScmHelper(config, nil)
 
-	// TODO call goScm.DirectoryContents to get all Gimlet manifest from .gimlet/
-	// then parse them as dx.Manifest
-	// if dx.Manifest.Env equals to the $env then return the manifest
-
 	envConfigString, _, err := goScm.Content(token, repoPath, envConfigPath)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not Found") {
@@ -283,8 +279,6 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(values)
 
-	// TODO find existing manifest in $owner/$repo/.gimlet/$env.yaml
-
 	owner := chi.URLParam(r, "owner")
 	repoName := chi.URLParam(r, "name")
 	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
@@ -304,9 +298,6 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 	}
 	toSave.Values = values
 	fmt.Println(toSave)
-
-	// TODO Save to $owner/$repo/.gimlet/$env.yaml
-	// TODO Update if exist
 
 	ctx := r.Context()
 	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
