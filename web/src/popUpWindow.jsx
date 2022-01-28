@@ -1,7 +1,7 @@
-const PopUpWindow = ({ savedSuccess, isError, errorMessage }) => {
+const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage }) => {
 
-    const loadText = () => {
-        if (!savedSuccess && !isError) {
+    const savingText = () => {
+        if (!getEnvConfigFetched) {
             return (
                 <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -13,7 +13,7 @@ const PopUpWindow = ({ savedSuccess, isError, errorMessage }) => {
                     Saving...
                 </>)
         }
-        return (savedSuccess ? "Config saved succesfully!" : `Something went wrong: ${errorMessage}.`)
+        return (isError ? `Something went wrong: ${errorMessage}.` : "Config saved succesfully!")
 
     }
 
@@ -24,7 +24,7 @@ const PopUpWindow = ({ savedSuccess, isError, errorMessage }) => {
             <div
                 className="max-w-lg w-full bg-gray-800 text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
                 <div className="flex p-4">
-                    {loadText()}
+                    {savingText()}
                 </div>
             </div>
         </div>

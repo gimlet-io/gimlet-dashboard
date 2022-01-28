@@ -12,7 +12,7 @@ class ChartUI extends Component {
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
       saveButtonTriggered: false,
-      savedSuccess: false,
+      getEnvConfigFetched: false,
       isError: false,
       errorMessage: "",
       values: {},
@@ -59,12 +59,12 @@ class ChartUI extends Component {
     this.props.gimletClient.saveEnvConfig(owner, repo, env, this.state.nonDefaultValues)
       .then(data => {
         console.log('Saved');
-        this.setState({ savedSuccess: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
+        this.setState({ getEnvConfigFetched: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
       }, err => {
-        this.setState({ isError: true, errorMessage: err.statusText })
+        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.statusText })
       });
     setTimeout(() => {
-      this.setState({ saveButtonTriggered: false, savedSuccess: false, errorMessage: "", isError: false })
+      this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false })
     }, 3000);
   }
 
@@ -121,7 +121,7 @@ class ChartUI extends Component {
             >
               Save
             </button>
-            {this.state.saveButtonTriggered && <PopUpWindow savedSuccess={this.state.savedSuccess} errorMessage={this.state.errorMessage} isError={this.state.isError} />}
+            {this.state.saveButtonTriggered && <PopUpWindow getEnvConfigFetched={this.state.getEnvConfigFetched} errorMessage={this.state.errorMessage} isError={this.state.isError} />}
           </span>
         </div>
         <div className="container mx-auto m-8">
