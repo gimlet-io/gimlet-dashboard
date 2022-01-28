@@ -37,6 +37,7 @@ class ChartUI extends Component {
         if (Object.keys(envConfig).length !== 0) {
           this.setState({ values: envConfig.values });
           this.setState({ defaultState: Object.assign({}, envConfig.values) });
+          this.setState({ nonDefaultValues: envConfig.values });
         }
       }, () => {/* Generic error handler deals with it */
       });
