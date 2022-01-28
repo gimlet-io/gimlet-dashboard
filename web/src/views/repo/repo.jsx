@@ -326,6 +326,10 @@ export default class Repo extends Component {
                         service={service}
                         rolloutHistory={appRolloutHistory}
                         rollback={this.rollback}
+                        owner={owner}
+                        repo={repo}
+                        envName={envName}
+                        history={this.props.history}
                       />
                     )
                   })
