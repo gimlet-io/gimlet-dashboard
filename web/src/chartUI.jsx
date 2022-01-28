@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import HelmUI from "helm-react-ui";
 import "./style.css";
 import PopUpWindow from "./popUpWindow";
+import ReactDiffViewer from "react-diff-viewer";
 
 class ChartUI extends Component {
   constructor(props) {
@@ -134,6 +135,7 @@ class ChartUI extends Component {
             validate={true}
             validationCallback={this.validationCallback}
           />
+           <ReactDiffViewer oldValue={JSON.stringify(this.state.defaultState)} newValue={JSON.stringify(this.state.nonDefaultValues)} splitView={true} />
         </div>
       </div>
     );
