@@ -137,7 +137,11 @@ class ChartUI extends Component {
             validationCallback={this.validationCallback}
           />
             <div className="w-5/12 my-6">
-              <ReactDiffViewer oldValue={YAML.stringify(this.state.defaultState)} newValue={YAML.stringify(this.state.nonDefaultValues)} splitView={false} />
+              <ReactDiffViewer
+                oldValue={YAML.stringify(this.state.defaultState)}
+                newValue={YAML.stringify(this.state.nonDefaultValues)}
+                splitView={false}
+                showDiffOnly={false} />
             </div>
           </div>
       </div>
