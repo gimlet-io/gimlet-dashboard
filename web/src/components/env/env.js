@@ -11,32 +11,9 @@ export class Env extends Component {
   }
 
   render() {
-    const { searchFilter, owner, repo, envName, env, repoRolloutHistory, history } = this.props;
+    const { searchFilter, envName, env, repoRolloutHistory, envConfigs, navigateToConfigEdit, rollback} = this.props;
 
-    const emptyState = searchFilter !== '' ?
-      emptyStateSearch()
-      :
-      emptyStateDeployThisRepo(owner, repo, envName, history);
-
-    const renderedServices = env.stacks.map((service) => {
-      let appRolloutHistory = undefined;
-      if (repoRolloutHistory) {
-        appRolloutHistory = repoRolloutHistory[envName][service.service.name]
-      }
-
-      return (
-        <ServiceDetail
-          key={service.service.name}
-          service={service}
-          rolloutHistory={appRolloutHistory}
-          rollback={this.rollback}
-          owner={owner}
-          repo={repo}
-          envName={envName}
-          history={this.props.history}
-        />
-      )
-    })
+    const renderedServices = renderServices(env.stacks, envConfigs, envName, repoRolloutHistory, navigateToConfigEdit, rollback);
 
     return (
       <div>
@@ -73,7 +50,7 @@ export class Env extends Component {
           <div class="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
             {renderedServices.length > 0
               ? renderedServices
-              : emptyState}
+              : emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName)}
           </div>
         )}
       </div>
@@ -81,17 +58,79 @@ export class Env extends Component {
   }
 }
 
+function renderServices(stacks, envConfigs, envName, repoRolloutHistory, navigateToConfigEdit, rollback) {
+  let services = [];
+
+  let configsWeHave = [];
+  if (envConfigs) {
+    configsWeHave = envConfigs.map((config) => config.app);
+  }
+
+  let configsWeDeployed = [];
+  // render services that are deployed on k8s
+  services = stacks.map((stack) => {
+    configsWeDeployed.push(stack.service.name);
+    return (
+      <ServiceDetail
+        key={stack.service.name}
+        stack={stack}
+        rolloutHistory={appRolloutHistory(envName, stack.service.name, repoRolloutHistory)}
+        rollback={rollback}
+        envName={envName}
+        navigateToConfigEdit={navigateToConfigEdit}
+      />
+    )
+  })
+
+  const configsWeHaventDeployed = configsWeHave.filter(config => !configsWeDeployed.includes(config));
+
+  services.push(
+    ...configsWeHaventDeployed.map(config => {
+      return <ServiceDetail
+        key={config}
+        stack={{service: {
+          name: config
+        }}}
+        rolloutHistory={appRolloutHistory(envName, config, repoRolloutHistory)}
+        rollback={rollback}
+        envName={envName}
+        navigateToConfigEdit={navigateToConfigEdit}
+      />
+    }
+    )
+  )
+  return services
+}
+
+function appRolloutHistory(env, app, repoRolloutHistory) {
+  if (repoRolloutHistory) {
+    if (repoRolloutHistory[env]) {
+      return repoRolloutHistory[env][app]
+    }
+  }
+
+  return []
+}
+
+function emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName) {
+  if (searchFilter !== '') {
+    return emptyStateSearch()
+  } else {
+    if (!envConfigs) {
+      return emptyStateDeployThisRepo(navigateToConfigEdit, envName);
+    }
+  }
+}
+
 function emptyStateSearch() {
   return <p className="text-xs text-gray-800">No service matches the search</p>
 }
 
-function emptyStateDeployThisRepo(owner, repo, env, history) {
+function emptyStateDeployThisRepo(navigateToConfigEdit, envName) {
   return <div
     target="_blank"
     rel="noreferrer"
-    onClick={() => {
-      history.push(`/repo/${owner}/${repo}/envs/${env}`);
-    }}
+    onClick={() => navigateToConfigEdit(envName, "new")}
     className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
   >
     <svg
@@ -107,7 +146,7 @@ function emptyStateDeployThisRepo(owner, repo, env, history) {
         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
     <div className="mt-2 block text-sm font-bold text-gray-500">
-      Deploy this repository to <span className="capitalize">{env}</span>
+      Deploy this repository to <span className="capitalize">{envName}</span>
     </div>
   </div>
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
-	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
@@ -125,90 +124,6 @@ func switchToBranch(repo *git.Repository, branch string) error {
 		return err
 	}
 	return worktree.Checkout(&git.CheckoutOptions{Create: false, Force: false, Branch: b})
-}
-
-func branches(w http.ResponseWriter, r *http.Request) {
-	owner := chi.URLParam(r, "owner")
-	name := chi.URLParam(r, "name")
-	repoName := fmt.Sprintf("%s/%s", owner, name)
-
-	ctx := r.Context()
-	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
-
-	repo, err := gitRepoCache.InstanceForRead(repoName)
-	if err != nil {
-		logrus.Errorf("cannot get repo: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	branches := []string{}
-	refIter, _ := repo.References()
-	refIter.ForEach(func(r *plumbing.Reference) error {
-		if r.Name().IsBranch() {
-			branch := r.Name().Short()
-			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
-		}
-		return nil
-	})
-
-	branchesString, err := json.Marshal(branches)
-	if err != nil {
-		logrus.Errorf("cannot serialize branches: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(branchesString)
-}
-
-// envConfig fetches the environment config from source control
-func envConfig(w http.ResponseWriter, r *http.Request) {
-	owner := chi.URLParam(r, "owner")
-	repoName := chi.URLParam(r, "name")
-	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
-
-	env := chi.URLParam(r, "env")
-	envConfigPath := fmt.Sprintf(".gimlet/%s.yaml", env)
-
-	ctx := r.Context()
-	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-
-	config := ctx.Value("config").(*config.Config)
-	goScm := genericScm.NewGoScmHelper(config, nil)
-
-	envConfigString, _, err := goScm.Content(token, repoPath, envConfigPath)
-	if err != nil {
-		if strings.Contains(err.Error(), "Not Found") {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("{}"))
-		} else {
-			logrus.Errorf("cannot fetch envConfig from github: %s", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			w.Write([]byte("{}"))
-		}
-		return
-	}
-
-	var envConfig dx.Manifest
-	err = yaml.Unmarshal([]byte(envConfigString), &envConfig)
-	if err != nil {
-		logrus.Errorf("cannot parse Env config string: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	envConfigJson, err := json.Marshal(envConfig)
-	if err != nil {
-		logrus.Errorf("cannot convert yaml to json: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(envConfigJson))
 }
 
 func chartSchema(w http.ResponseWriter, r *http.Request) {

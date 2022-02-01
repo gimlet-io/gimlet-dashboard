@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 import {
   ACTION_TYPE_BRANCHES,
@@ -7,15 +7,15 @@ import {
   ACTION_TYPE_DEPLOY_STATUS,
   ACTION_TYPE_ROLLOUT_HISTORY
 } from "../../redux/redux";
-import {Commits} from "../../components/commits/commits";
+import { Commits } from "../../components/commits/commits";
 import Dropdown from "../../components/dropdown/dropdown";
-import {emptyStateNoAgents} from "../services/services";
+import { emptyStateNoAgents } from "../services/services";
 import { Env } from '../../components/env/env';
 
 export default class Repo extends Component {
   constructor(props) {
     super(props);
-    const {owner, repo} = this.props.match.params;
+    const { owner, repo } = this.props.match.params;
 
     // default state
     let reduxState = this.props.store.getState();
@@ -25,6 +25,7 @@ export default class Repo extends Component {
       rolloutHistory: reduxState.rolloutHistory,
       commits: reduxState.commits,
       branches: reduxState.branches,
+      envConfigs: {},
       selectedBranch: '',
       settings: reduxState.settings,
       refreshQueue: reduxState.repoRefreshQueue.filter(repo => repo === `${owner}/${repo}`).length,
@@ -35,31 +36,33 @@ export default class Repo extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({envs: reduxState.envs});
-      this.setState({search: reduxState.search});
-      this.setState({rolloutHistory: reduxState.rolloutHistory});
-      this.setState({commits: reduxState.commits});
-      this.setState({branches: reduxState.branches});
+      this.setState({ envs: reduxState.envs });
+      this.setState({ search: reduxState.search });
+      this.setState({ rolloutHistory: reduxState.rolloutHistory });
+      this.setState({ commits: reduxState.commits });
+      this.setState({ branches: reduxState.branches });
 
       const queueLength = reduxState.repoRefreshQueue.filter(r => r === `${owner}/${repo}`).length
       this.setState(prevState => {
         if (prevState.refreshQueueLength !== queueLength) {
           this.refreshBranches(owner, repo);
           this.refreshCommits(owner, repo, prevState.selectedBranch);
+          this.refreshConfigs(owner, repo);
         }
-        return {refreshQueueLength: queueLength}
+        return { refreshQueueLength: queueLength }
       });
-      this.setState({agents: reduxState.settings.agents});
+      this.setState({ agents: reduxState.settings.agents });
     });
 
     this.branchChange = this.branchChange.bind(this)
     this.deploy = this.deploy.bind(this)
     this.rollback = this.rollback.bind(this)
     this.checkDeployStatus = this.checkDeployStatus.bind(this)
+    this.navigateToConfigEdit = this.navigateToConfigEdit.bind(this)
   }
 
   componentDidMount() {
-    const {owner, repo} = this.props.match.params;
+    const { owner, repo } = this.props.match.params;
 
     this.props.gimletClient.getRolloutHistory(owner, repo)
       .then(data => {
@@ -70,6 +73,12 @@ export default class Repo extends Component {
             releases: data
           }
         });
+      }, () => {/* Generic error handler deals with it */
+      });
+
+    this.props.gimletClient.getEnvConfigs(owner, repo)
+      .then(envConfigs => {
+        this.setState({ envConfigs: envConfigs })
       }, () => {/* Generic error handler deals with it */
       });
 
@@ -125,16 +134,24 @@ export default class Repo extends Component {
       });
   }
 
+  refreshConfigs(owner, repo) {
+    this.props.gimletClient.getEnvConfigs(owner, repo)
+      .then(envConfigs => {
+        this.setState({ envConfigs: envConfigs })
+      }, () => {/* Generic error handler deals with it */
+      });
+  }
+
   branchChange(newBranch) {
     if (newBranch === '') {
       return
     }
 
-    const {owner, repo} = this.props.match.params;
-    const {selectedBranch} = this.state;
+    const { owner, repo } = this.props.match.params;
+    const { selectedBranch } = this.state;
 
     if (newBranch !== selectedBranch) {
-      this.setState({selectedBranch: newBranch});
+      this.setState({ selectedBranch: newBranch });
 
       this.props.gimletClient.getCommits(owner, repo, newBranch)
         .then(data => {
@@ -151,7 +168,7 @@ export default class Repo extends Component {
   }
 
   checkDeployStatus(deployRequest) {
-    const {owner, repo} = this.props.match.params;
+    const { owner, repo } = this.props.match.params;
 
     this.props.gimletClient.getDeployStatus(deployRequest.trackingId)
       .then(data => {
@@ -239,11 +256,16 @@ export default class Repo extends Component {
     });
   }
 
+  navigateToConfigEdit(env, config) {
+    const { owner, repo } = this.props.match.params;
+    this.props.history.push(`/repo/${owner}/${repo}/envs/${env}/config/${config}`);
+  }
+
   render() {
-    const {owner, repo} = this.props.match.params;
+    const { owner, repo } = this.props.match.params;
     const repoName = `${owner}/${repo}`
-    let {envs, search, rolloutHistory, commits, agents} = this.state;
-    const {branches, selectedBranch} = this.state;
+    let { envs, search, rolloutHistory, commits, agents } = this.state;
+    const { branches, selectedBranch, envConfigs} = this.state;
 
     let filteredEnvs = envsForRepoFilteredBySearchFilter(envs, repoName, search.filter);
 
@@ -259,11 +281,11 @@ export default class Repo extends Component {
             <h1 className="text-3xl font-bold leading-tight text-gray-900">{repoName}
               <a href={`https://github.com/${owner}/${repo}`} target="_blank" rel="noopener noreferrer">
                 <svg xmlns="http://www.w3.org/2000/svg"
-                     className="inline fill-current text-gray-500 hover:text-gray-700 ml-1" width="12" height="12"
-                     viewBox="0 0 24 24">
-                  <path d="M0 0h24v24H0z" fill="none"/>
+                  className="inline fill-current text-gray-500 hover:text-gray-700 ml-1" width="12" height="12"
+                  viewBox="0 0 24 24">
+                  <path d="M0 0h24v24H0z" fill="none" />
                   <path
-                    d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                    d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
                 </svg>
               </a>
             </h1>
@@ -279,20 +301,20 @@ export default class Repo extends Component {
             <div className="px-4 py-8 sm:px-0">
               <div>
                 {agents.length === 0 &&
-                <div class="mt-8 mb-16">
-                  {emptyStateNoAgents()}
-                </div>
+                  <div class="mt-8 mb-16">
+                    {emptyStateNoAgents()}
+                  </div>
                 }
 
                 {Object.keys(filteredEnvs).sort().map((envName) =>
                   <Env
                     searchFilter={search.filter}
-                    owner={owner}
-                    repo={repo}
                     envName={envName}
                     env={filteredEnvs[envName]}
                     repoRolloutHistory={repoRolloutHistory}
-                    history={this.props.history}
+                    envConfigs={envConfigs[envName]}
+                    navigateToConfigEdit={this.navigateToConfigEdit}
+                    rollback={this.rollback}
                   />
                 )
                 }
@@ -300,21 +322,21 @@ export default class Repo extends Component {
                 <div className="bg-gray-50 shadow p-4 sm:p-6 lg:p-8 mt-8 relative">
                   <div className="w-64 mb-4 lg:mb-8">
                     {branches &&
-                    <Dropdown
-                      items={branches[repoName]}
-                      value={selectedBranch}
-                      changeHandler={(newBranch) => this.branchChange(newBranch)}
-                    />
+                      <Dropdown
+                        items={branches[repoName]}
+                        value={selectedBranch}
+                        changeHandler={(newBranch) => this.branchChange(newBranch)}
+                      />
                     }
                   </div>
                   {commits &&
-                  <Commits
-                    commits={commits[repoName]}
-                    envs={filteredEnvs}
-                    rolloutHistory={repoRolloutHistory}
-                    deployHandler={this.deploy}
-                    repo={repoName}
-                  />
+                    <Commits
+                      commits={commits[repoName]}
+                      envs={filteredEnvs}
+                      rolloutHistory={repoRolloutHistory}
+                      deployHandler={this.deploy}
+                      repo={repoName}
+                    />
                   }
                 </div>
               </div>
@@ -337,7 +359,7 @@ function envsForRepoFilteredBySearchFilter(envs, repoName, searchFilter) {
   // iterate through all Kubernetes envs
   for (const envName of Object.keys(envs)) {
     const env = envs[envName];
-    filteredEnvs[env.name] = {name: env.name, stacks: env.stacks};
+    filteredEnvs[env.name] = { name: env.name, stacks: env.stacks };
 
     // find all stacks that belong to this repo
     filteredEnvs[env.name].stacks = env.stacks.filter((service) => {

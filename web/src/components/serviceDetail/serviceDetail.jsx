@@ -1,45 +1,45 @@
-import React, {Component} from 'react';
-import {Pod} from "../serviceCard/serviceCard";
-import {RolloutHistory} from "../rolloutHistory/rolloutHistory";
+import React, { Component } from 'react';
+import { Pod } from "../serviceCard/serviceCard";
+import { RolloutHistory } from "../rolloutHistory/rolloutHistory";
 import Emoji from "react-emoji-render";
 
 function ServiceDetail(props) {
-  const {service, rolloutHistory, rollback, owner, repo, envName, history} = props;
+  const { stack, rolloutHistory, rollback, envName, navigateToConfigEdit } = props;
 
   return (
     <div class="w-full flex items-center justify-between space-x-6">
       <div class="flex-1 truncate">
-          <h3 class="flex text-lg font-bold">
-            {service.service.name}
+        <h3 class="flex text-lg font-bold">
+          {stack.service.name}
+          <span onClick={() => navigateToConfigEdit(envName, stack.service.name)}>
             <svg
-              className="cursor-pointer my-auto mx-1 h-6 w-6 text-gray-400"
-              onClick={() => {
-                history.push(`/repo/${owner}/${repo}/envs/${envName}`);
-              }} xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              className="cursor-pointer inline text-gray-500 hover:text-gray-700 ml-1  h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-          </h3>
+          </span>
+        </h3>
         <div class="my-2 mb-4 sm:my-4 sm:mb-6">
           <RolloutHistory
-            env={service.env}
-            app={service.service.name}
+            env={stack.env}
+            app={stack.service.name}
             rollback={rollback}
             rolloutHistory={rolloutHistory}
           />
         </div>
         <div class="flex flex-wrap text-sm">
           <div class="flex-1 min-w-full md:min-w-0">
-            {service.ingresses ? service.ingresses.map((ingress) => <Ingress ingress={ingress}/>) : null}
+            {stack.ingresses ? stack.ingresses.map((ingress) => <Ingress ingress={ingress} />) : null}
           </div>
           <div class="flex-1 md:ml-2 min-w-full md:min-w-0">
             <Deployment
-              envName={service.env}
-              repo={service.repo}
-              deployment={service.deployment}
+              envName={stack.env}
+              repo={stack.repo}
+              deployment={stack.deployment}
             />
           </div>
-          <div class="flex-1 min-w-full md:min-w-0"/>
+          <div class="flex-1 min-w-full md:min-w-0" />
         </div>
       </div>
     </div>
@@ -48,7 +48,7 @@ function ServiceDetail(props) {
 
 class Ingress extends Component {
   render() {
-    const {ingress} = this.props;
+    const { ingress } = this.props;
 
     if (ingress === undefined) {
       return null;
@@ -67,7 +67,7 @@ class Ingress extends Component {
 
 class Deployment extends Component {
   render() {
-    const {deployment, repo} = this.props;
+    const { deployment, repo } = this.props;
 
     if (deployment === undefined) {
       return null;
@@ -77,14 +77,14 @@ class Deployment extends Component {
       <div class="bg-gray-100 p-2 mb-1 border rounded-sm border-blue-200, text-gray-500 relative">
         <span class="text-xs text-gray-400 absolute bottom-0 right-0 p-2">deployment</span>
         <p class="mb-1">
-          <p class="truncate">{deployment.commitMessage && <Emoji text={deployment.commitMessage}/>}</p>
+          <p class="truncate">{deployment.commitMessage && <Emoji text={deployment.commitMessage} />}</p>
           <p class="text-xs italic"><a href={`https://github.com/${repo}/commit/${deployment.sha}`} target="_blank"
-                                       rel="noopener noreferrer">{deployment.sha.slice(0, 6)}</a></p>
+            rel="noopener noreferrer">{deployment.sha.slice(0, 6)}</a></p>
         </p>
         <p class="text-xs">{deployment.namespace}/{deployment.name}</p>
         {
           deployment.pods && deployment.pods.map((pod) => (
-            <Pod key={pod.name} pod={pod}/>
+            <Pod key={pod.name} pod={pod} />
           ))
         }
       </div>

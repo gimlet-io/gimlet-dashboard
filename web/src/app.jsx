@@ -50,7 +50,6 @@ export default class App extends Component {
     const RepositoriesWithRouting = withRouter(props => <Repositories {...props} store={store} gimletClient={gimletClient}/>);
     const ChartUIWithRouting = withRouter(props => <ChartUI {...props} store={store} gimletClient={gimletClient}/>);
 
-
     return (
       <Router>
         <StreamingBackendWithLocation/>
@@ -80,7 +79,7 @@ export default class App extends Component {
                 <LoginPage/>
               </Route>
 
-              <Route path="/repo/:owner/:repo/envs/:env">
+              <Route path="/repo/:owner/:repo/envs/:env/config/:config">
                 <ChartUIWithRouting/>
               </Route>
               
