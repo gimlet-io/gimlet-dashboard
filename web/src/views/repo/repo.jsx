@@ -292,6 +292,7 @@ export default class Repo extends Component {
                     envName={envName}
                     env={filteredEnvs[envName]}
                     repoRolloutHistory={repoRolloutHistory}
+                    history={this.props.history}
                   />
                 )
                 }

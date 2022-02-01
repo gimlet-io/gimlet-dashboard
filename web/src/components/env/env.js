@@ -11,12 +11,12 @@ export class Env extends Component {
   }
 
   render() {
-    const { searchFilter, owner, repo, envName, env, repoRolloutHistory } = this.props;
+    const { searchFilter, owner, repo, envName, env, repoRolloutHistory, history } = this.props;
 
     const emptyState = searchFilter !== '' ?
       emptyStateSearch()
       :
-      emptyStateDeployThisRepo(owner, repo, envName, this.props.history);
+      emptyStateDeployThisRepo(owner, repo, envName, history);
 
     const renderedServices = env.stacks.map((service) => {
       let appRolloutHistory = undefined;
