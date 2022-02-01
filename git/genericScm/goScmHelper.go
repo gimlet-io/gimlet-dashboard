@@ -111,7 +111,7 @@ func (helper *GoScmHelper) Organizations(accessToken string, refreshToken string
 	return organizations, err
 }
 
-func (helper *GoScmHelper) Content(accessToken string, repo string, path string) (string, string, error) {
+func (helper *GoScmHelper) Content(accessToken string, repo string, path string, branch string) (string, string, error) {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: "",
@@ -120,7 +120,7 @@ func (helper *GoScmHelper) Content(accessToken string, repo string, path string)
 		ctx,
 		repo,
 		path,
-		"HEAD")
+		branch)
 
 	return string(content.Data), string(content.BlobID), err
 }
@@ -146,7 +146,7 @@ func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path s
 	return err
 }
 
-func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path string, content []byte, blobID string) error {
+func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path string, content []byte, blobID string, branch string) error {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: "",
@@ -158,7 +158,7 @@ func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path s
 		&scm.ContentParams{
 			Data:    content,
 			Message: "Updating gimlet manifest",
-			Branch:  "main",
+			Branch:  branch,
 			BlobID:  blobID,
 			Signature: scm.Signature{
 				Name:  "gimlet",

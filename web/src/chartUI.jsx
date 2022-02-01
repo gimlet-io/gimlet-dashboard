@@ -9,7 +9,17 @@ class ChartUI extends Component {
   constructor(props) {
     super(props);
 
+    const { owner, repo, env, config } = this.props.match.params;
+    const repoName = `${owner}/${repo}`;
+
     let reduxState = this.props.store.getState();
+
+    let envConfig = {};
+    if (reduxState.envConfigs[repoName] &&
+      reduxState.envConfigs[repoName][env]) {
+      envConfig = configFromEnvConfigs(reduxState.envConfigs[repoName][env], config);
+    }
+
     this.state = {
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
@@ -17,9 +27,9 @@ class ChartUI extends Component {
       getEnvConfigFetched: false,
       isError: false,
       errorMessage: "",
-      values: {},
-      nonDefaultValues: {},
-      defaultState: {},
+      values: envConfig,
+      nonDefaultValues: envConfig,
+      defaultState: Object.assign({}, envConfig),
       isTimedOut: false,
       timeoutTimer: {}
     };
@@ -27,8 +37,22 @@ class ChartUI extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({ chartSchema: reduxState.chartSchema });
-      this.setState({ chartUISchema: reduxState.chartUISchema });
+      let envConfig = {};
+      if (reduxState.envConfigs[repoName] &&
+        reduxState.envConfigs[repoName][env]) {
+        envConfig = configFromEnvConfigs(reduxState.envConfigs[repoName][env], config);
+      }
+
+      this.setState({
+        chartSchema: reduxState.chartSchema,
+        chartUISchema: reduxState.chartUISchema,
+      });
+
+      // if ()
+      // values: envConfig,
+      // nonDefaultValues: envConfig,
+      // defaultState: Object.assign({}, envConfig),
+
     });
 
     this.setValues = this.setValues.bind(this);
@@ -58,9 +82,9 @@ class ChartUI extends Component {
   save() {
     console.log('Saving');
     this.setState({ saveButtonTriggered: true });
-    const { owner, repo, env } = this.props.match.params;
+    const { owner, repo, env, config } = this.props.match.params;
     this.timeoutFunction();
-    this.props.gimletClient.saveEnvConfig(owner, repo, env, this.state.nonDefaultValues)
+    this.props.gimletClient.saveEnvConfig(owner, repo, env, config, this.state.nonDefaultValues)
       .then(data => {
         console.log('Saved');
         clearTimeout(this.timeoutTimer);
@@ -98,6 +122,10 @@ class ChartUI extends Component {
       return null;
     }
 
+    if (!this.state.values) {
+      return null;
+    }
+
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold leading-tight text-gray-900">Editing {config} config for {env}</h1>
@@ -115,7 +143,24 @@ class ChartUI extends Component {
         <button class="text-gray-500 hover:text-gray-700 mt-8" onClick={() => window.location.href.indexOf(`${env}#`) > -1 ? this.props.history.go(-2) : this.props.history.go(-1)}>
           &laquo; back
         </button>
-        <div className="fixed bottom-0 right-20">
+        <div className="container mx-auto m-8">
+          <HelmUI
+            schema={this.state.chartSchema}
+            config={this.state.chartUISchema}
+            values={this.state.values}
+            setValues={this.setValues}
+            validate={true}
+            validationCallback={this.validationCallback}
+          />
+          <div className="w-full my-16">
+            <ReactDiffViewer
+              oldValue={YAML.stringify(this.state.defaultState)}
+              newValue={YAML.stringify(this.state.nonDefaultValues)}
+              splitView={false}
+              showDiffOnly={false} />
+          </div>
+        </div>
+        <div>
           <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
             <button
               type="button"
@@ -139,26 +184,15 @@ class ChartUI extends Component {
             {this.state.saveButtonTriggered && <PopUpWindow getEnvConfigFetched={this.state.getEnvConfigFetched} errorMessage={this.state.errorMessage} isError={this.state.isError} isTimedOut={this.state.isTimedOut} />}
           </span>
         </div>
-        <div className="container mx-auto m-8">
-          <HelmUI
-            schema={this.state.chartSchema}
-            config={this.state.chartUISchema}
-            values={this.state.values}
-            setValues={this.setValues}
-            validate={true}
-            validationCallback={this.validationCallback}
-          />
-          <div className="w-5/12 my-6">
-            <ReactDiffViewer
-              oldValue={YAML.stringify(this.state.defaultState)}
-              newValue={YAML.stringify(this.state.nonDefaultValues)}
-              splitView={false}
-              showDiffOnly={false} />
-          </div>
-        </div>
       </div>
     );
   }
+}
+
+function configFromEnvConfigs(envConfigs, config) {
+  const configFromEnvConfigs = envConfigs.filter(c => c.app === config)
+
+  return configFromEnvConfigs.length > 0 ? configFromEnvConfigs[0].values : {}
 }
 
 export default ChartUI;

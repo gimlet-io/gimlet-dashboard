@@ -69,6 +69,12 @@ export function branches(state, payload) {
   return state;
 }
 
+export function envConfigs(state, payload) {
+  const repo = `${payload.owner}/${payload.repo}`;
+  state.envConfigs[repo] = payload.envConfigs;
+  return state;
+}
+
 export function deploy(state, payload) {
   state.runningDeploys = [payload];
   return state;

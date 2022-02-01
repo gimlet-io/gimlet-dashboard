@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import {
   ACTION_TYPE_BRANCHES,
+  ACTION_TYPE_ENVCONFIGS,
   ACTION_TYPE_COMMITS,
   ACTION_TYPE_DEPLOY,
   ACTION_TYPE_DEPLOY_STATUS,
@@ -16,6 +17,7 @@ export default class Repo extends Component {
   constructor(props) {
     super(props);
     const { owner, repo } = this.props.match.params;
+    const repoName = `${owner}/${repo}`;
 
     // default state
     let reduxState = this.props.store.getState();
@@ -25,10 +27,10 @@ export default class Repo extends Component {
       rolloutHistory: reduxState.rolloutHistory,
       commits: reduxState.commits,
       branches: reduxState.branches,
-      envConfigs: {},
+      envConfigs: reduxState.envConfigs[repoName],
       selectedBranch: '',
       settings: reduxState.settings,
-      refreshQueue: reduxState.repoRefreshQueue.filter(repo => repo === `${owner}/${repo}`).length,
+      refreshQueue: reduxState.repoRefreshQueue.filter(repo => repo === repoName).length,
       agents: reduxState.settings.agents,
     }
 
@@ -36,13 +38,16 @@ export default class Repo extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      this.setState({ envs: reduxState.envs });
-      this.setState({ search: reduxState.search });
-      this.setState({ rolloutHistory: reduxState.rolloutHistory });
-      this.setState({ commits: reduxState.commits });
-      this.setState({ branches: reduxState.branches });
+      this.setState({
+        envs: reduxState.envs,
+        search: reduxState.search,
+        rolloutHistory: reduxState.rolloutHistory,
+        commits: reduxState.commits,
+        branches: reduxState.branches,
+        envConfigs: reduxState.envConfigs[repoName]
+      });
 
-      const queueLength = reduxState.repoRefreshQueue.filter(r => r === `${owner}/${repo}`).length
+      const queueLength = reduxState.repoRefreshQueue.filter(r => r === repoName).length
       this.setState(prevState => {
         if (prevState.refreshQueueLength !== queueLength) {
           this.refreshBranches(owner, repo);
@@ -78,7 +83,13 @@ export default class Repo extends Component {
 
     this.props.gimletClient.getEnvConfigs(owner, repo)
       .then(envConfigs => {
-        this.setState({ envConfigs: envConfigs })
+        this.props.store.dispatch({
+          type: ACTION_TYPE_ENVCONFIGS, payload: {
+            owner: owner,
+            repo: repo,
+            envConfigs: envConfigs
+          }
+        });
       }, () => {/* Generic error handler deals with it */
       });
 
@@ -137,7 +148,13 @@ export default class Repo extends Component {
   refreshConfigs(owner, repo) {
     this.props.gimletClient.getEnvConfigs(owner, repo)
       .then(envConfigs => {
-        this.setState({ envConfigs: envConfigs })
+        this.props.store.dispatch({
+          type: ACTION_TYPE_ENVCONFIGS, payload: {
+            owner: owner,
+            repo: repo,
+            envConfigs: envConfigs
+          }
+        });
       }, () => {/* Generic error handler deals with it */
       });
   }
@@ -241,7 +258,6 @@ export default class Repo extends Component {
     };
     this.props.gimletClient.rollback(env, app, rollbackTo)
       .then(data => {
-        // target.sha = sha;
         target.trackingId = data.trackingId;
         setTimeout(() => {
           this.checkDeployStatus(target);
@@ -249,8 +265,6 @@ export default class Repo extends Component {
       }, () => {/* Generic error handler deals with it */
       });
 
-    // target.sha = sha;
-    // target.repo = repo;
     this.props.store.dispatch({
       type: ACTION_TYPE_DEPLOY, payload: target
     });
@@ -265,13 +279,17 @@ export default class Repo extends Component {
     const { owner, repo } = this.props.match.params;
     const repoName = `${owner}/${repo}`
     let { envs, search, rolloutHistory, commits, agents } = this.state;
-    const { branches, selectedBranch, envConfigs} = this.state;
+    const { branches, selectedBranch, envConfigs } = this.state;
 
     let filteredEnvs = envsForRepoFilteredBySearchFilter(envs, repoName, search.filter);
 
     let repoRolloutHistory = undefined;
     if (rolloutHistory && rolloutHistory[repoName]) {
       repoRolloutHistory = rolloutHistory[repoName]
+    }
+
+    if (!this.state.envConfigs) {
+      return null
     }
 
     return (
@@ -315,6 +333,7 @@ export default class Repo extends Component {
                     envConfigs={envConfigs[envName]}
                     navigateToConfigEdit={this.navigateToConfigEdit}
                     rollback={this.rollback}
+                    repoName={repo}
                   />
                 )
                 }

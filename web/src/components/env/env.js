@@ -11,7 +11,7 @@ export class Env extends Component {
   }
 
   render() {
-    const { searchFilter, envName, env, repoRolloutHistory, envConfigs, navigateToConfigEdit, rollback} = this.props;
+    const { searchFilter, envName, env, repoRolloutHistory, envConfigs, navigateToConfigEdit, rollback, repoName} = this.props;
 
     const renderedServices = renderServices(env.stacks, envConfigs, envName, repoRolloutHistory, navigateToConfigEdit, rollback);
 
@@ -50,7 +50,7 @@ export class Env extends Component {
           <div class="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
             {renderedServices.length > 0
               ? renderedServices
-              : emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName)}
+              : emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName, repoName)}
           </div>
         )}
       </div>
@@ -112,12 +112,12 @@ function appRolloutHistory(env, app, repoRolloutHistory) {
   return []
 }
 
-function emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName) {
+function emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName, repoName) {
   if (searchFilter !== '') {
     return emptyStateSearch()
   } else {
     if (!envConfigs) {
-      return emptyStateDeployThisRepo(navigateToConfigEdit, envName);
+      return emptyStateDeployThisRepo(navigateToConfigEdit, envName, repoName);
     }
   }
 }
@@ -126,11 +126,11 @@ function emptyStateSearch() {
   return <p className="text-xs text-gray-800">No service matches the search</p>
 }
 
-function emptyStateDeployThisRepo(navigateToConfigEdit, envName) {
+function emptyStateDeployThisRepo(navigateToConfigEdit, envName, repoName) {
   return <div
     target="_blank"
     rel="noreferrer"
-    onClick={() => navigateToConfigEdit(envName, "new")}
+    onClick={() => navigateToConfigEdit(envName, repoName)}
     className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
   >
     <svg

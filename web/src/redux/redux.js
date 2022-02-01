@@ -12,6 +12,7 @@ export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
 export const ACTION_TYPE_BRANCHES = 'branches';
+export const ACTION_TYPE_ENVCONFIGS = 'envConfigs';
 export const ACTION_TYPE_DEPLOY = 'deploy';
 export const ACTION_TYPE_DEPLOY_STATUS = 'deployStatus';
 export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
@@ -79,6 +80,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.commits(state, action.payload)
     case ACTION_TYPE_BRANCHES:
       return eventHandlers.branches(state, action.payload)
+    case ACTION_TYPE_ENVCONFIGS:
+      return eventHandlers.envConfigs(state, action.payload)
     case ACTION_TYPE_DEPLOY:
       return eventHandlers.deploy(state, action.payload)
     case ACTION_TYPE_DEPLOY_STATUS:
