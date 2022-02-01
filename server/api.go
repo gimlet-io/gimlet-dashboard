@@ -81,7 +81,7 @@ func envs(w http.ResponseWriter, r *http.Request) {
 func agents(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 
-	agents := []string{}
+	agents := []string{} //[]string{"staging"}
 	for _, a := range agentHub.Agents {
 		agents = append(agents, a.Name)
 	}
