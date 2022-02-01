@@ -64,7 +64,7 @@ class ChartUI extends Component {
         console.log('Saved');
         this.setState({ getEnvConfigFetched: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
       }, err => {
-        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.statusText })
+        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.data?.message ?? err.statusText })
       });
     setTimeout(() => {
       this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false })

@@ -1,3 +1,5 @@
+const axios = require('axios').default;
+
 export default class GimletClient {
   constructor(onError) {
     this.onError = onError
@@ -25,9 +27,9 @@ export default class GimletClient {
 
   getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
 
-  getEnvConfig = (owner, name, env) => this.get(`/api/repo/${owner}/${name}/env/${env}`);
+  getEnvConfig = (owner, name, env) => this.getWithAxios(`/api/repo/${owner}/${name}/env/${env}`);
 
-  saveEnvConfig = (owner, name, env, config) => this.post(`/api/repo/${owner}/${name}/env/${env}`, JSON.stringify(config));
+  saveEnvConfig = (owner, name, env, config) => this.postWithAxios(`/api/repo/${owner}/${name}/env/${env}`, JSON.stringify(config));
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
@@ -38,6 +40,35 @@ export default class GimletClient {
   saveFavoriteRepos = (favoriteRepos) => this.post('/api/saveFavoriteRepos', JSON.stringify({ favoriteRepos }));
 
   saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
+
+  getWithAxios = async (path) => {
+    try {
+      const { data } = await axios.get(path, {
+        credentials: 'include'
+      });
+      return data;
+    } catch (error) {
+      this.onError(error.response);
+      throw error.response;
+    }
+  }
+
+  postWithAxios = async (path, body) => {
+    try {
+      const { data } = await axios
+        .post(path, body, {
+          credentials: 'include',
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+      return data;
+    } catch (error) {
+      this.onError(error.response);
+      throw error.response;
+    }
+  }
 
 
   get = (path) => fetch(path, {

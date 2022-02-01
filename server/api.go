@@ -332,7 +332,7 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 		err = goScm.UpdateContent(token, repoPath, envConfigPath, toSaveString, blobID)
 		if err != nil {
 			logrus.Errorf("cannot update manifest: %s", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
