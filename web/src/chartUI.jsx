@@ -20,6 +20,8 @@ class ChartUI extends Component {
       values: {},
       nonDefaultValues: {},
       defaultState: {},
+      isTimedOut: false,
+      timeoutTimer: {}
     };
 
     this.props.store.subscribe(() => {
@@ -55,20 +57,42 @@ class ChartUI extends Component {
     this.setState({ values: values, nonDefaultValues: nonDefaultValues });
   }
 
+  timeoutFunction() {
+    this.timeoutTimer = setTimeout(() => {
+      if (this.state.saveButtonTriggered) {
+        this.setState({ isTimedOut: true, getEnvConfigFetched: true });
+        setTimeout(() => {
+          this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, isTimedOut: false });
+        }, 3000);
+      }
+    }, 15000);
+  }
+
   save() {
     console.log('Saving');
     this.setState({ saveButtonTriggered: true });
     const { owner, repo, env } = this.props.match.params;
+    this.timeoutFunction();
     this.props.gimletClient.saveEnvConfig(owner, repo, env, this.state.nonDefaultValues)
       .then(data => {
         console.log('Saved');
+        clearTimeout(this.timeoutTimer);
         this.setState({ getEnvConfigFetched: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
+        if (this.state.getEnvConfigFetched) {
+          setTimeout(() => {
+            this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
+          }, 3000);
+        }
       }, err => {
-        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.data?.message ?? err.statusText })
-      });
-    setTimeout(() => {
-      this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false })
-    }, 3000);
+        clearTimeout(this.timeoutTimer);
+        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.data?.message ?? err.statusText });
+        console.log(this.state.errorMessage);
+        if (this.state.getEnvConfigFetched) {
+          setTimeout(() => {
+            this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
+          }, 3000);
+        }
+      })
   }
 
   render() {
@@ -124,7 +148,7 @@ class ChartUI extends Component {
             >
               Save
             </button>
-            {this.state.saveButtonTriggered && <PopUpWindow getEnvConfigFetched={this.state.getEnvConfigFetched} errorMessage={this.state.errorMessage} isError={this.state.isError} />}
+            {this.state.saveButtonTriggered && <PopUpWindow getEnvConfigFetched={this.state.getEnvConfigFetched} errorMessage={this.state.errorMessage} isError={this.state.isError} isTimedOut={this.state.isTimedOut} />}
           </span>
         </div>
         <div className="container mx-auto m-8">
@@ -136,14 +160,14 @@ class ChartUI extends Component {
             validate={true}
             validationCallback={this.validationCallback}
           />
-            <div className="w-5/12 my-6">
-              <ReactDiffViewer
-                oldValue={YAML.stringify(this.state.defaultState)}
-                newValue={YAML.stringify(this.state.nonDefaultValues)}
-                splitView={false}
-                showDiffOnly={false} />
-            </div>
+          <div className="w-5/12 my-6">
+            <ReactDiffViewer
+              oldValue={YAML.stringify(this.state.defaultState)}
+              newValue={YAML.stringify(this.state.nonDefaultValues)}
+              splitView={false}
+              showDiffOnly={false} />
           </div>
+        </div>
       </div>
     );
   }

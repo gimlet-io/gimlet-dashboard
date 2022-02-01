@@ -1,4 +1,6 @@
-const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage }) => {
+import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/solid'
+
+const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage, isTimedOut }) => {
 
     const savingText = () => {
         if (!getEnvConfigFetched) {
@@ -11,16 +13,37 @@ const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage }) => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Saving...
-                </>)
+                </>
+            )
         }
-        return (isError ? `Something went wrong: ${errorMessage}.` : "Config saved succesfully!")
-
+        if (isTimedOut) {
+            return (
+                <>
+                    <ExclamationCircleIcon className="mr-1 h-5 w-5" />
+                    <div>Saving failed: The process has timed out.</div>
+                </>
+            )
+        }
+        if (isError) {
+            return (
+                <>
+                    <ExclamationCircleIcon className="mr-1 h-5 w-5" />
+                    <div>Something went wrong: {errorMessage}.</div>
+                </>
+            )
+        } else {
+            return (
+                <>
+                    <CheckIcon className="mr-1 h-5 w-5" />
+                    <div>Config saved succesfully!</div>
+                </>
+            )
+        }
     }
 
     return (
         <div
-            className="fixed inset-0 flex px-4 py-6 pointer-events-none sm:p-6 w-full flex-col items-end space-y-4"
-        >
+            className="fixed inset-0 flex px-4 py-6 pointer-events-none sm:p-6 w-full flex-col items-end space-y-4">
             <div
                 className="max-w-lg w-full bg-gray-800 text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
                 <div className="flex p-4">
