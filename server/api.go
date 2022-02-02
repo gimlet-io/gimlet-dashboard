@@ -5,24 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
-	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
-	"github.com/gimlet-io/gimletd/dx"
-	helper "github.com/gimlet-io/gimletd/git/nativeGit"
-	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 )
 
 func user(w http.ResponseWriter, r *http.Request) {
@@ -183,146 +177,4 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(schemasString))
-}
-
-func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
-	var values map[string]interface{}
-	err := json.NewDecoder(r.Body).Decode(&values)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	owner := chi.URLParam(r, "owner")
-	repoName := chi.URLParam(r, "name")
-	repoPath := fmt.Sprintf("%s/%s", owner, repoName)
-
-	env := chi.URLParam(r, "env")
-	configName := chi.URLParam(r, "config")
-
-	ctx := r.Context()
-	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
-
-	repo, err := gitRepoCache.InstanceForRead(fmt.Sprintf("%s/%s", owner, repoName))
-	if err != nil {
-		logrus.Errorf("cannot get repo: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	files, err := helper.Folder(repo, ".gimlet")
-	if err != nil {
-		logrus.Errorf("cannot list files in .gimlet/: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	existingEnvConfigs := map[string]dx.Manifest{}
-	for fileName, content := range files {
-		var envConfig dx.Manifest
-		err = yaml.Unmarshal([]byte(content), &envConfig)
-		if err != nil {
-			logrus.Warnf("cannot parse env config string: %s", err)
-			continue
-		}
-		existingEnvConfigs[fileName] = envConfig
-	}
-
-	fileToUpdate := fmt.Sprintf("%s.yaml", env)
-	for fileName, existingEnvConfig := range existingEnvConfigs {
-		if existingEnvConfig.Env == env &&
-			existingEnvConfig.App == configName {
-			fileToUpdate = fileName
-			break
-		}
-	}
-	fileUpdatePath := fmt.Sprintf(".gimlet/%s", fileToUpdate)
-
-	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
-	token, _, _ := tokenManager.Token()
-	config := ctx.Value("config").(*config.Config)
-	goScm := genericScm.NewGoScmHelper(config, nil)
-
-	branch := headBranch(repo)
-
-	_, blobID, err := goScm.Content(token, repoPath, fileUpdatePath, branch)
-	if err != nil {
-		if strings.Contains(err.Error(), "Not Found") {
-
-			toSave := &dx.Manifest{
-				App: configName,
-				Env: env,
-				Chart: dx.Chart{
-					Name:       "onechart",
-					Repository: "https://chart.onechart.dev",
-					Version:    "0.32.0",
-				},
-				Namespace: "staging",
-				Values:    values,
-			}
-			toSaveString, err := yaml.Marshal(toSave)
-			if err != nil {
-				logrus.Errorf("cannot marshal manifest: %s", err)
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-
-			err = goScm.CreateContent(token, repoPath, fileUpdatePath, toSaveString)
-			if err != nil {
-				logrus.Errorf("cannot create manifest: %s", err)
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-		} else {
-			logrus.Errorf("cannot fetch envConfig from github: %s", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			w.Write([]byte("{}"))
-			return
-		}
-	} else {
-		toUpdate := existingEnvConfigs[fileToUpdate]
-		toUpdate.Values = values
-		toUpdateString, err := yaml.Marshal(toUpdate)
-		if err != nil {
-			logrus.Errorf("cannot marshal manifest: %s", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		err = goScm.UpdateContent(token, repoPath, fileUpdatePath, toUpdateString, blobID, branch)
-		if err != nil {
-			logrus.Errorf("cannot update manifest: %s", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		gitRepoCache.Invalidate(repoPath)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{}"))
-}
-
-func branchList(repo *git.Repository) []string {
-	branches := []string{}
-	refIter, _ := repo.References()
-	refIter.ForEach(func(r *plumbing.Reference) error {
-		if r.Name().IsBranch() {
-			branch := r.Name().Short()
-			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
-		}
-		return nil
-	})
-
-	return branches
-}
-
-func headBranch(repo *git.Repository) string {
-	branches := branchList(repo)
-	for _, b := range branches {
-		if b == "main" {
-			return "main"
-		}
-	}
-	return "master"
 }
