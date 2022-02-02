@@ -18,22 +18,21 @@ class ChartUI extends Component {
     let reduxState = this.props.store.getState();
 
     let envConfig = configFromEnvConfigs(reduxState.envConfigs, repoName, env, config);
-    // if (!envConfig) { // envconfig not loaded yet, probably a direct link to config edit
-    //   loadEnvConfig(gimletClient, store, owner, repo)
-    // }
 
     this.state = {
       chartSchema: reduxState.chartSchema,
       chartUISchema: reduxState.chartUISchema,
+
       saveButtonTriggered: false,
       getEnvConfigFetched: false,
       isError: false,
       errorMessage: "",
-      values: envConfig,
-      nonDefaultValues: envConfig,
-      defaultState: Object.assign({}, envConfig),
       isTimedOut: false,
-      timeoutTimer: {}
+      timeoutTimer: {},
+
+      values: envConfig ? Object.assign({}, envConfig) : undefined,
+      nonDefaultValues: envConfig ? Object.assign({}, envConfig) : undefined,
+      defaultState: envConfig ? Object.assign({}, envConfig) : undefined,
     };
 
     this.props.store.subscribe(() => {
@@ -44,10 +43,15 @@ class ChartUI extends Component {
       this.setState({
         chartSchema: reduxState.chartSchema,
         chartUISchema: reduxState.chartUISchema,
-        values: envConfig,
-        nonDefaultValues: envConfig,
-        defaultState: Object.assign({}, envConfig),
       });
+
+      if (!this.state.values) {
+        this.setState({
+          values: envConfig ? Object.assign({}, envConfig) : undefined,
+          nonDefaultValues: envConfig ? Object.assign({}, envConfig) : undefined,
+          defaultState: envConfig ? Object.assign({}, envConfig) : undefined,
+        });
+      }
     });
 
     this.setValues = this.setValues.bind(this);
@@ -83,24 +87,28 @@ class ChartUI extends Component {
   }
 
   save() {
-    console.log('Saving');
-    this.setState({ saveButtonTriggered: true });
     const { owner, repo, env, config } = this.props.match.params;
+
+    this.setState({ saveButtonTriggered: true });
     this.timeoutFunction();
+
     this.props.gimletClient.saveEnvConfig(owner, repo, env, config, this.state.nonDefaultValues)
       .then(data => {
-        console.log('Saved');
+
         clearTimeout(this.timeoutTimer);
+
         this.setState({ getEnvConfigFetched: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
         if (this.state.getEnvConfigFetched) {
           setTimeout(() => {
             this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
           }, 3000);
         }
+
       }, err => {
+        
         clearTimeout(this.timeoutTimer);
         this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.data?.message ?? err.statusText });
-        console.log(this.state.errorMessage);
+        
         if (this.state.getEnvConfigFetched) {
           setTimeout(() => {
             this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
