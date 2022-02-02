@@ -97,6 +97,7 @@ function renderServices(stacks, envConfigs, envName, repoRolloutHistory, navigat
         rollback={rollback}
         envName={envName}
         navigateToConfigEdit={navigateToConfigEdit}
+        configExists={true}
       />
     }
     )
