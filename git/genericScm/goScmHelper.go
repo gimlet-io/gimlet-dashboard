@@ -138,8 +138,8 @@ func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path s
 			Data:   content,
 			Branch: "main",
 			Signature: scm.Signature{
-				Name:  "gimlet",
-				Email: "noreply@gimlet.io",
+				Name:  "Gimlet",
+				Email: "gimlet-dashboard@gimlet.io",
 			},
 		})
 
