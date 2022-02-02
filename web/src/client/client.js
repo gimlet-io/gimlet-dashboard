@@ -1,3 +1,5 @@
+const axios = require('axios').default;
+
 export default class GimletClient {
   constructor(onError) {
     this.onError = onError
@@ -15,6 +17,8 @@ export default class GimletClient {
 
   getGitRepos = () => this.get('/api/gitRepos');
 
+  getChartSchema = () => this.get('/api/chartSchema');
+
   getGimletD = () => this.get('/api/gimletd');
 
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
@@ -22,6 +26,10 @@ export default class GimletClient {
   getCommits = (owner, name, branch) => this.get(`/api/repo/${owner}/${name}/commits?branch=${branch}`);
 
   getBranches = (owner, name) => this.get(`/api/repo/${owner}/${name}/branches`);
+
+  getEnvConfigs = (owner, name) => this.getWithAxios(`/api/repo/${owner}/${name}/envConfigs`);
+
+  saveEnvConfig = (owner, name, env, configName, config) => this.postWithAxios(`/api/repo/${owner}/${name}/env/${env}/config/${configName}`, JSON.stringify(config));
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
@@ -33,11 +41,41 @@ export default class GimletClient {
 
   saveFavoriteServices = (favoriteServices) => this.post('/api/saveFavoriteServices', JSON.stringify({ favoriteServices }));
 
+  getWithAxios = async (path) => {
+    try {
+      const { data } = await axios.get(path, {
+        credentials: 'include'
+      });
+      return data;
+    } catch (error) {
+      this.onError(error.response);
+      throw error.response;
+    }
+  }
+
+  postWithAxios = async (path, body) => {
+    try {
+      const { data } = await axios
+        .post(path, body, {
+          credentials: 'include',
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+      return data;
+    } catch (error) {
+      this.onError(error.response);
+      throw error.response;
+    }
+  }
+
+
   get = (path) => fetch(path, {
     credentials: 'include'
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();
@@ -57,7 +95,7 @@ export default class GimletClient {
     body
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();
@@ -76,7 +114,7 @@ export default class GimletClient {
     body
   })
     .then(response => {
-      if (!response.ok  && window !== undefined) {
+      if (!response.ok && window !== undefined) {
         return Promise.reject({ status: response.status, statusText: response.statusText, path });
       }
       return response.json();

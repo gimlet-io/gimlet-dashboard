@@ -3,6 +3,13 @@ package nativeGit
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
 	dashboardConfig "github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
 	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
@@ -14,12 +21,6 @@ import (
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-	"time"
 )
 
 const Dir_RWX_RX_R = 0754
@@ -123,21 +124,24 @@ func (r *RepoCache) syncGitRepo(repoName string) {
 		return // preventing a race condition in cleanup
 	}
 
-	err = r.repos[repoName].Fetch(&git.FetchOptions{
-		RefSpecs: fetchRefSpec,
+	w, err := r.repos[repoName].Worktree()
+	if err != nil {
+		logrus.Errorf("could not get worktree: %s", err)
+		return
+	}
+
+	err = w.Pull(&git.PullOptions{
 		Auth: &http.BasicAuth{
 			Username: user,
 			Password: token,
 		},
-		Depth: 100,
-		Tags:  git.NoTags,
-		Prune: true,
+		RemoteName: "origin",
 	})
 	if err == git.NoErrAlreadyUpToDate {
 		return
 	}
 	if err != nil {
-		logrus.Errorf("could not fetch: %s", err)
+		logrus.Errorf("could not pull: %s", err)
 		r.cleanRepo(repoName)
 	}
 }

@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
-	"github.com/gimlet-io/gimlet-dashboard/git/nativeGit"
+	"github.com/gimlet-io/gimlet-dashboard/git/genericScm"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
-	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
@@ -37,7 +36,12 @@ func user(w http.ResponseWriter, r *http.Request) {
 func envs(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 
-	envs := []*api.Env{}
+	envs := []*api.Env{
+		// {
+		// 	Name:   "staging",
+		// 	Stacks: []*api.Stack{},
+		// },
+	}
 	for _, a := range agentHub.Agents {
 		for _, stack := range a.Stacks {
 			stack.Env = a.Name
@@ -72,7 +76,7 @@ func envs(w http.ResponseWriter, r *http.Request) {
 func agents(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 
-	agents := []string{}
+	agents := []string{} //[]string{"staging"}
 	for _, a := range agentHub.Agents {
 		agents = append(agents, a.Name)
 	}
@@ -118,38 +122,59 @@ func switchToBranch(repo *git.Repository, branch string) error {
 	return worktree.Checkout(&git.CheckoutOptions{Create: false, Force: false, Branch: b})
 }
 
-func branches(w http.ResponseWriter, r *http.Request) {
-	owner := chi.URLParam(r, "owner")
-	name := chi.URLParam(r, "name")
-	repoName := fmt.Sprintf("%s/%s", owner, name)
-
+func chartSchema(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	gitRepoCache, _ := ctx.Value("gitRepoCache").(*nativeGit.RepoCache)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+	token, _, _ := tokenManager.Token()
 
-	repo, err := gitRepoCache.InstanceForRead(repoName)
+	config := ctx.Value("config").(*config.Config)
+	goScm := genericScm.NewGoScmHelper(config, nil)
+
+	repo := "gimlet-io/onechart"
+	schemaPath := "charts/onechart/values.schema.json"
+	helmUIPath := "charts/onechart/helm-ui.json"
+
+	schemaString, _, err := goScm.Content(token, repo, schemaPath, "HEAD")
 	if err != nil {
-		logrus.Errorf("cannot get repo: %s", err)
+		logrus.Errorf("cannot fetch schema from github: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	branches := []string{}
-	refIter, _ := repo.References()
-	refIter.ForEach(func(r *plumbing.Reference) error {
-		if r.Name().IsBranch() {
-			branch := r.Name().Short()
-			branches = append(branches, strings.TrimPrefix(branch, "origin/"))
-		}
-		return nil
-	})
-
-	branchesString, err := json.Marshal(branches)
+	helmUIString, _, err := goScm.Content(token, repo, helmUIPath, "HEAD")
 	if err != nil {
-		logrus.Errorf("cannot serialize branches: %s", err)
+		logrus.Errorf("cannot fetch UI schema from github: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	var schema interface{}
+	err = json.Unmarshal([]byte(schemaString), &schema)
+	if err != nil {
+		logrus.Errorf("cannot parse schema: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	var helmUI interface{}
+	err = json.Unmarshal([]byte(helmUIString), &helmUI)
+	if err != nil {
+		logrus.Errorf("cannot parse UI schema: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	schemas := map[string]interface{}{}
+	schemas["chartSchema"] = schema
+	schemas["uiSchema"] = helmUI
+
+	schemasString, err := json.Marshal(schemas)
+	if err != nil {
+		logrus.Errorf("cannot serialize schemas: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(branchesString)
+	w.Write([]byte(schemasString))
 }

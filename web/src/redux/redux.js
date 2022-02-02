@@ -7,10 +7,12 @@ export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
 export const ACTION_TYPE_USER = 'user';
 export const ACTION_TYPE_GIMLETD = 'gimletd';
+export const ACTION_TYPE_CHARTSCHEMA = 'chartSchema';
 export const ACTION_TYPE_SEARCH = 'search';
 export const ACTION_TYPE_ROLLOUT_HISTORY = 'rolloutHistory';
 export const ACTION_TYPE_COMMITS = 'commits';
 export const ACTION_TYPE_BRANCHES = 'branches';
+export const ACTION_TYPE_ENVCONFIGS = 'envConfigs';
 export const ACTION_TYPE_DEPLOY = 'deploy';
 export const ACTION_TYPE_DEPLOY_STATUS = 'deployStatus';
 export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
@@ -40,13 +42,16 @@ export const initialState = {
     agents: []
   },
   envs: {},
-  search: {filter: ''},
+  search: { filter: '' },
   rolloutHistory: {},
   commits: {},
   branches: {},
   runningDeploys: [],
   repoRefreshQueue: [],
   gitRepos: [],
+  chartSchema: undefined,
+  chartUISchema: undefined,
+  envConfigs: {}
 };
 
 export function rootReducer(state = initialState, action) {
@@ -65,6 +70,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.user(state, action.payload)
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
+    case ACTION_TYPE_CHARTSCHEMA:
+      return eventHandlers.schemas(state, action.payload)
     case ACTION_TYPE_SEARCH:
       return eventHandlers.search(state, action.payload)
     case ACTION_TYPE_ROLLOUT_HISTORY:
@@ -73,6 +80,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.commits(state, action.payload)
     case ACTION_TYPE_BRANCHES:
       return eventHandlers.branches(state, action.payload)
+    case ACTION_TYPE_ENVCONFIGS:
+      return eventHandlers.envConfigs(state, action.payload)
     case ACTION_TYPE_DEPLOY:
       return eventHandlers.deploy(state, action.payload)
     case ACTION_TYPE_DEPLOY_STATUS:

@@ -13,7 +13,7 @@ import Services from "./views/services/services";
 import Repo from "./views/repo/repo";
 import DeployStatus from "./components/deployStatus/deployStatus";
 import LoginPage from './views/login/loginPage';
-
+import EnvConfig from './views/envConfig/envConfig'
 
 export default class App extends Component {
   constructor(props) {
@@ -47,6 +47,7 @@ export default class App extends Component {
     const RepoWithRouting = withRouter(props => <Repo {...props} store={store} gimletClient={gimletClient}/>);
     const ServicesWithRouting = withRouter(props => <Services {...props} store={store}/>);
     const RepositoriesWithRouting = withRouter(props => <Repositories {...props} store={store} gimletClient={gimletClient}/>);
+    const ChartUIWithRouting = withRouter(props => <EnvConfig {...props} store={store} gimletClient={gimletClient}/>);
 
     return (
       <Router>
@@ -75,6 +76,10 @@ export default class App extends Component {
 
               <Route path="/login">
                 <LoginPage/>
+              </Route>
+
+              <Route path="/repo/:owner/:repo/envs/:env/config/:config">
+                <ChartUIWithRouting/>
               </Route>
               
               <Route path="/repo/:owner/:repo">

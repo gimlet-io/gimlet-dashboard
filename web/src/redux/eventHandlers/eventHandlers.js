@@ -40,6 +40,12 @@ export function gimletd(state, gimletd) {
   return state;
 }
 
+export function schemas(state, schemas) {
+  state.chartSchema = schemas.chartSchema;
+  state.chartUISchema = schemas.uiSchema;
+  return state;
+}
+
 export function search(state, search) {
   state.search = search;
   return state;
@@ -60,6 +66,12 @@ export function commits(state, payload) {
 export function branches(state, payload) {
   const repo = `${payload.owner}/${payload.repo}`;
   state.branches[repo] = payload.branches;
+  return state;
+}
+
+export function envConfigs(state, payload) {
+  const repo = `${payload.owner}/${payload.repo}`;
+  state.envConfigs[repo] = payload.envConfigs;
   return state;
 }
 

@@ -3,14 +3,15 @@ package genericScm
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
+	"net/http/httputil"
+	"time"
+
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/go-scm/scm"
 	"github.com/gimlet-io/go-scm/scm/driver/github"
 	"github.com/gimlet-io/go-scm/scm/transport/oauth2"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"net/http/httputil"
-	"time"
 )
 
 type GoScmHelper struct {
@@ -108,6 +109,88 @@ func (helper *GoScmHelper) Organizations(accessToken string, refreshToken string
 	})
 
 	return organizations, err
+}
+
+func (helper *GoScmHelper) Content(accessToken string, repo string, path string, branch string) (string, string, error) {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	content, _, err := helper.client.Contents.Find(
+		ctx,
+		repo,
+		path,
+		branch)
+
+	return string(content.Data), string(content.BlobID), err
+}
+
+func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path string, content []byte) error {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	_, err := helper.client.Contents.Create(
+		ctx,
+		repo,
+		path,
+		&scm.ContentParams{
+			Data:   content,
+			Branch: "main",
+			Signature: scm.Signature{
+				Name:  "Gimlet",
+				Email: "gimlet-dashboard@gimlet.io",
+			},
+		})
+
+	return err
+}
+
+func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path string, content []byte, blobID string, branch string) error {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	_, err := helper.client.Contents.Update(
+		ctx,
+		repo,
+		path,
+		&scm.ContentParams{
+			Data:    content,
+			Message: "Updating gimlet manifest",
+			Branch:  branch,
+			BlobID:  blobID,
+			Signature: scm.Signature{
+				Name:  "Gimlet",
+				Email: "gimlet-dashboard@gimlet.io",
+			},
+		})
+
+	return err
+}
+
+// DirectoryContents returns a map of file paths as keys and their file contents in the values
+func (helper *GoScmHelper) DirectoryContents(accessToken string, repo string, directoryPath string) (map[string]string, error) {
+	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
+		Token:   accessToken,
+		Refresh: "",
+	})
+	directoryFiles, _, err := helper.client.Contents.List(
+		ctx,
+		repo,
+		directoryPath,
+		"HEAD",
+		scm.ListOptions{
+			Size: 50,
+		},
+	)
+
+	files := map[string]string{}
+	for _, file := range directoryFiles {
+		files[file.Path] = file.BlobID
+	}
+
+	return files, err
 }
 
 func (helper *GoScmHelper) RegisterWebhook(
