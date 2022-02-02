@@ -1,9 +1,10 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 // Environ returns the settings from the environment.
@@ -43,7 +44,7 @@ type Config struct {
 	Github                  Github
 	Database                Database
 	GimletD                 GimletD
-	RepoCachePath           string
+	RepoCachePath           string `envconfig:"REPO_CACHE_PATH"`
 	WebhookSecret           string `envconfig:"WEBHOOK_SECRET"`
 	ReleaseHistorySinceDays int    `envconfig:"RELEASE_HISTORY_SINCE_DAYS"`
 }

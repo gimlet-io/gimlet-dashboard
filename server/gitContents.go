@@ -68,9 +68,14 @@ func envConfigs(w http.ResponseWriter, r *http.Request) {
 
 	files, err := helper.Folder(repo, ".gimlet")
 	if err != nil {
-		logrus.Errorf("cannot list files in .gimlet/: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		if strings.Contains(err.Error(), "no such file or directory") {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(""))
+		} else {
+			logrus.Errorf("cannot list files in .gimlet/: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	envConfigs := []dx.Manifest{}
