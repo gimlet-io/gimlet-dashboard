@@ -70,6 +70,7 @@ function renderServices(stacks, envConfigs, envName, repoRolloutHistory, navigat
   // render services that are deployed on k8s
   services = stacks.map((stack) => {
     configsWeDeployed.push(stack.service.name);
+    const configExists = configsWeHave.includes(stack.service.name)
     return (
       <ServiceDetail
         key={stack.service.name}
@@ -78,6 +79,7 @@ function renderServices(stacks, envConfigs, envName, repoRolloutHistory, navigat
         rollback={rollback}
         envName={envName}
         navigateToConfigEdit={navigateToConfigEdit}
+        configExists={configExists}
       />
     )
   })
