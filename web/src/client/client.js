@@ -7,6 +7,8 @@ export default class GimletClient {
 
   URL = () => this.url;
 
+  getApp = () => this.get('/api/app');
+
   getUser = () => this.get('/api/user');
 
   getGitopsRepo = () => this.get('/api/gitopsRepo');

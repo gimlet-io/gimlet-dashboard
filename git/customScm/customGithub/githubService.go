@@ -305,3 +305,29 @@ func (c *GithubClient) OrgRepos(installationToken string) ([]string, error) {
 
 	return allRepos, nil
 }
+
+func (c *GithubClient) GetAppInfos(installationToken string, ctx context.Context) ([]byte, error) {
+
+	client := github.NewClient(
+		&http.Client{
+			Transport: &transport{
+				underlyingTransport: http.DefaultTransport,
+				token:               installationToken,
+			},
+		},
+	)
+
+	appinfo, _, err := client.Apps.Get(ctx, "")
+	if err != nil {
+		logrus.Errorf("cannot get info from App : %s", err)
+		return nil, err
+	}
+
+	appinfoString, err := json.Marshal(appinfo)
+	if err != nil {
+		logrus.Errorf("could not parse appinfo to string: %s", err)
+		return nil, err
+
+	}
+	return appinfoString, err
+}

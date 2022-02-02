@@ -35,6 +35,11 @@ export function user(state, user) {
   return state;
 }
 
+export function application(state, application){
+  state.application = application;
+  return state;
+}
+
 export function gimletd(state, gimletd) {
   state.gimletd = gimletd;
   return state;

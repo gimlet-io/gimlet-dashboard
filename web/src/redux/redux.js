@@ -6,6 +6,7 @@ import * as ingressEventHandlers from './eventHandlers/ingressEventHandlers';
 export const ACTION_TYPE_STREAMING = 'streaming';
 export const ACTION_TYPE_ENVS = 'envs';
 export const ACTION_TYPE_USER = 'user';
+export const ACTION_TYPE_APPLICATION = 'application';
 export const ACTION_TYPE_GIMLETD = 'gimletd';
 export const ACTION_TYPE_CHARTSCHEMA = 'chartSchema';
 export const ACTION_TYPE_SEARCH = 'search';
@@ -52,7 +53,7 @@ export const initialState = {
   chartSchema: undefined,
   chartUISchema: undefined,
   envConfigs: {},
-  application: 'test-gimlet-dash',
+  application: {},
 };
 
 export function rootReducer(state = initialState, action) {
@@ -69,6 +70,8 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.envsUpdated(state, action.payload)
     case ACTION_TYPE_USER:
       return eventHandlers.user(state, action.payload)
+    case ACTION_TYPE_APPLICATION:
+      return eventHandlers.application(state, action.payload)  
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
     case ACTION_TYPE_CHARTSCHEMA:

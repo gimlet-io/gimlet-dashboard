@@ -177,7 +177,7 @@ export default class Nav extends Component {
                                         return true
                                       }
                                       if (item.name === 'Github application') {
-                                        window.location.replace(item.href + this.state.application)
+                                        window.open(item.href + this.state.application.slug)
                                       }
                                       this.props.history.push(item.href);
                                       return true
