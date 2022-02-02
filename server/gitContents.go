@@ -70,7 +70,8 @@ func envConfigs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if strings.Contains(err.Error(), "no such file or directory") {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(""))
+			w.Write([]byte("{}"))
+			return
 		} else {
 			logrus.Errorf("cannot list files in .gimlet/: %s", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

@@ -4,6 +4,9 @@ import "./style.css";
 import PopUpWindow from "./popUpWindow";
 import ReactDiffViewer from "react-diff-viewer";
 import YAML from "json-to-pretty-yaml";
+import {
+  ACTION_TYPE_ENVCONFIGS,
+} from "./redux/redux";
 
 class ChartUI extends Component {
   constructor(props) {
@@ -14,11 +17,10 @@ class ChartUI extends Component {
 
     let reduxState = this.props.store.getState();
 
-    let envConfig = {};
-    if (reduxState.envConfigs[repoName] &&
-      reduxState.envConfigs[repoName][env]) {
-      envConfig = configFromEnvConfigs(reduxState.envConfigs[repoName][env], config);
-    }
+    let envConfig = configFromEnvConfigs(reduxState.envConfigs, repoName, env, config);
+    // if (!envConfig) { // envconfig not loaded yet, probably a direct link to config edit
+    //   loadEnvConfig(gimletClient, store, owner, repo)
+    // }
 
     this.state = {
       chartSchema: reduxState.chartSchema,
@@ -37,25 +39,26 @@ class ChartUI extends Component {
     this.props.store.subscribe(() => {
       let reduxState = this.props.store.getState();
 
-      let envConfig = {};
-      if (reduxState.envConfigs[repoName] &&
-        reduxState.envConfigs[repoName][env]) {
-        envConfig = configFromEnvConfigs(reduxState.envConfigs[repoName][env], config);
-      }
+      let envConfig = configFromEnvConfigs(reduxState.envConfigs, repoName, env, config);
 
       this.setState({
         chartSchema: reduxState.chartSchema,
         chartUISchema: reduxState.chartUISchema,
+        values: envConfig,
+        nonDefaultValues: envConfig,
+        defaultState: Object.assign({}, envConfig),
       });
-
-      // if ()
-      // values: envConfig,
-      // nonDefaultValues: envConfig,
-      // defaultState: Object.assign({}, envConfig),
-
     });
 
     this.setValues = this.setValues.bind(this);
+  }
+
+  componentDidMount() {
+    const { owner, repo } = this.props.match.params;
+    const { gimletClient, store } = this.props;
+    if (!this.state.values) { // envConfigs not loaded when we directly navigate to edit
+      loadEnvConfig(gimletClient, store, owner, repo)
+    }
   }
 
   validationCallback(errors) {
@@ -189,10 +192,39 @@ class ChartUI extends Component {
   }
 }
 
-function configFromEnvConfigs(envConfigs, config) {
-  const configFromEnvConfigs = envConfigs.filter(c => c.app === config)
+function configFromEnvConfigs(envConfigs, repoName, env, config) {
+  if (envConfigs[repoName]) { // envConfigs are loaded
+    if (envConfigs[repoName][env]) { // we have env data
+      const configFromEnvConfigs = envConfigs[repoName][env].filter(c => c.app === config)
+      if (configFromEnvConfigs.length > 0) {
+        // "envConfigs loaded, we have data for env, we have config for app"
+        return configFromEnvConfigs[0].values
+      } else {
+        // "envConfigs loaded, we have data for env, but we don't have config for app"
+        return {}
+      }
+    } else {
+      // "envConfigs loaded, but we don't have data for env"
+      return {}
+    }
+  } else {
+    // envConfigs not loaded, we shall wait for it to be loaded
+    return undefined
+  }
+}
 
-  return configFromEnvConfigs.length > 0 ? configFromEnvConfigs[0].values : {}
+function loadEnvConfig(gimletClient, store, owner, repo) {
+  gimletClient.getEnvConfigs(owner, repo)
+    .then(envConfigs => {
+      store.dispatch({
+        type: ACTION_TYPE_ENVCONFIGS, payload: {
+          owner: owner,
+          repo: repo,
+          envConfigs: envConfigs
+        }
+      });
+    }, () => {/* Generic error handler deals with it */
+    });
 }
 
 export default ChartUI;
