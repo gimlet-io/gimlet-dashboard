@@ -1,14 +1,14 @@
 import React, { Component } from "react";
 import HelmUI from "helm-react-ui";
 import "./style.css";
-import PopUpWindow from "./popUpWindow";
+import PopUpWindow from "../../popUpWindow";
 import ReactDiffViewer from "react-diff-viewer";
 import YAML from "json-to-pretty-yaml";
 import {
   ACTION_TYPE_ENVCONFIGS,
-} from "./redux/redux";
+} from "../../redux/redux";
 
-class ChartUI extends Component {
+class EnvConfig extends Component {
   constructor(props) {
     super(props);
 
@@ -256,4 +256,4 @@ function loadEnvConfig(gimletClient, store, owner, repo) {
     });
 }
 
-export default ChartUI;
+export default EnvConfig;
