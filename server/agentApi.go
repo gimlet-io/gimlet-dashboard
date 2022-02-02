@@ -2,15 +2,16 @@ package server
 
 import (
 	"encoding/json"
+	"io"
+	"net/http"
+	"time"
+
 	"github.com/gimlet-io/gimlet-dashboard/agent"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"time"
 )
 
 func register(w http.ResponseWriter, r *http.Request) {

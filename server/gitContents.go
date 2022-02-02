@@ -15,7 +15,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
