@@ -2,6 +2,10 @@ import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/solid'
 
 const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage, isTimedOut }) => {
 
+    const backgroundColor = () => {
+        return !getEnvConfigFetched ? "bg-gray-600" : isError ? "bg-red-600" : "bg-green-600"
+    }
+
     const savingText = () => {
         if (!getEnvConfigFetched) {
             return (
@@ -45,7 +49,7 @@ const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage, isTimedOut })
         <div
             className="fixed inset-0 flex px-4 py-6 pointer-events-none sm:p-6 w-full flex-col items-end space-y-4">
             <div
-                className="max-w-lg w-full bg-gray-800 text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
+                className={backgroundColor() + ` max-w-lg w-full text-gray-100 text-sm shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden`}>
                 <div className="flex p-4">
                     {savingText()}
                 </div>
