@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import HelmUI from "helm-react-ui";
 import "./style.css";
-import PopUpWindow from "../../popUpWindow";
+import PopUpWindow from "./popUpWindow";
 import ReactDiffViewer from "react-diff-viewer";
 import YAML from "json-to-pretty-yaml";
 import {
