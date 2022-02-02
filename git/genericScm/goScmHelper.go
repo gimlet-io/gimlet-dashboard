@@ -125,7 +125,14 @@ func (helper *GoScmHelper) Content(accessToken string, repo string, path string,
 	return string(content.Data), string(content.BlobID), err
 }
 
-func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path string, content []byte) error {
+func (helper *GoScmHelper) CreateContent(
+	accessToken string,
+	repo string,
+	path string,
+	content []byte,
+	branch string,
+	message string,
+) error {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: "",
@@ -135,8 +142,9 @@ func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path s
 		repo,
 		path,
 		&scm.ContentParams{
-			Data:   content,
-			Branch: "main",
+			Data:    content,
+			Branch:  branch,
+			Message: message,
 			Signature: scm.Signature{
 				Name:  "Gimlet",
 				Email: "gimlet-dashboard@gimlet.io",
@@ -146,7 +154,15 @@ func (helper *GoScmHelper) CreateContent(accessToken string, repo string, path s
 	return err
 }
 
-func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path string, content []byte, blobID string, branch string) error {
+func (helper *GoScmHelper) UpdateContent(
+	accessToken string,
+	repo string,
+	path string,
+	content []byte,
+	blobID string,
+	branch string,
+	message string,
+) error {
 	ctx := context.WithValue(context.Background(), scm.TokenKey{}, &scm.Token{
 		Token:   accessToken,
 		Refresh: "",
@@ -157,7 +173,7 @@ func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path s
 		path,
 		&scm.ContentParams{
 			Data:    content,
-			Message: "Updating gimlet manifest",
+			Message: message,
 			Branch:  branch,
 			BlobID:  blobID,
 			Signature: scm.Signature{

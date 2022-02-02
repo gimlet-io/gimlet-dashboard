@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -142,9 +143,11 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 
 	files, err := helper.Folder(repo, ".gimlet")
 	if err != nil {
-		logrus.Errorf("cannot list files in .gimlet/: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		if !strings.Contains(err.Error(), "no such file or directory") {
+			logrus.Errorf("cannot list files in .gimlet/: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	existingEnvConfigs := map[string]dx.Manifest{}
@@ -190,14 +193,26 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 				Namespace: "staging",
 				Values:    values,
 			}
-			toSaveString, err := yaml.Marshal(toSave)
+
+			var toSaveBuffer bytes.Buffer
+			yamlEncoder := yaml.NewEncoder(&toSaveBuffer)
+			yamlEncoder.SetIndent(2)
+			err = yamlEncoder.Encode(&toSave)
+
 			if err != nil {
 				logrus.Errorf("cannot marshal manifest: %s", err)
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
 
-			err = goScm.CreateContent(token, repoPath, fileUpdatePath, toSaveString)
+			err = goScm.CreateContent(
+				token,
+				repoPath,
+				fileUpdatePath,
+				toSaveBuffer.Bytes(),
+				branch,
+				fmt.Sprintf("[Gimlet Dashboard] Creating %s gimlet manifest for the %s env", env, configName),
+			)
 			if err != nil {
 				logrus.Errorf("cannot create manifest: %s", err)
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -212,14 +227,26 @@ func saveEnvConfig(w http.ResponseWriter, r *http.Request) {
 	} else {
 		toUpdate := existingEnvConfigs[fileToUpdate]
 		toUpdate.Values = values
-		toUpdateString, err := yaml.Marshal(toUpdate)
+
+		var toUpdateBuffer bytes.Buffer
+		yamlEncoder := yaml.NewEncoder(&toUpdateBuffer)
+		yamlEncoder.SetIndent(2)
+		err = yamlEncoder.Encode(&toUpdate)
 		if err != nil {
 			logrus.Errorf("cannot marshal manifest: %s", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		err = goScm.UpdateContent(token, repoPath, fileUpdatePath, toUpdateString, blobID, branch)
+		err = goScm.UpdateContent(
+			token,
+			repoPath,
+			fileUpdatePath,
+			toUpdateBuffer.Bytes(),
+			blobID,
+			branch,
+			fmt.Sprintf("[Gimlet Dashboard] Updating %s gimlet manifest for the %s env", env, configName),
+		)
 		if err != nil {
 			logrus.Errorf("cannot update manifest: %s", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
