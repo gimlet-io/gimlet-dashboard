@@ -1,13 +1,13 @@
 import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/solid'
 
-const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage, isTimedOut }) => {
+const PopUpWindow = ({ hasAPIResponded, isError, errorMessage, isTimedOut }) => {
 
     const backgroundColor = () => {
-        return !getEnvConfigFetched ? "bg-gray-600" : isError ? "bg-red-600" : "bg-green-600"
+        return !hasAPIResponded ? "bg-gray-600" : isError || isTimedOut ? "bg-red-600" : "bg-green-600"
     }
 
     const savingText = () => {
-        if (!getEnvConfigFetched) {
+        if (!hasAPIResponded) {
             return (
                 <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -19,16 +19,14 @@ const PopUpWindow = ({ getEnvConfigFetched, isError, errorMessage, isTimedOut })
                     Saving...
                 </>
             )
-        }
-        if (isTimedOut) {
+        } else if (isTimedOut) {
             return (
                 <>
                     <ExclamationCircleIcon className="mr-1 h-5 w-5" />
                     <div>Saving failed: The process has timed out.</div>
                 </>
             )
-        }
-        if (isError) {
+        } else if (isError) {
             return (
                 <>
                     <ExclamationCircleIcon className="mr-1 h-5 w-5" />

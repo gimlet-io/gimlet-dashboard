@@ -24,7 +24,7 @@ class ChartUI extends Component {
       chartUISchema: reduxState.chartUISchema,
 
       saveButtonTriggered: false,
-      getEnvConfigFetched: false,
+      hasAPIResponded: false,
       isError: false,
       errorMessage: "",
       isTimedOut: false,
@@ -55,6 +55,7 @@ class ChartUI extends Component {
     });
 
     this.setValues = this.setValues.bind(this);
+    this.resetNotificationStateAfterThreeSeconds = this.resetNotificationStateAfterThreeSeconds.bind(this);
   }
 
   componentDidMount() {
@@ -75,45 +76,58 @@ class ChartUI extends Component {
     this.setState({ values: values, nonDefaultValues: nonDefaultValues });
   }
 
-  timeoutFunction() {
-    this.timeoutTimer = setTimeout(() => {
+  resetNotificationStateAfterThreeSeconds() {
+    setTimeout(() => {
+      this.setState({
+        saveButtonTriggered: false,
+        hasAPIResponded: false,
+        errorMessage: "",
+        isError: false,
+        isTimedOut: false
+      });
+    }, 3000);
+  }
+
+  startApiCallTimeOutHandler() {
+    const timeoutTimer = setTimeout(() => {
       if (this.state.saveButtonTriggered) {
-        this.setState({ isTimedOut: true, getEnvConfigFetched: true });
-        setTimeout(() => {
-          this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, isTimedOut: false });
-        }, 3000);
+        this.setState({ isTimedOut: true, hasAPIResponded: true });
+        this.resetNotificationStateAfterThreeSeconds()
       }
     }, 15000);
+
+    this.setState({
+      timeoutTimer: timeoutTimer
+    })
   }
 
   save() {
     const { owner, repo, env, config } = this.props.match.params;
 
     this.setState({ saveButtonTriggered: true });
-    this.timeoutFunction();
+    this.startApiCallTimeOutHandler();
 
     this.props.gimletClient.saveEnvConfig(owner, repo, env, config, this.state.nonDefaultValues)
       .then(data => {
-
-        clearTimeout(this.timeoutTimer);
-
-        this.setState({ getEnvConfigFetched: true, defaultState: Object.assign({}, this.state.nonDefaultValues) });
-        if (this.state.getEnvConfigFetched) {
-          setTimeout(() => {
-            this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
-          }, 3000);
+        if (!this.state.saveButtonTriggered) {
+          // if no saving is in progress, practically it timed out
+          return
         }
 
+        clearTimeout(this.state.timeoutTimer);
+        this.setState({
+          hasAPIResponded: true,
+          defaultState: Object.assign({}, this.state.nonDefaultValues)
+        });
+        this.resetNotificationStateAfterThreeSeconds();
       }, err => {
-        
-        clearTimeout(this.timeoutTimer);
-        this.setState({ getEnvConfigFetched: true, isError: true, errorMessage: err.data?.message ?? err.statusText });
-        
-        if (this.state.getEnvConfigFetched) {
-          setTimeout(() => {
-            this.setState({ saveButtonTriggered: false, getEnvConfigFetched: false, errorMessage: "", isError: false });
-          }, 3000);
-        }
+        clearTimeout(this.state.timeoutTimer);
+        this.setState({
+          hasAPIResponded: true,
+          isError: true,
+          errorMessage: err.data?.message ?? err.statusText
+        });
+        this.resetNotificationStateAfterThreeSeconds();
       })
   }
 
@@ -192,7 +206,14 @@ class ChartUI extends Component {
             >
               Save
             </button>
-            {this.state.saveButtonTriggered && <PopUpWindow getEnvConfigFetched={this.state.getEnvConfigFetched} errorMessage={this.state.errorMessage} isError={this.state.isError} isTimedOut={this.state.isTimedOut} />}
+            {this.state.saveButtonTriggered &&
+              <PopUpWindow
+                hasAPIResponded={this.state.hasAPIResponded}
+                errorMessage={this.state.errorMessage}
+                isError={this.state.isError}
+                isTimedOut={this.state.isTimedOut}
+              />
+            }
           </span>
         </div>
       </div>
