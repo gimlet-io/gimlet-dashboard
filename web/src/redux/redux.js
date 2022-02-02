@@ -51,7 +51,8 @@ export const initialState = {
   gitRepos: [],
   chartSchema: undefined,
   chartUISchema: undefined,
-  envConfigs: {}
+  envConfigs: {},
+  application: 'test-gimlet-dash',
 };
 
 export function rootReducer(state = initialState, action) {
