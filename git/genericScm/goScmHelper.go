@@ -161,8 +161,8 @@ func (helper *GoScmHelper) UpdateContent(accessToken string, repo string, path s
 			Branch:  branch,
 			BlobID:  blobID,
 			Signature: scm.Signature{
-				Name:  "gimlet",
-				Email: "noreply@gimlet.io",
+				Name:  "Gimlet",
+				Email: "gimlet-dashboard@gimlet.io",
 			},
 		})
 
