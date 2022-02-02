@@ -41,14 +41,6 @@ jobs:
       env:
         VERSION: ${{ steps.sha_or_tag.outputs.version }}
 
-    - name: tip
-      uses: eine/tip@master
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        rm: true
-        files: |
-          bin/*
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
