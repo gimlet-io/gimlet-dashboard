@@ -185,8 +185,8 @@ class EnvConfig extends Component {
               showDiffOnly={false} />
           </div>
         </div>
-        <div>
-          <span className="inline-flex rounded-md shadow-sm m-8 gap-x-3">
+        <div className="p-0 flow-root">
+          <span className="inline-flex rounded-md shadow-sm gap-x-3 float-right">
             <button
               type="button"
               disabled={!hasChange || this.state.saveButtonTriggered}
