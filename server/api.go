@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gimlet-io/gimlet-dashboard/api"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/git/customScm"
@@ -183,23 +182,14 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 func application(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
 
-	config := ctx.Value("config").(*config.Config)
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iat": time.Now().Unix(),
-		"exp": time.Now().Local().Add(time.Minute * 5).Unix(),
-		"iss": config.Github.AppID,
-	})
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(config.Github.PrivateKey))
+	tokenString, err := tokenManager.AppToken()
 	if err != nil {
-		logrus.Errorf("cannot parse private key from PEM: %s", err)
+		logrus.Errorf("cannot generate application token: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	tokenString, _ := token.SignedString(signKey)
 
 	appinfo, err := gitServiceImpl.GetAppInfos(tokenString, ctx)
 	if err != nil {

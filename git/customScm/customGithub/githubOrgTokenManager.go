@@ -3,13 +3,14 @@ package customGithub
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/google/go-github/v37/github"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 // GithubOrgTokenManager maintains a valid git org/non-impersonated token
@@ -79,7 +80,7 @@ func (tm *GithubOrgTokenManager) refreshOrgToken() error {
 }
 
 func (tm *GithubOrgTokenManager) installationToken() (*github.InstallationToken, error) {
-	appToken, err := tm.appToken()
+	appToken, err := tm.AppToken()
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func (tm *GithubOrgTokenManager) installationToken() (*github.InstallationToken,
 
 // appToken returns a signed JWT apptoken for the Github app
 // Use it to have unimpersonated access of Github resources
-func (tm *GithubOrgTokenManager) appToken() (string, error) {
+func (tm *GithubOrgTokenManager) AppToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Local().Add(time.Minute * 5).Unix(),
