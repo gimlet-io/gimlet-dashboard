@@ -95,7 +95,8 @@ func main() {
 		tokenManager,
 		repoCache,
 	)
-	http.ListenAndServe(":9000", r)
+	err = http.ListenAndServe(":9000", r)
+	log.Error(err)
 }
 
 // helper function configures the logging.
