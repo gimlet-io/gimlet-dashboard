@@ -151,14 +151,10 @@ function gitHubAppSettings(appName, appSlug, appInstallID) {
         <h3 className="text-lg leading-6 font-medium text-gray-900">
           GitHub Application
         </h3>
-        <span>
-          <a
-            href={`https://github.com/settings/apps/${appSlug}`}
-            rel="noreferrer"
-            target="_blank"
-            className="mt-1 text-sm text-gray-500 hover:text-gray-600">
+        <span 
+        onClick={() => window.open(`https://github.com/settings/apps/${appSlug}`)}
+        className='mt-1 text-sm text-gray-500 hover:text-gray-600 cursor-pointer'>
             Settings for {appName}
-          </a>
         </span>
         <span>
           <a
