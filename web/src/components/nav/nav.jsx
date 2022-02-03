@@ -11,7 +11,6 @@ const navigation = [
 ]
 const userNavigation = [
   {name: 'Profile', href: '/profile'},
-  {name: 'Github application', href: "https://github.com/settings/apps/"},
   {name: 'Sign out', href: '/logout'},
 ]
 
@@ -26,8 +25,7 @@ export default class Nav extends Component {
     // default state
     let reduxState = this.props.store.getState();
     this.state = {
-      user: reduxState.user,
-      application: reduxState.application
+      user: reduxState.user
     }
 
     // handling API and streaming state changes
@@ -35,7 +33,6 @@ export default class Nav extends Component {
       let reduxState = this.props.store.getState();
 
       this.setState({user: reduxState.user});
-      this.setState({application: reduxState.application });
     });
 
   }
@@ -175,9 +172,6 @@ export default class Nav extends Component {
                                       if (item.href === '/logout') {
                                         window.location.replace("/logout");
                                         return true
-                                      }
-                                      if (item.name === 'Github application') {
-                                        window.open(item.href + this.state.application.slug)
                                       }
                                       this.props.history.push(item.href);
                                       return true

@@ -8,7 +8,8 @@ export default class Profile extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       user: reduxState.user,
-      gimletd: reduxState.gimletd
+      gimletd: reduxState.gimletd,
+      application: reduxState.application
     }
 
     // handling API and streaming state changes
@@ -17,6 +18,7 @@ export default class Profile extends Component {
 
       this.setState({user: reduxState.user});
       this.setState({gimletd: reduxState.gimletd});
+      this.setState({application: reduxState.application });
     });
   }
 
@@ -53,9 +55,10 @@ export default class Profile extends Component {
           </div>
         </header>
         <main>
-          {gimletdIntegrationEnabled &&
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
+            {gitHubAppSettings(this.state.application.name, this.state.application.slug)}
+            {gimletdIntegrationEnabled &&
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -99,9 +102,9 @@ source ~/.gimlet/config`}
                   </code>
                 </div>
               </div>
+              }
             </div>
           </div>
-          }
           {!gimletdIntegrationEnabled &&
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 my-8">
             {integrateGimletD()}
@@ -136,5 +139,26 @@ function integrateGimletD() {
 
       <span className="mt-2 block text-lg leading-6 font-medium text-gray-900">Integrate GimletD</span>
     </a>
+  )
+}
+
+function gitHubAppSettings(appName, appSlug){
+  return(
+    <div className='bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200 my-4'>
+    <a
+    href={`https://github.com/settings/apps/${appSlug}`}
+    rel="noreferrer"
+    target="_blank"
+    className="relative block w-full rounded-lg px-4 py-5 sm:px-6
+            focus:outline-none"
+  >
+      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    GitHub Application
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Settings for {appName}
+                  </p>
+    </a>
+    </div>
   )
 }
