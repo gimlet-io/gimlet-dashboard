@@ -181,8 +181,11 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 
 func application(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
 	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
 	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+
+	getInstallationID := config.Github.InstallationID
 
 	tokenString, err := tokenManager.AppToken()
 	if err != nil {
@@ -191,14 +194,41 @@ func application(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appinfo, err := gitServiceImpl.GetAppInfos(tokenString, ctx)
+	getAppinfo, err := gitServiceImpl.GetAppInfos(tokenString, ctx)
 	if err != nil {
 		logrus.Errorf("cannot get app info: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	var appinfo interface{}
+	err = json.Unmarshal(getAppinfo, &appinfo)
+	if err != nil {
+		logrus.Errorf("cannot parse application infos: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	var installationID interface{}
+	err = json.Unmarshal([]byte(getInstallationID), &installationID)
+	if err != nil {
+		logrus.Errorf("cannot parse installation ID: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	appinfos := map[string]interface{}{}
+	appinfos["installationID"] = installationID
+	appinfos["appinfo"] = appinfo
+
+	appinfosString, err := json.Marshal(appinfos)
+	if err != nil {
+		logrus.Errorf("cannot serialize appinfos: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(appinfo))
+	w.Write([]byte(appinfosString))
 
 }

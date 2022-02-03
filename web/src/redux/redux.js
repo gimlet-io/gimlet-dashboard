@@ -54,6 +54,7 @@ export const initialState = {
   chartUISchema: undefined,
   envConfigs: {},
   application: {},
+  installationID: undefined
 };
 
 export function rootReducer(state = initialState, action) {

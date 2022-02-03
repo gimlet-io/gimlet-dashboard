@@ -9,7 +9,8 @@ export default class Profile extends Component {
     this.state = {
       user: reduxState.user,
       gimletd: reduxState.gimletd,
-      application: reduxState.application
+      application: reduxState.application,
+      installationID: reduxState.installationID
     }
 
     // handling API and streaming state changes
@@ -19,6 +20,7 @@ export default class Profile extends Component {
       this.setState({user: reduxState.user});
       this.setState({gimletd: reduxState.gimletd});
       this.setState({application: reduxState.application });
+      this.setState({installationID : reduxState.installationID})
     });
   }
 
@@ -57,7 +59,7 @@ export default class Profile extends Component {
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
-            {gitHubAppSettings(this.state.application.name, this.state.application.slug)}
+            {gitHubAppSettings(this.state.application.name, this.state.application.slug, this.state.installationID)}
             {gimletdIntegrationEnabled &&
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
@@ -142,23 +144,32 @@ function integrateGimletD() {
   )
 }
 
-function gitHubAppSettings(appName, appSlug){
-  return(
-    <div className='bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200 my-4'>
-    <a
-    href={`https://github.com/settings/apps/${appSlug}`}
-    rel="noreferrer"
-    target="_blank"
-    className="relative block w-full rounded-lg px-4 py-5 sm:px-6
-            focus:outline-none"
-  >
-      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    GitHub Application
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Settings for {appName}
-                  </p>
-    </a>
+function gitHubAppSettings(appName, appSlug, appInstallID) {
+  return (
+    <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-fullpx-4 py-5 sm:px-6 focus:outline-none'>
+      <div className='inline-grid'>
+        <h3 className="text-lg leading-6 font-medium text-gray-900">
+          GitHub Application
+        </h3>
+        <span>
+          <a
+            href={`https://github.com/settings/apps/${appSlug}`}
+            rel="noreferrer"
+            target="_blank"
+            className="mt-1 text-sm text-gray-500 hover:text-gray-600">
+            Settings for {appName}
+          </a>
+        </span>
+        <span>
+          <a
+            href={`https://github.com/settings/installations/${appInstallID}`}
+            rel="noreferrer"
+            target="_blank"
+            className="mt-1 text-sm text-gray-500 hover:text-gray-600">
+            Application installation
+          </a>
+        </span>
+      </div>
     </div>
   )
 }

@@ -36,7 +36,8 @@ export function user(state, user) {
 }
 
 export function application(state, application){
-  state.application = application;
+  state.application = application.appinfo;
+  state.installationID = application.installationID;
   return state;
 }
 
