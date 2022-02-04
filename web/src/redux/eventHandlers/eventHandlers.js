@@ -35,6 +35,13 @@ export function user(state, user) {
   return state;
 }
 
+export function application(state, application) {
+  state.application = { name: application.appName, slug: application.appSlug };
+  state.installationID = application.installationID;
+
+  return state;
+}
+
 export function gimletd(state, gimletd) {
   state.gimletd = gimletd;
   return state;

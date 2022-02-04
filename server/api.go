@@ -178,3 +178,42 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(schemasString))
 }
+
+func application(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	config := ctx.Value("config").(*config.Config)
+	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
+	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
+
+	installationID := config.Github.InstallationID
+
+	tokenString, err := tokenManager.AppToken()
+	if err != nil {
+		logrus.Errorf("cannot generate application token: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	appName, appSlug, err := gitServiceImpl.GetAppNameAndSlug(tokenString, ctx)
+	if err != nil {
+		logrus.Errorf("cannot get app info: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	appinfos := map[string]interface{}{}
+	appinfos["installationID"] = installationID
+	appinfos["appName"] = appName
+	appinfos["appSlug"] = appSlug
+
+	appinfosString, err := json.Marshal(appinfos)
+	if err != nil {
+		logrus.Errorf("cannot serialize appinfos: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(appinfosString))
+
+}

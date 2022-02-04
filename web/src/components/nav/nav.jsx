@@ -173,7 +173,6 @@ export default class Nav extends Component {
                                         window.location.replace("/logout");
                                         return true
                                       }
-
                                       this.props.history.push(item.href);
                                       return true
                                     }}

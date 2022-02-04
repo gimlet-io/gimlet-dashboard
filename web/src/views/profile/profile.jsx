@@ -8,7 +8,9 @@ export default class Profile extends Component {
     let reduxState = this.props.store.getState();
     this.state = {
       user: reduxState.user,
-      gimletd: reduxState.gimletd
+      gimletd: reduxState.gimletd,
+      application: reduxState.application,
+      installationID: reduxState.installationID
     }
 
     // handling API and streaming state changes
@@ -17,6 +19,8 @@ export default class Profile extends Component {
 
       this.setState({user: reduxState.user});
       this.setState({gimletd: reduxState.gimletd});
+      this.setState({application: reduxState.application });
+      this.setState({installationID : reduxState.installationID})
     });
   }
 
@@ -53,9 +57,10 @@ export default class Profile extends Component {
           </div>
         </header>
         <main>
-          {gimletdIntegrationEnabled &&
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
+            {githubAppSettings(this.state.application.name, this.state.application.slug, this.state.installationID)}
+            {gimletdIntegrationEnabled &&
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -99,9 +104,9 @@ source ~/.gimlet/config`}
                   </code>
                 </div>
               </div>
+              }
             </div>
           </div>
-          }
           {!gimletdIntegrationEnabled &&
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 my-8">
             {integrateGimletD()}
@@ -136,5 +141,31 @@ function integrateGimletD() {
 
       <span className="mt-2 block text-lg leading-6 font-medium text-gray-900">Integrate GimletD</span>
     </a>
+  )
+}
+
+function githubAppSettings(appName, appSlug, appInstallID) {
+  return (
+    <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-fullpx-4 py-5 sm:px-6 focus:outline-none'>
+      <div className='inline-grid'>
+        <h3 className="text-lg leading-6 font-medium text-gray-900">
+          Github Application
+        </h3>
+        <span 
+        onClick={() => window.open(`https://github.com/settings/apps/${appSlug}`)}
+        className='mt-1 text-sm text-gray-500 hover:text-gray-600 cursor-pointer'>
+            Settings for {appName}
+        </span>
+        <span>
+          <a
+            href={`https://github.com/settings/installations/${appInstallID}`}
+            rel="noreferrer"
+            target="_blank"
+            className="mt-1 text-sm text-gray-500 hover:text-gray-600">
+            Application installation
+          </a>
+        </span>
+      </div>
+    </div>
   )
 }

@@ -1,8 +1,13 @@
 package customScm
 
-import "github.com/gimlet-io/gimlet-dashboard/model"
+import (
+	"context"
+
+	"github.com/gimlet-io/gimlet-dashboard/model"
+)
 
 type CustomGitService interface {
 	FetchCommits(owner string, repo string, token string, hashesToFetch []string) ([]*model.Commit, error)
 	OrgRepos(installationToken string) ([]string, error)
+	GetAppNameAndSlug(installationToken string, ctx context.Context) (string, string, error)
 }
