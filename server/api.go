@@ -185,7 +185,7 @@ func application(w http.ResponseWriter, r *http.Request) {
 	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
 	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
 
-	installationIDstring := config.Github.InstallationID
+	installationID := config.Github.InstallationID
 
 	tokenString, err := tokenManager.AppToken()
 	if err != nil {
@@ -194,32 +194,17 @@ func application(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appinfoString, err := gitServiceImpl.GetAppInfos(tokenString, ctx)
+	appName, appSlug, err := gitServiceImpl.GetAppNameAndSlug(tokenString, ctx)
 	if err != nil {
 		logrus.Errorf("cannot get app info: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	var appinfo interface{}
-	err = json.Unmarshal(appinfoString, &appinfo)
-	if err != nil {
-		logrus.Errorf("cannot parse application infos: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	var installationID interface{}
-	err = json.Unmarshal([]byte(installationIDstring), &installationID)
-	if err != nil {
-		logrus.Errorf("cannot parse installation ID: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
 	appinfos := map[string]interface{}{}
 	appinfos["installationID"] = installationID
-	appinfos["appinfo"] = appinfo
+	appinfos["appName"] = appName
+	appinfos["appSlug"] = appSlug
 
 	appinfosString, err := json.Marshal(appinfos)
 	if err != nil {

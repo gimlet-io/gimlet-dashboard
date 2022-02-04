@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/google/go-github/v37/github"
 	"github.com/shurcooL/githubv4"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 type GithubClient struct {
@@ -306,28 +307,21 @@ func (c *GithubClient) OrgRepos(installationToken string) ([]string, error) {
 	return allRepos, nil
 }
 
-func (c *GithubClient) GetAppInfos(installationToken string, ctx context.Context) ([]byte, error) {
+func (c *GithubClient) GetAppNameAndSlug(appToken string, ctx context.Context) (string, string, error) {
 
 	client := github.NewClient(
 		&http.Client{
 			Transport: &transport{
 				underlyingTransport: http.DefaultTransport,
-				token:               installationToken,
+				token:               appToken,
 			},
 		},
 	)
 
 	appinfo, _, err := client.Apps.Get(ctx, "")
 	if err != nil {
-		logrus.Errorf("cannot get info from App : %s", err)
-		return nil, err
+		return "", "", fmt.Errorf("cannot get info from App : %s", err)
 	}
 
-	appinfoString, err := json.Marshal(appinfo)
-	if err != nil {
-		logrus.Errorf("could not parse appinfo to string: %s", err)
-		return nil, err
-
-	}
-	return appinfoString, err
+	return *appinfo.Name, *appinfo.Slug, err
 }

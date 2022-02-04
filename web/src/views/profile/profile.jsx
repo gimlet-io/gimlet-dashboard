@@ -59,7 +59,7 @@ export default class Profile extends Component {
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
-            {gitHubAppSettings(this.state.application.name, this.state.application.slug, this.state.installationID)}
+            {githubAppSettings(this.state.application.name, this.state.application.slug, this.state.installationID)}
             {gimletdIntegrationEnabled &&
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
@@ -144,12 +144,12 @@ function integrateGimletD() {
   )
 }
 
-function gitHubAppSettings(appName, appSlug, appInstallID) {
+function githubAppSettings(appName, appSlug, appInstallID) {
   return (
     <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-fullpx-4 py-5 sm:px-6 focus:outline-none'>
       <div className='inline-grid'>
         <h3 className="text-lg leading-6 font-medium text-gray-900">
-          GitHub Application
+          Github Application
         </h3>
         <span 
         onClick={() => window.open(`https://github.com/settings/apps/${appSlug}`)}
