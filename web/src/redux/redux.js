@@ -57,6 +57,9 @@ export const initialState = {
   installationID: undefined
 };
 
+console.log("REDUX ROLLOUTHISTORY STATE");
+console.log(initialState.rolloutHistory);
+
 export function rootReducer(state = initialState, action) {
   switch (action.type) {
     case ACTION_TYPE_STREAMING:
@@ -72,7 +75,7 @@ export function rootReducer(state = initialState, action) {
     case ACTION_TYPE_USER:
       return eventHandlers.user(state, action.payload)
     case ACTION_TYPE_APPLICATION:
-      return eventHandlers.application(state, action.payload)  
+      return eventHandlers.application(state, action.payload)
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
     case ACTION_TYPE_CHARTSCHEMA:

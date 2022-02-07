@@ -22,6 +22,8 @@ export class RolloutHistory extends Component {
   render() {
     let {env, app, rolloutHistory, rollback} = this.props;
     const {open} = this.state;
+    console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY STATE BEFORE REVERSE AND SORT");
+    console.log(this.state.rolloutHistory);
 
     if (!rolloutHistory) {
       return null;
@@ -36,12 +38,20 @@ export class RolloutHistory extends Component {
     const rollouts = [];
     let allPreviousCommitsAreRollbacks = true;
 
+    console.log("ROLLOUTHISTORY.JS MARKERS RIGHT AFTER DECLARATION");
+    console.log(this.state.markers);
+    console.log("ROLLOUTHISTORY.JS ROLLOUTS RIGHT AFTER DECLARATION");
+    console.log(this.state.rollouts);
+
     rolloutHistory.reverse();
     rolloutHistory.forEach((rollout, idx, ar) => {
       const currentlyReleased = !rollout.rolledBack && allPreviousCommitsAreRollbacks;
       if (currentlyReleased) {
         allPreviousCommitsAreRollbacks = false;
       }
+
+      console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY STATE AFTER REVERSE AND SORT");
+      console.log(this.state.rolloutHistory);
 
       const exactDate = format(rollout.created * 1000, 'h:mm:ss a, MMMM do yyyy')
       const dateLabel = formatDistance(rollout.created * 1000, new Date());
@@ -141,6 +151,10 @@ at ${exactDate}`;
 
     markers.reverse();
 
+    console.log("ROLLOUTHISTORY.JS MARKERS AFTER REVERSE");
+    console.log(this.state.markers);
+    console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY AFTER PROCESSES");
+    console.log(this.state.rolloutHistory);
     return (
       <div className="">
         <div className="grid grid-cols-10 p-2">
