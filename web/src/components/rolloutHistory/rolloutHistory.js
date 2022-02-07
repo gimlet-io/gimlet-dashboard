@@ -1,5 +1,5 @@
-import {format, formatDistance} from "date-fns";
-import React, {Component} from "react";
+import { format, formatDistance } from "date-fns";
+import React, { Component } from "react";
 import Emoji from "react-emoji-render";
 
 export class RolloutHistory extends Component {
@@ -20,10 +20,10 @@ export class RolloutHistory extends Component {
   }
 
   render() {
-    let {env, app, rolloutHistory, rollback} = this.props;
-    const {open} = this.state;
+    let { env, app, rolloutHistory, rollback } = this.props;
+    const { open } = this.state;
     console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY STATE BEFORE REVERSE AND SORT");
-    console.log(this.state.rolloutHistory);
+    console.log(rolloutHistory);
 
     if (!rolloutHistory) {
       return null;
@@ -39,9 +39,9 @@ export class RolloutHistory extends Component {
     let allPreviousCommitsAreRollbacks = true;
 
     console.log("ROLLOUTHISTORY.JS MARKERS RIGHT AFTER DECLARATION");
-    console.log(this.state.markers);
+    console.log(markers);
     console.log("ROLLOUTHISTORY.JS ROLLOUTS RIGHT AFTER DECLARATION");
-    console.log(this.state.rollouts);
+    console.log(rollouts);
 
     rolloutHistory.reverse();
     rolloutHistory.forEach((rollout, idx, ar) => {
@@ -51,7 +51,7 @@ export class RolloutHistory extends Component {
       }
 
       console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY STATE AFTER REVERSE AND SORT");
-      console.log(this.state.rolloutHistory);
+      console.log(rolloutHistory);
 
       const exactDate = format(rollout.created * 1000, 'h:mm:ss a, MMMM do yyyy')
       const dateLabel = formatDistance(rollout.created * 1000, new Date());
@@ -73,27 +73,27 @@ at ${exactDate}`;
         <div key={rollout.created} class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
           <div className={`h-2 ml-1 md:mx-1 ${color} rounded`}></div>
           {showDate &&
-          <div className="hidden lg:block mx-2 mt-2 text-xs text-gray-400">
-            <span>{dateLabel} ago</span>
-          </div>
+            <div className="hidden lg:block mx-2 mt-2 text-xs text-gray-400">
+              <span>{dateLabel} ago</span>
+            </div>
           }
         </div>
       )
 
       rollouts.push(
         <li key={idx}
-            className="hover:bg-yellow-100 p-4 rounded"
+          className="hover:bg-yellow-100 p-4 rounded"
         >
           <div className="relative pb-4">
-            {idx !== ar.length-1 &&
-            <span className="absolute top-8 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            {idx !== ar.length - 1 &&
+              <span className="absolute top-8 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             }
             <div className="relative flex items-start space-x-3">
               <div className="relative">
                 <img
                   className={`h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center ring-4 ${ringColor}`}
                   src={`https://github.com/${rollout.triggeredBy}.png?size=128`}
-                  alt={rollout.triggeredBy}/>
+                  alt={rollout.triggeredBy} />
               </div>
               <div className="min-w-0 flex-1">
                 <div>
@@ -114,33 +114,33 @@ at ${exactDate}`;
                 </div>
                 <div className="mt-2 text-sm text-gray-700">
                   <div className="ml-2 md:ml-4">
-                    <Commit version={rollout.version}/>
+                    <Commit version={rollout.version} />
                   </div>
                 </div>
               </div>
               <div>
                 {!currentlyReleased && !rollout.rolledBack &&
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    // eslint-disable-next-line no-restricted-globals
-                    confirm('Are you sure you want to roll back?') &&
-                    rollback(env, app, rollout.gitopsRef, e);
-                  }}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Rollback to this version
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      // eslint-disable-next-line no-restricted-globals
+                      confirm('Are you sure you want to roll back?') &&
+                        rollback(env, app, rollout.gitopsRef, e);
+                    }}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Rollback to this version
+                  </button>
                 }
                 {rollout.rolledBack &&
-                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                  Rolled back
-                </span>
+                  <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                    Rolled back
+                  </span>
                 }
                 {currentlyReleased &&
-                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  Current version
-                </span>
+                  <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    Current version
+                  </span>
                 }
               </div>
             </div>
@@ -152,22 +152,23 @@ at ${exactDate}`;
     markers.reverse();
 
     console.log("ROLLOUTHISTORY.JS MARKERS AFTER REVERSE");
-    console.log(this.state.markers);
+    console.log(markers);
     console.log("ROLLOUTHISTORY.JS ROLLOUTHISTORY AFTER PROCESSES");
-    console.log(this.state.rolloutHistory);
+    console.log(rolloutHistory);
+
     return (
       <div className="">
         <div className="grid grid-cols-10 p-2">
           {markers}
         </div>
         {open &&
-        <div className="bg-yellow-50 rounded">
-          <div className="flow-root">
-            <ul className="-mb-4 p-2 md:p-4 lg:p-8">
-              {rollouts}
-            </ul>
+          <div className="bg-yellow-50 rounded">
+            <div className="flow-root">
+              <ul className="-mb-4 p-2 md:p-4 lg:p-8">
+                {rollouts}
+              </ul>
+            </div>
           </div>
-        </div>
         }
       </div>
     )
@@ -175,7 +176,7 @@ at ${exactDate}`;
 }
 
 function Commit(props) {
-  const {version} = props;
+  const { version } = props;
 
   const exactDate = format(version.created * 1000, 'h:mm:ss a, MMMM do yyyy')
   const dateLabel = formatDistance(version.created * 1000, new Date());
@@ -183,16 +184,16 @@ function Commit(props) {
   return (
     <div className="md:flex text-xs text-gray-500">
       <div className="md:flex-initial">
-        <span className="font-semibold leading-none">{version.message && <Emoji text={version.message}/>}</span>
+        <span className="font-semibold leading-none">{version.message && <Emoji text={version.message} />}</span>
         <div className="flex mt-1">
           {version.author &&
-          <img
-            className="rounded-sm overflow-hidden mr-1"
-            src={`https://github.com/${version.author}.png?size=128`}
-            alt={version.authorName}
-            width="20"
-            height="20"
-          />
+            <img
+              className="rounded-sm overflow-hidden mr-1"
+              src={`https://github.com/${version.author}.png?size=128`}
+              alt={version.authorName}
+              width="20"
+              height="20"
+            />
           }
           <div>
             <span className="font-semibold">{version.authorName}</span>
