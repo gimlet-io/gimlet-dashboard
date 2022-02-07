@@ -66,9 +66,9 @@ export class RolloutHistory extends Component {
 
       let title = `[${rollout.version.sha.slice(0, 6)}] ${truncate(rollout.version.message)}
 
-    Deployed by ${rollout.triggeredBy}
+Deployed by ${rollout.triggeredBy}
 
-    at ${exactDate}`;
+at ${exactDate}`;
 
       markers.push(
         <div key={rollout.created} class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
