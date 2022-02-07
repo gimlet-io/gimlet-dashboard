@@ -1,6 +1,7 @@
 import { format, formatDistance } from "date-fns";
 import React, { Component } from "react";
 import Emoji from "react-emoji-render";
+import { nanoid } from 'nanoid'
 
 export class RolloutHistory extends Component {
   constructor(props) {
@@ -81,7 +82,7 @@ at ${exactDate}`;
       )
 
       rollouts.push(
-        <li key={idx}
+        <li key={nanoid()}
           className="hover:bg-yellow-100 p-4 rounded"
         >
           <div className="relative pb-4">
