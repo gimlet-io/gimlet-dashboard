@@ -139,6 +139,9 @@ func (c *GithubClient) FetchCommits(
 		"sha9":  githubv4.GitObjectID(hashesToFetch[9]),
 	}
 
+	q, _ := json.Marshal(queryObjects)
+	logrus.Infof("Github query: %s", q)
+	logrus.Infof("Github variables: %s", variables)
 	err := graphQLClient.Query(context.Background(), &queryObjects, variables)
 	if err != nil {
 		return nil, err
