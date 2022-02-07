@@ -1,7 +1,7 @@
 import { format, formatDistance } from "date-fns";
 import React, { Component } from "react";
 import Emoji from "react-emoji-render";
-import { nanoid } from 'nanoid'
+import { nanoid } from 'nanoid';
 
 export class RolloutHistory extends Component {
   constructor(props) {
@@ -71,7 +71,7 @@ Deployed by ${rollout.triggeredBy}
 at ${exactDate}`;
 
       markers.push(
-        <div key={rollout.created} class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
+        <div key={nanoid()} class={`h-8 ${border} cursor-pointer`} title={title} onClick={() => this.toggle()}>
           <div className={`h-2 ml-1 md:mx-1 ${color} rounded`}></div>
           {showDate &&
             <div className="hidden lg:block mx-2 mt-2 text-xs text-gray-400">
