@@ -105,10 +105,13 @@ function renderServices(stacks, envConfigs, envName, repoRolloutHistory, navigat
   return services
 }
 
-function appRolloutHistory(env, app, repoRolloutHistory) {
+function appRolloutHistory(envName, appName, repoRolloutHistory) {
   if (repoRolloutHistory) {
-    if (repoRolloutHistory[env]) {
-      return repoRolloutHistory[env][app]
+    let envRolloutHistory = repoRolloutHistory.find(env => env.name === envName)
+
+    if (envRolloutHistory) {
+      let appRolloutHistory = envRolloutHistory.apps.find(app => app.name === appName)
+      return appRolloutHistory
     }
   }
 
