@@ -27,7 +27,7 @@ function ServiceDetail(props) {
             env={stack.env}
             app={stack.service.name}
             rollback={rollback}
-            rolloutHistory={rolloutHistory}
+            appRolloutHistory={rolloutHistory}
           />
         </div>
         <div class="flex flex-wrap text-sm">
