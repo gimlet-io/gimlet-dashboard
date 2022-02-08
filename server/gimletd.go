@@ -109,7 +109,7 @@ type App struct {
 
 type Env struct {
 	Name string `json:"name"`
-	Apps []App  `json:"apps"`
+	Apps []*App `json:"apps"`
 }
 
 func rolloutHistory(w http.ResponseWriter, r *http.Request) {
@@ -168,26 +168,37 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 func insertIntoRolloutHistory(rolloutHistory []Env, release *dx.Release, perAppLimit int) []Env {
 	insertedRolloutHistory := []Env{}
 
-	for _, env := range rolloutHistory {
-		insertedApps := []App{}
-
-		for _, app := range env.Apps {
-			if env.Name == release.Env &&
-				app.Name == release.App {
-				if app.Releases == nil {
-					app.Releases = []*dx.Release{}
-				}
-
-				if len(app.Releases) < perAppLimit {
-					app.Releases = append(app.Releases, release)
-				}
-			}
-			insertedApps = append(insertedApps, app)
+	var env *Env
+	for _, e := range rolloutHistory { // let's find the env that matches the release
+		if e.Name == release.Env {
+			env = &e
 		}
-
-		env.Apps = insertedApps
-		insertedRolloutHistory = append(insertedRolloutHistory, env)
 	}
+	if env == nil { // if doesn't exist yet, we create it
+		env = &Env{
+			Name: release.Env,
+			Apps: []*App{},
+		}
+	}
+
+	var app *App
+	for _, a := range env.Apps { // let's find the app that matches the release
+		if a.Name == release.App {
+			app = a
+		}
+	}
+	if app == nil { // if doesn't exist yet, we create it
+		app = &App{
+			Name:     release.App,
+			Releases: []*dx.Release{},
+		}
+		env.Apps = append(env.Apps, app)
+	}
+
+	if len(app.Releases) < perAppLimit {
+		app.Releases = append(app.Releases, release)
+	}
+	insertedRolloutHistory = append(insertedRolloutHistory, *env)
 
 	return insertedRolloutHistory
 }
@@ -202,7 +213,7 @@ func orderRolloutHistoryFromAscending(rolloutHistory []Env) []Env {
 	orderedRolloutHistory := []Env{}
 
 	for _, env := range rolloutHistory {
-		orderedApps := []App{}
+		orderedApps := []*App{}
 
 		for _, app := range env.Apps {
 			sort.Sort(ByCreated(app.Releases))

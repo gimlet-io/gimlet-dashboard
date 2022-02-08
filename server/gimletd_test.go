@@ -12,20 +12,12 @@ const myapp = "myapp"
 const perAppLimit = 3
 
 func TestInsertIntoRolloutHistory(t *testing.T) {
-	rolloutHistory := []Env{
-		{
-			Name: staging,
-			Apps: []App{
-				{
-					Name:     myapp,
-					Releases: []*dx.Release{{}, {}},
-				},
-			},
-		},
-	}
+	rolloutHistory := []Env{}
 
+	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: staging, App: myapp}, perAppLimit)
+	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: staging, App: myapp}, perAppLimit)
 	if releasesLength(rolloutHistory, staging, myapp) != 2 {
-		t.Errorf("initial data should have two releases")
+		t.Errorf("should insert release")
 	}
 
 	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: staging, App: myapp}, perAppLimit)
@@ -46,7 +38,7 @@ func TestOrderRolloutHistoryFromAscending(t *testing.T) {
 	rolloutHistory := []Env{
 		{
 			Name: staging,
-			Apps: []App{
+			Apps: []*App{
 				{
 					Name: myapp,
 					Releases: []*dx.Release{

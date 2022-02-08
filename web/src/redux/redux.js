@@ -57,9 +57,6 @@ export const initialState = {
   installationID: undefined
 };
 
-console.log("REDUX ROLLOUTHISTORY STATE");
-console.log(initialState.rolloutHistory);
-
 export function rootReducer(state = initialState, action) {
   switch (action.type) {
     case ACTION_TYPE_STREAMING:

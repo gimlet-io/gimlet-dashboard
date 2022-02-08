@@ -164,24 +164,24 @@ class ReleaseBadges extends Component {
 
     let recent = [];
     if (rolloutHistory) {
-      for (let envName of Object.keys(rolloutHistory)) {
-        const env = rolloutHistory[envName];
-        for (let appName of Object.keys(env)) {
-          const appReleases = env[appName];
-          for (let release of appReleases) {
-            if (release.version.sha === sha) {
-              const exists = recent.find(element => element.env === envName && element.app === appName);
-              const isCurrent = current.find(element => element.env === envName && element.app === appName);
-              if (!exists && !isCurrent) {
-                recent.push({
-                  env: envName,
-                  app: appName
-                })
+      rolloutHistory.forEach(env => {
+        if (env.apps) {
+          env.apps.forEach(app => {
+            app.releases.forEach(release => {
+              if (release.version.sha === sha) {
+                const exists = recent.find(element => element.env === env.name && element.app === app.name);
+                const isCurrent = current.find(element => element.env === env.name && element.app === app.name);
+                if (!exists && !isCurrent) {
+                  recent.push({
+                    env: env.name,
+                    app: app.name
+                  })
+                }
               }
-            }
-          }
+            })
+          })
         }
-      }
+      })
     }
 
     let recentBadges = recent.map((release) => (
