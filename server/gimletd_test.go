@@ -8,15 +8,24 @@ import (
 )
 
 const staging = "staging"
+const production = "production"
 const myapp = "myapp"
 const perAppLimit = 3
 
 func TestInsertIntoRolloutHistory(t *testing.T) {
-	rolloutHistory := []Env{}
+	rolloutHistory := []*Env{}
 
 	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: staging, App: myapp}, perAppLimit)
 	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: staging, App: myapp}, perAppLimit)
 	if releasesLength(rolloutHistory, staging, myapp) != 2 {
+		t.Errorf("should insert release")
+	}
+
+	rolloutHistory = insertIntoRolloutHistory(rolloutHistory, &dx.Release{Env: production, App: myapp}, perAppLimit)
+	if releasesLength(rolloutHistory, staging, myapp) != 2 {
+		t.Errorf("should keep releases")
+	}
+	if releasesLength(rolloutHistory, production, myapp) != 1 {
 		t.Errorf("should insert release")
 	}
 
@@ -35,7 +44,7 @@ func TestOrderRolloutHistoryFromAscending(t *testing.T) {
 
 	now := time.Now()
 
-	rolloutHistory := []Env{
+	rolloutHistory := []*Env{
 		{
 			Name: staging,
 			Apps: []*App{
@@ -67,9 +76,9 @@ func TestOrderRolloutHistoryFromAscending(t *testing.T) {
 	}
 }
 
-func releasesLength(rolloutHistory []Env, env string, app string) int {
+func releasesLength(rolloutHistory []*Env, envName string, app string) int {
 	for _, env := range rolloutHistory {
-		if env.Name == staging {
+		if env.Name == envName {
 			for _, app := range env.Apps {
 				return len(app.Releases)
 			}

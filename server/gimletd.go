@@ -132,7 +132,7 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
 	envs := gatherEnvsFromAgents(agentHub)
 
-	rolloutHistory := []Env{}
+	rolloutHistory := []*Env{}
 	for _, env := range envs {
 		releases, err := getAppReleasesFromGimletD(
 			config.GimletD.URL,
@@ -165,42 +165,37 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	w.Write(rolloutHistoryString)
 }
 
-func insertIntoRolloutHistory(rolloutHistory []Env, release *dx.Release, perAppLimit int) []Env {
-	insertedRolloutHistory := []Env{}
+func insertIntoRolloutHistory(rolloutHistory []*Env, release *dx.Release, perAppLimit int) []*Env {
+	for _, env := range rolloutHistory {
+		if env.Name == release.Env {
+			for _, app := range env.Apps {
+				if app.Name == release.App {
+					if len(app.Releases) < perAppLimit {
+						app.Releases = append(app.Releases, release)
+					}
+					return rolloutHistory
+				}
+			}
 
-	var env *Env
-	for _, e := range rolloutHistory { // let's find the env that matches the release
-		if e.Name == release.Env {
-			env = &e
+			env.Apps = append(env.Apps, &App{
+				Name:     release.App,
+				Releases: []*dx.Release{release},
+			})
+			return rolloutHistory
 		}
 	}
-	if env == nil { // if doesn't exist yet, we create it
-		env = &Env{
-			Name: release.Env,
-			Apps: []*App{},
-		}
-	}
 
-	var app *App
-	for _, a := range env.Apps { // let's find the app that matches the release
-		if a.Name == release.App {
-			app = a
-		}
-	}
-	if app == nil { // if doesn't exist yet, we create it
-		app = &App{
-			Name:     release.App,
-			Releases: []*dx.Release{},
-		}
-		env.Apps = append(env.Apps, app)
-	}
+	rolloutHistory = append(rolloutHistory, &Env{
+		Name: release.Env,
+		Apps: []*App{
+			{
+				Name:     release.App,
+				Releases: []*dx.Release{release},
+			},
+		},
+	})
 
-	if len(app.Releases) < perAppLimit {
-		app.Releases = append(app.Releases, release)
-	}
-	insertedRolloutHistory = append(insertedRolloutHistory, *env)
-
-	return insertedRolloutHistory
+	return rolloutHistory
 }
 
 type ByCreated []*dx.Release
@@ -209,8 +204,8 @@ func (a ByCreated) Len() int           { return len(a) }
 func (a ByCreated) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByCreated) Less(i, j int) bool { return a[i].Created < a[j].Created }
 
-func orderRolloutHistoryFromAscending(rolloutHistory []Env) []Env {
-	orderedRolloutHistory := []Env{}
+func orderRolloutHistoryFromAscending(rolloutHistory []*Env) []*Env {
+	orderedRolloutHistory := []*Env{}
 
 	for _, env := range rolloutHistory {
 		orderedApps := []*App{}
@@ -269,19 +264,6 @@ func getAppReleasesFromGimletD(
 		repoName,
 		&since, nil,
 	)
-}
-
-func appsInEnv(env *api.Env, repo string) []string {
-	apps := []string{}
-	for _, stack := range env.Stacks {
-		if stack.Repo != repo {
-			continue
-		}
-
-		apps = append(apps, stack.Service.Name)
-	}
-
-	return apps
 }
 
 func deploy(w http.ResponseWriter, r *http.Request) {
