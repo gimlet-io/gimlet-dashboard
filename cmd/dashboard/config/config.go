@@ -29,6 +29,12 @@ func defaults(c *Config) {
 	if c.ReleaseHistorySinceDays == 0 {
 		c.ReleaseHistorySinceDays = 30
 	}
+	if c.Chart.Repo == "" {
+		c.Chart.Repo = "gimlet-io/onechart"
+	}
+	if c.Chart.Path == "" {
+		c.Chart.Path = "charts/onechart"
+	}
 }
 
 // String returns the configuration in string format.
@@ -44,6 +50,7 @@ type Config struct {
 	Github                  Github
 	Database                Database
 	GimletD                 GimletD
+	Chart                   Chart
 	RepoCachePath           string `envconfig:"REPO_CACHE_PATH"`
 	WebhookSecret           string `envconfig:"WEBHOOK_SECRET"`
 	ReleaseHistorySinceDays int    `envconfig:"RELEASE_HISTORY_SINCE_DAYS"`
@@ -64,6 +71,11 @@ type Github struct {
 	SkipVerify     bool      `envconfig:"GITHUB_SKIP_VERIFY"`
 	Debug          bool      `envconfig:"GITHUB_DEBUG"`
 	Org            string    `envconfig:"GITHUB_ORG"`
+}
+
+type Chart struct {
+	Repo string `envconfig:"CHART_REPO"`
+	Path string `envconfig:"CHART_PATH"`
 }
 
 type Database struct {
