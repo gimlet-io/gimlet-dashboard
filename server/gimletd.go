@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -101,28 +102,121 @@ func gimletd(w http.ResponseWriter, r *http.Request) {
 	w.Write(userString)
 }
 
+type App struct {
+	Name     string        `json:"name"`
+	Releases []*dx.Release `json:"releases"`
+}
+
+type Env struct {
+	Name string `json:"name"`
+	Apps []App  `json:"apps"`
+}
+
 func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
 	name := chi.URLParam(r, "name")
 	repoName := fmt.Sprintf("%s/%s", owner, name)
-	perAppLimit := 10
+	const perAppLimit = 10
 
 	ctx := r.Context()
 	config := ctx.Value("config").(*config.Config)
+
+	// If GimletD is not set up, throw 404
 	if config.GimletD.URL == "" ||
 		config.GimletD.TOKEN == "" {
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("{}"))
+		return
 	}
-	oauth2Config := new(oauth2.Config)
-	auth := oauth2Config.Client(
-		oauth2.NoContext,
-		&oauth2.Token{
-			AccessToken: config.GimletD.TOKEN,
-		},
-	)
-	client := client.NewClient(config.GimletD.URL, auth)
 
 	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
+	envs := gatherEnvsFromAgents(agentHub)
+
+	rolloutHistory := []Env{}
+	for _, env := range envs {
+		releases, err := getAppReleasesFromGimletD(
+			config.GimletD.URL,
+			config.GimletD.TOKEN,
+			config.ReleaseHistorySinceDays,
+			env.Name,
+			repoName,
+		)
+		if err != nil {
+			logrus.Errorf("cannot get releases for git repo: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		for _, release := range releases {
+			rolloutHistory = insertIntoRolloutHistory(rolloutHistory, release, perAppLimit)
+		}
+	}
+
+	rolloutHistory = orderRolloutHistoryFromAscending(rolloutHistory)
+
+	rolloutHistoryString, err := json.Marshal(rolloutHistory)
+	if err != nil {
+		logrus.Errorf("cannot serialize releases: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(rolloutHistoryString)
+}
+
+func insertIntoRolloutHistory(rolloutHistory []Env, release *dx.Release, perAppLimit int) []Env {
+	insertedRolloutHistory := []Env{}
+
+	for _, env := range rolloutHistory {
+		insertedApps := []App{}
+
+		for _, app := range env.Apps {
+			if env.Name == release.Env &&
+				app.Name == release.App {
+				if app.Releases == nil {
+					app.Releases = []*dx.Release{}
+				}
+
+				if len(app.Releases) < perAppLimit {
+					app.Releases = append(app.Releases, release)
+				}
+			}
+			insertedApps = append(insertedApps, app)
+		}
+
+		env.Apps = insertedApps
+		insertedRolloutHistory = append(insertedRolloutHistory, env)
+	}
+
+	return insertedRolloutHistory
+}
+
+type ByCreated []*dx.Release
+
+func (a ByCreated) Len() int           { return len(a) }
+func (a ByCreated) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByCreated) Less(i, j int) bool { return a[i].Created < a[j].Created }
+
+func orderRolloutHistoryFromAscending(rolloutHistory []Env) []Env {
+	orderedRolloutHistory := []Env{}
+
+	for _, env := range rolloutHistory {
+		orderedApps := []App{}
+
+		for _, app := range env.Apps {
+			sort.Sort(ByCreated(app.Releases))
+			orderedApps = append(orderedApps, app)
+		}
+
+		env.Apps = orderedApps
+		orderedRolloutHistory = append(orderedRolloutHistory, env)
+	}
+
+	return orderedRolloutHistory
+}
+
+func gatherEnvsFromAgents(agentHub *streaming.AgentHub) []*api.Env {
 	envs := []*api.Env{}
 	for _, a := range agentHub.Agents {
 		for _, stack := range a.Stacks {
@@ -133,53 +227,37 @@ func rolloutHistory(w http.ResponseWriter, r *http.Request) {
 			Stacks: a.Stacks,
 		})
 	}
+	return envs
+}
+
+func getAppReleasesFromGimletD(
+	gimletdURL string,
+	gimletdToken string,
+	releaseHistorySinceDays int,
+	env string,
+	repoName string,
+) ([]*dx.Release, error) {
+	oauth2Config := new(oauth2.Config)
+	auth := oauth2Config.Client(
+		oauth2.NoContext,
+		&oauth2.Token{
+			AccessToken: gimletdToken,
+		},
+	)
+	client := client.NewClient(gimletdURL, auth)
 
 	// limiting query scope
 	// without these, for apps released just once, the whole history would be traversed
-	since := time.Now().Add(-1 * time.Hour * 24 * time.Duration(config.ReleaseHistorySinceDays))
+	since := time.Now().Add(-1 * time.Hour * 24 * time.Duration(releaseHistorySinceDays))
 
-	appReleasesInAllEnvs := map[string]map[string][]*dx.Release{}
-	for _, env := range envs {
-		appReleasesInEnv := map[string][]*dx.Release{}
-
-		apps := appsInEnv(env, repoName)
-		for _, app := range apps {
-			appReleasesInEnv[app] = []*dx.Release{}
-		}
-
-		releases, err := client.ReleasesGet(
-			"",
-			env.Name,
-			-1,
-			0,
-			repoName,
-			&since, nil,
-		)
-		if err != nil {
-			logrus.Errorf("cannot get releases for git repo: %s", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		for _, release := range releases {
-			if _, ok := appReleasesInEnv[release.App]; ok {
-				if len(appReleasesInEnv[release.App]) < perAppLimit {
-					appReleasesInEnv[release.App] = append(appReleasesInEnv[release.App], release)
-				}
-			}
-		}
-		appReleasesInAllEnvs[env.Name] = appReleasesInEnv
-	}
-
-	releasesString, err := json.Marshal(appReleasesInAllEnvs)
-	if err != nil {
-		logrus.Errorf("cannot serialize releases: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(releasesString)
+	return client.ReleasesGet(
+		"",
+		env,
+		-1,
+		0,
+		repoName,
+		&since, nil,
+	)
 }
 
 func appsInEnv(env *api.Env, repo string) []string {
