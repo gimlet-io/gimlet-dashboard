@@ -36,9 +36,7 @@ export function user(state, user) {
 }
 
 export function application(state, application) {
-  state.application = { name: application.appName, slug: application.appSlug };
-  state.installationID = application.installationID;
-
+  state.application = { name: application.appName, htmlURL: application.htmlURL, installationURL: application.installationURL };
   return state;
 }
 
