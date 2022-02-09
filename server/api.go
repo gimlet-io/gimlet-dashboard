@@ -182,11 +182,8 @@ func chartSchema(w http.ResponseWriter, r *http.Request) {
 
 func application(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	config := ctx.Value("config").(*config.Config)
 	gitServiceImpl := ctx.Value("gitService").(customScm.CustomGitService)
 	tokenManager := ctx.Value("tokenManager").(customScm.NonImpersonatedTokenManager)
-
-	installationID := config.Github.InstallationID
 
 	tokenString, err := tokenManager.AppToken()
 	if err != nil {
@@ -195,7 +192,7 @@ func application(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appName, appSlug, err := gitServiceImpl.GetAppNameAndSlug(tokenString, ctx)
+	appName, appSettingsURL, installationURL, err := gitServiceImpl.GetAppNameAndAppSettingsURLs(tokenString, ctx)
 	if err != nil {
 		logrus.Errorf("cannot get app info: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -203,9 +200,9 @@ func application(w http.ResponseWriter, r *http.Request) {
 	}
 
 	appinfos := map[string]interface{}{}
-	appinfos["installationID"] = installationID
 	appinfos["appName"] = appName
-	appinfos["appSlug"] = appSlug
+	appinfos["installationURL"] = installationURL
+	appinfos["appSettingsURL"] = appSettingsURL
 
 	appinfosString, err := json.Marshal(appinfos)
 	if err != nil {

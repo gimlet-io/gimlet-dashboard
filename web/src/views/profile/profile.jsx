@@ -9,8 +9,7 @@ export default class Profile extends Component {
     this.state = {
       user: reduxState.user,
       gimletd: reduxState.gimletd,
-      application: reduxState.application,
-      installationID: reduxState.installationID
+      application: reduxState.application
     }
 
     // handling API and streaming state changes
@@ -20,7 +19,6 @@ export default class Profile extends Component {
       this.setState({user: reduxState.user});
       this.setState({gimletd: reduxState.gimletd});
       this.setState({application: reduxState.application });
-      this.setState({installationID : reduxState.installationID})
     });
   }
 
@@ -59,7 +57,7 @@ export default class Profile extends Component {
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
-            {githubAppSettings(this.state.application.name, this.state.application.slug, this.state.installationID)}
+            {githubAppSettings(this.state.application.name, this.state.application.appSettingsURL, this.state.application.installationURL)}
             {gimletdIntegrationEnabled &&
               <div className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
@@ -144,7 +142,7 @@ function integrateGimletD() {
   )
 }
 
-function githubAppSettings(appName, appSlug, appInstallID) {
+function githubAppSettings(appName, appSettingsURL, installationURL) {
   return (
     <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-fullpx-4 py-5 sm:px-6 focus:outline-none'>
       <div className='inline-grid'>
@@ -152,13 +150,13 @@ function githubAppSettings(appName, appSlug, appInstallID) {
           Github Application
         </h3>
         <span 
-        onClick={() => window.open(`https://github.com/settings/apps/${appSlug}`)}
+        onClick={() => window.open(appSettingsURL)}
         className='mt-1 text-sm text-gray-500 hover:text-gray-600 cursor-pointer'>
             Settings for {appName}
         </span>
         <span>
           <a
-            href={`https://github.com/settings/installations/${appInstallID}`}
+            href={installationURL}
             rel="noreferrer"
             target="_blank"
             className="mt-1 text-sm text-gray-500 hover:text-gray-600">

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/gimlet-io/gimlet-dashboard/cmd/dashboard/config"
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/google/go-github/v37/github"
 	"github.com/shurcooL/githubv4"
@@ -310,7 +312,9 @@ func (c *GithubClient) OrgRepos(installationToken string) ([]string, error) {
 	return allRepos, nil
 }
 
-func (c *GithubClient) GetAppNameAndSlug(appToken string, ctx context.Context) (string, string, error) {
+func (c *GithubClient) GetAppNameAndAppSettingsURLs(appToken string, ctx context.Context) (string, string, string, error) {
+
+	config := ctx.Value("config").(*config.Config)
 
 	client := github.NewClient(
 		&http.Client{
@@ -323,8 +327,19 @@ func (c *GithubClient) GetAppNameAndSlug(appToken string, ctx context.Context) (
 
 	appinfo, _, err := client.Apps.Get(ctx, "")
 	if err != nil {
-		return "", "", fmt.Errorf("cannot get info from App : %s", err)
+		return "", "", "", fmt.Errorf("cannot get info from App : %s", err)
 	}
 
-	return *appinfo.Name, *appinfo.Slug, err
+	installationID := config.Github.InstallationID
+	installationIDint, err := strconv.ParseInt(installationID, 0, 64)
+	if err != nil {
+		return "", "", "", fmt.Errorf("cannot parse App Token : %s", err)
+	}
+
+	installation, _, err := client.Apps.GetInstallation(ctx, installationIDint)
+	if err != nil {
+		return "", "", "", fmt.Errorf("cannot get installation: %s", err)
+	}
+
+	return *appinfo.Name, *appinfo.HTMLURL, *installation.HTMLURL, err
 }
