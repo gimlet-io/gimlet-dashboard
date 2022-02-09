@@ -192,7 +192,7 @@ func application(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appName, htmlURL, installationURL, err := gitServiceImpl.GetAppNameAndAppSettingsURLs(tokenString, ctx)
+	appName, appSettingsURL, installationURL, err := gitServiceImpl.GetAppNameAndAppSettingsURLs(tokenString, ctx)
 	if err != nil {
 		logrus.Errorf("cannot get app info: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -202,7 +202,7 @@ func application(w http.ResponseWriter, r *http.Request) {
 	appinfos := map[string]interface{}{}
 	appinfos["appName"] = appName
 	appinfos["installationURL"] = installationURL
-	appinfos["htmlURL"] = htmlURL
+	appinfos["appSettingsURL"] = appSettingsURL
 
 	appinfosString, err := json.Marshal(appinfos)
 	if err != nil {
