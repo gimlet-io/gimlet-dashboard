@@ -123,5 +123,92 @@ CREATE TABLE IF NOT EXISTS key_values (
 `,
 		},
 	},
-	"postgres": {},
+	"postgres": {
+		{
+			name: createTableUsers,
+			stmt: `
+CREATE TABLE IF NOT EXISTS users (
+id            SERIAL,
+login         TEXT,
+email         TEXT,
+access_token  TEXT,
+refresh_token TEXT,
+expires       INT,
+secret        TEXT,
+UNIQUE(login)
+);
+`,
+		},
+		{
+			name: addNameColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN name TEXT default '';`,
+		},
+		{
+			name: createTableCommits,
+			stmt: `
+CREATE TABLE IF NOT EXISTS commits (
+id         SERIAL,
+sha        TEXT,
+url        TEXT,
+author     TEXT,
+author_pic TEXT,
+tags       TEXT,
+repo       TEXT,
+status 	   TEXT,
+UNIQUE(sha,repo)
+);
+`,
+		},
+		{
+			name: addMessageColumnToCommitsTable,
+			stmt: `ALTER TABLE commits ADD COLUMN message TEXT;`,
+		},
+		{
+			name: addCreatedColumnToCommitsTable,
+			stmt: `ALTER TABLE commits ADD COLUMN created INTEGER;`,
+		},
+		{
+			name: defaultValueForMessage,
+			stmt: `update commits set message='' where message is null;`,
+		},
+		{
+			name: defaultValueForCreated,
+			stmt: `update commits set created=0 where created is null;`,
+		},
+		{
+			name: addReposColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN repos TEXT;`,
+		},
+		{
+			name: addFavoriteReposColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN favorite_repos TEXT;`,
+		},
+		{
+			name: addFavoriteServicesColumnToUsersTable,
+			stmt: `ALTER TABLE users ADD COLUMN favorite_services TEXT;`,
+		},
+		{
+			name: defaultValueForRepos,
+			stmt: `update users set repos='[]' where repos is null;`,
+		},
+		{
+			name: defaultValueForFavoriteRepos,
+			stmt: `update users set favorite_repos='[]' where favorite_repos is null;`,
+		},
+		{
+			name: defaultValueForFavoriteServices,
+			stmt: `update users set favorite_services='[]' where favorite_services is null;`,
+		},
+		{
+			name: createTableKeyValues,
+			stmt: `
+CREATE TABLE IF NOT EXISTS key_values (
+	id        SERIAL,
+	key       TEXT,
+	value     TEXT,
+	UNIQUE(key)
+	);
+`,
+		},
+	},
 }
