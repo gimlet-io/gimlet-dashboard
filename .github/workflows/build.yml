@@ -45,6 +45,10 @@ jobs:
     - name: Test Backend
       run: make test-backend
 
+    - name: 🐘 Test with Postgres store
+      run: |
+        make test-with-postgres
+
     - name: Build Backend
       run: make build-backend
       env:
