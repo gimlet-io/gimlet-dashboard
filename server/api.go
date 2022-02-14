@@ -215,3 +215,21 @@ func application(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(appinfosString))
 
 }
+
+func envsFromDB(w http.ResponseWriter, r *http.Request) {
+	db := r.Context().Value("store").(*store.Store)
+
+	envsFromDB, err := db.GetAllEnvironment()
+	if err != nil {
+		logrus.Errorf("cannot get all environments from database: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+	envsFromDBString, err := json.Marshal(envsFromDB)
+	if err != nil {
+		logrus.Errorf("cannot serialize environments from database: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(envsFromDBString))
+}
