@@ -18,6 +18,12 @@ class Environments extends Component {
         });
     }
 
+    getEnvironmentCards() {
+        return (
+            Object.keys(this.state.envs).map(env => (<EnvironmentCard envs={this.state.envs} env={env} />))
+        )
+    }
+
 
     render() {
         if (!this.state.envs) {
@@ -33,7 +39,9 @@ class Environments extends Component {
                 </header>
                 <main>
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <EnvironmentCard envs={this.state.envs} />
+                        <div className="px-4 py-8 sm:px-0">
+                            {this.getEnvironmentCards()}
+                        </div>
                     </div>
                 </main>
             </>
