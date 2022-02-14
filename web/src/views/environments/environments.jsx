@@ -20,7 +20,7 @@ class Environments extends Component {
 
     getEnvironmentCards() {
         return (
-            Object.keys(this.state.envs).map(env => (<EnvironmentCard envs={this.state.envs} env={env} />))
+            Object.keys(this.state.envs).map(env => (<EnvironmentCard singleEnv={this.state.envs[env]} />))
         )
     }
 
