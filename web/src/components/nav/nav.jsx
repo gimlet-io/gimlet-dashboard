@@ -8,6 +8,7 @@ import {ACTION_TYPE_SEARCH} from "../../redux/redux";
 const navigation = [
   {name: 'Services', href: '/services'},
   {name: 'Repositories', href: '/repositories'},
+  {name: 'Environments', href: '/environments'},
 ]
 const userNavigation = [
   {name: 'Profile', href: '/profile'},
