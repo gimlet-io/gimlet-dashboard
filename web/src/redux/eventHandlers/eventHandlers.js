@@ -40,6 +40,11 @@ export function application(state, application) {
   return state;
 }
 
+export function envsFromDB(state, envsFromDB) {
+  state.envsFromDB = envsFromDB;
+  return state;
+}
+
 export function gimletd(state, gimletd) {
   state.gimletd = gimletd;
   return state;

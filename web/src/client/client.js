@@ -23,6 +23,8 @@ export default class GimletClient {
 
   getGimletD = () => this.get('/api/gimletd');
 
+  getEnvsFromDB = () => this.get("/api/envsFromDB")
+
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
 
   getCommits = (owner, name, branch) => this.get(`/api/repo/${owner}/${name}/commits?branch=${branch}`);
@@ -32,6 +34,10 @@ export default class GimletClient {
   getEnvConfigs = (owner, name) => this.getWithAxios(`/api/repo/${owner}/${name}/envConfigs`);
 
   saveEnvConfig = (owner, name, env, configName, config) => this.postWithAxios(`/api/repo/${owner}/${name}/env/${env}/config/${configName}`, JSON.stringify(config));
+
+  saveEnvToDB = (envName) => this.post("/api/saveEnvToDB", JSON.stringify(envName));
+
+  deleteEnvFromDB = (envName) => this.deleteWithAxios(JSON.stringify(envName))
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
@@ -59,6 +65,23 @@ export default class GimletClient {
     try {
       const { data } = await axios
         .post(path, body, {
+          credentials: 'include',
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+      return data;
+    } catch (error) {
+      this.onError(error.response);
+      throw error.response;
+    }
+  }
+
+  deleteWithAxios = async (body) => {
+    try {
+      const { data } = await axios
+        .delete(`/api/deleteEnvFromDB/${body}`, {
           credentials: 'include',
           headers: {
             Accept: "application/json",

@@ -6,7 +6,8 @@ import {
   ACTION_TYPE_GITOPS_REPO,
   ACTION_TYPE_USER,
   ACTION_TYPE_CHARTSCHEMA,
-  ACTION_TYPE_APPLICATION
+  ACTION_TYPE_APPLICATION,
+  ACTION_TYPE_ENVSFROMDB
 } from "./redux/redux";
 
 export default class APIBackend extends Component {
@@ -41,6 +42,9 @@ export default class APIBackend extends Component {
       });
     this.props.gimletClient.getChartSchema()
       .then(data => this.props.store.dispatch({ type: ACTION_TYPE_CHARTSCHEMA, payload: data }), () => {/* Generic error handler deals with it */
+      });
+      this.props.gimletClient.getEnvsFromDB()
+      .then(data => this.props.store.dispatch({ type: ACTION_TYPE_ENVSFROMDB, payload: data }), () => {/* Generic error handler deals with it */
       });
 
   }
