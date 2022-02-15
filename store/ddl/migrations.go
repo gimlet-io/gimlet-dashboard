@@ -62,7 +62,7 @@ UNIQUE(login)
 CREATE TABLE IF NOT EXISTS environments (
 id           INTEGER PRIMARY KEY AUTOINCREMENT,
 name         TEXT,
-);		
+);
 `,
 		},
 		{

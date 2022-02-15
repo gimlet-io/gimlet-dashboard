@@ -14,6 +14,7 @@ import (
 	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
+	"github.com/go-chi/chi"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
@@ -232,4 +233,45 @@ func envsFromDB(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(envsFromDBString))
+}
+
+func saveEnvToDB(w http.ResponseWriter, r *http.Request) {
+	var envNameToSave string
+	err := json.NewDecoder(r.Body).Decode(&envNameToSave)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	db := r.Context().Value("store").(*store.Store)
+	envToSave := &model.Environment{
+		Name: envNameToSave,
+	}
+	err = db.CreateEnvironment(envToSave)
+	if err != nil {
+		logrus.Errorf("cannot create environment to database: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(envNameToSave))
+}
+
+func deleteEnvFromDB(w http.ResponseWriter, r *http.Request) {
+	envNameToDelete := chi.URLParam(r, "envName")
+	fmt.Println(envNameToDelete)
+
+	db := r.Context().Value("store").(*store.Store)
+
+	err := db.DeleteEnvironment(envNameToDelete)
+	if err != nil {
+		logrus.Errorf("cannot delete environment to database: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(envNameToDelete))
 }
