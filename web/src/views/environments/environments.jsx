@@ -33,6 +33,7 @@ class Environments extends Component {
     save() {
         this.props.gimletClient.saveEnvToDB(this.state.input);
         this.setState({ envsFromDB: [...this.state.envsFromDB, { name: this.state.input }] });
+        this.setState({ input: "" });
     }
 
     delete() {
@@ -60,7 +61,7 @@ class Environments extends Component {
                         <div className="px-4 py-8 sm:px-0">
                             <input
                                 onChange={e => this.setState({ input: e.target.value })}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" placeholder="" />
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" value={this.state.input} placeholder="Please enter an environment name..." />
                             <button
                                 onClick={() => this.save()}
                                 className={(this.state.input === '' ? 'cursor-not-allowed bg-gray-500 hover:bg-gray-700 ' : 'bg-green-500 hover:bg-green-700 ') + `text-white font-bold my-2 py-2 px-4 rounded`}>
