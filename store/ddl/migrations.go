@@ -60,8 +60,9 @@ UNIQUE(login)
 			name: createTableEnvironments,
 			stmt: `
 CREATE TABLE IF NOT EXISTS environments (
-id           INTEGER PRIMARY KEY AUTOINCREMENT,
-name         TEXT,
+id         	INTEGER PRIMARY KEY AUTOINCREMENT,
+name        TEXT,
+UNIQUE(name)
 );
 `,
 		},
