@@ -37,7 +37,7 @@ export default class GimletClient {
 
   saveEnvToDB = (envName) => this.post("/api/saveEnvToDB", JSON.stringify(envName));
 
-  deleteEnvFromDB = (envName) => this.deleteWithAxios(JSON.stringify(envName))
+  deleteEnvFromDB = (envName) => this.post("/api/deleteEnvFromDB",JSON.stringify(envName));
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 
@@ -77,24 +77,6 @@ export default class GimletClient {
       throw error.response;
     }
   }
-
-  deleteWithAxios = async (body) => {
-    try {
-      const { data } = await axios
-        .delete(`/api/deleteEnvFromDB/${body}`, {
-          credentials: 'include',
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-      return data;
-    } catch (error) {
-      this.onError(error.response);
-      throw error.response;
-    }
-  }
-
 
   get = (path) => fetch(path, {
     credentials: 'include'

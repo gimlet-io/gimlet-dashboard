@@ -23,9 +23,9 @@ class Environments extends Component {
 
     getEnvironmentCards() {
         return (
-            Object.keys(this.state.envsFromDB).map(env => (<EnvironmentCard singleEnv={this.state.envsFromDB[env]}
+            Object.keys(this.state.envsFromDB).map((env, index) => (<EnvironmentCard singleEnv={this.state.envsFromDB[env]}
                 isOnline={this.state.envsFromDB[env].name === "staging"}
-                deleteEnv={this.delete}
+                deleteEnv={() => this.delete(this.state.envsFromDB[env].name)}
             />))
         )
     }
@@ -36,8 +36,8 @@ class Environments extends Component {
         this.setState({ input: "" });
     }
 
-    delete() {
-        this.props.gimletClient.deleteEnvFromDB(this.state.input);
+    delete(envName) {
+        this.props.gimletClient.deleteEnvFromDB(envName);
     }
 
     render() {
