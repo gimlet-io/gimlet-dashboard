@@ -31,15 +31,15 @@ class Environments extends Component {
     }
 
     save() {
-        this.props.gimletClient.saveEnvToDB(this.state.input)
+        this.props.gimletClient.saveEnvToDB(this.state.input);
+        this.setState({ envsFromDB: [...this.state.envsFromDB, { name: this.state.input }] });
     }
 
     delete() {
-        this.props.gimletClient.deleteEnvFromDB(this.state.input)
+        this.props.gimletClient.deleteEnvFromDB(this.state.input);
     }
 
     render() {
-        console.log(this.state.envs)
         if (!this.state.envsFromDB) {
             return null;
         }
