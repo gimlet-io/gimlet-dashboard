@@ -37,7 +37,10 @@ class Environments extends Component {
         )
     }
 
-    mergeObjectArraysByKey = (arrayOne, arrayTwo, key) => arrayOne.filter(arrayOneElem => !arrayTwo.find(arrayTwoElem => arrayOneElem[key] === arrayTwoElem[key])).concat(arrayTwo);
+    mergeObjectArraysByKey = (arrayOne, arrayTwo, key) =>
+        arrayOne.filter(arrayOneElem =>
+            !arrayTwo.find(arrayTwoElem =>
+                arrayOneElem[key] === arrayTwoElem[key])).concat(arrayTwo);
 
     setTimeOutForSaveButtonTriggered() {
         setTimeout(() => { this.setState({ saveButtonTriggered: false, hasRequestError: false }) }, 3000);
