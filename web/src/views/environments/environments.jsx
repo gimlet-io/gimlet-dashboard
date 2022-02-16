@@ -22,13 +22,19 @@ class Environments extends Component {
     }
 
     getEnvironmentCards() {
+        const onlineEnvs = Object.keys(this.state.envs).map(env => this.state.envs[env]);
+        const offlineEnvs = this.state.envsFromDB;
+        const allEnvs = this.mergeObjectArraysByKey(onlineEnvs, offlineEnvs, "name")
         return (
-            Object.keys(this.state.envsFromDB).map((env, index) => (<EnvironmentCard singleEnv={this.state.envsFromDB[env]}
-                isOnline={this.state.envsFromDB[env].name === "staging"}
-                deleteEnv={() => this.delete(this.state.envsFromDB[env].name)}
+            allEnvs.map(env => (<EnvironmentCard
+                singleEnv={env}
+                deleteEnv={() => this.delete(env.name)}
+                onlineEnvs={onlineEnvs}
             />))
         )
     }
+
+    mergeObjectArraysByKey = (arrayOne, arrayTwo, key) => arrayOne.filter(arrayOneElem => !arrayTwo.find(arrayTwoElem => arrayOneElem[key] === arrayTwoElem[key])).concat(arrayTwo);
 
     save() {
         this.props.gimletClient.saveEnvToDB(this.state.input);
