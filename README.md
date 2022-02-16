@@ -1,3 +1,11 @@
+**ARCHIVED**
+
+**Merged into https://github.com/gimlet-io/gimlet**
+
+**The docker image location is still ghcr.io/gimlet-io/gimlet-dashboard:latest**
+
+**Look for future releases under https://github.com/gimlet-io/gimlet/releases tagged with dashboard-vx.y.z**
+
 # Gimlet Dashboard
 
 Gimlet Dashboard is where you can get a comprehensive overview quick.
