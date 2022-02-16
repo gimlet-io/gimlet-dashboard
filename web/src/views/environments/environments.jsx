@@ -48,8 +48,8 @@ class Environments extends Component {
     }
 
     save() {
+        this.setState({ saveButtonTriggered: true });
         if (!this.state.allEnvs.some(env => env.name === this.state.input)) {
-            this.setState({ saveButtonTriggered: true });
             this.props.gimletClient.saveEnvToDB(this.state.input)
                 .then(data => {
                     this.setState({
@@ -61,6 +61,12 @@ class Environments extends Component {
                     this.setState({ hasRequestError: true });
                     this.setTimeOutForSaveButtonTriggered();
                 })
+        } else {
+            this.setState({
+                input: "",
+            });
+            this.setState({ hasRequestError: true });
+            this.setTimeOutForSaveButtonTriggered();
         }
     }
 
