@@ -21,27 +21,20 @@ class Environments extends Component {
             this.setState({
                 envs: reduxState.envs,
                 envsFromDB: reduxState.envsFromDB,
-                allEnvs: this.mergeObjectArraysByKey(Object.keys(reduxState.envs)
-                    .map(env => reduxState.envs[env]), reduxState.envsFromDB, "name")
+                allEnvs: reduxState.allEnvs
             });
         });
     }
 
     getEnvironmentCards() {
-        const onlineEnvs = Object.keys(this.state.envs).map(env => this.state.envs[env]);
         return (
             this.state.allEnvs.map(env => (<EnvironmentCard
                 singleEnv={env}
                 deleteEnv={() => this.delete(env.name)}
-                onlineEnvs={onlineEnvs}
+                onlineEnvs={this.state.envs}
             />))
         )
     }
-
-    mergeObjectArraysByKey = (arrayOne, arrayTwo, key) =>
-        arrayOne.filter(arrayOneElem =>
-            !arrayTwo.find(arrayTwoElem =>
-                arrayOneElem[key] === arrayTwoElem[key])).concat(arrayTwo);
 
     setTimeOutForSaveButtonTriggered() {
         setTimeout(() => { this.setState({ saveButtonTriggered: false, hasRequestError: false }) }, 3000);
@@ -63,7 +56,6 @@ class Environments extends Component {
                 })
         } else {
             this.setState({
-                input: "",
             });
             this.setState({ hasRequestError: true });
             this.setTimeOutForSaveButtonTriggered();

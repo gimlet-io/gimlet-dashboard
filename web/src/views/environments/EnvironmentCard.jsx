@@ -28,7 +28,7 @@ const EnvironmentCard = ({ onlineEnvs, singleEnv, deleteEnv }) => {
 };
 
 const isOnline = (onlineEnvs, singleEnv) => {
-    return onlineEnvs.some(onlineEnv => { return onlineEnv === singleEnv })
+    return Object.keys(onlineEnvs).map(env => onlineEnvs[env]).some(onlineEnv => { return onlineEnv.name === singleEnv.name })
 };
 
 export default EnvironmentCard;

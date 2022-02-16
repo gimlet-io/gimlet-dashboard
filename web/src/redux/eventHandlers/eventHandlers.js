@@ -45,6 +45,11 @@ export function envsFromDB(state, envsFromDB) {
   return state;
 }
 
+export function getAllEnvs(state, allEnvs) {
+  state.allEnvs =   allEnvs.offlineEnvs.filter(arrayOneElem =>!allEnvs.onlineEnvs.find(arrayTwoElem =>arrayOneElem["name"] === arrayTwoElem["name"])).concat(allEnvs.onlineEnvs);
+  return state;
+}
+
 export function gimletd(state, gimletd) {
   state.gimletd = gimletd;
   return state;

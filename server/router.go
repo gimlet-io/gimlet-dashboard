@@ -110,6 +110,7 @@ func userRoutes(r *chi.Mux) {
 		r.Get(("/api/envsFromDB"), envsFromDB)
 		r.Post(("/api/saveEnvToDB"), saveEnvToDB)
 		r.Post(("/api/deleteEnvFromDB"), deleteEnvFromDB)
+		r.Get(("/api/getAllEnvs"), getAllEnvs)
 	})
 }
 

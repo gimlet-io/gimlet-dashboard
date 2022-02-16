@@ -23,7 +23,9 @@ export default class GimletClient {
 
   getGimletD = () => this.get('/api/gimletd');
 
-  getEnvsFromDB = () => this.get("/api/envsFromDB")
+  getEnvsFromDB = () => this.get("/api/envsFromDB");
+
+  getAllEnvs = () => this.getWithAxios("/api/getAllEnvs");
 
   getRolloutHistory = (owner, name) => this.get(`/api/repo/${owner}/${name}/rolloutHistory`);
 
