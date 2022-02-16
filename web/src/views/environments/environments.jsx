@@ -27,7 +27,7 @@ class Environments extends Component {
     getEnvironmentCards() {
         const onlineEnvs = Object.keys(this.state.envs).map(env => this.state.envs[env]);
         const offlineEnvs = this.state.envsFromDB;
-        const allEnvs = this.mergeObjectArraysByKey(onlineEnvs, offlineEnvs, "name")
+        const allEnvs = this.mergeObjectArraysByKey(onlineEnvs, offlineEnvs, "name");
         return (
             allEnvs.map(env => (<EnvironmentCard
                 singleEnv={env}
@@ -50,8 +50,11 @@ class Environments extends Component {
         this.setState({ saveButtonTriggered: true });
         this.props.gimletClient.saveEnvToDB(this.state.input)
             .then(data => {
-                this.setState({ envsFromDB: [...this.state.envsFromDB, { name: this.state.input }], input: "" });
-                this.setTimeOutForSaveButtonTriggered();
+                this.setState({
+                    envsFromDB: [...this.state.envsFromDB, { name: this.state.input }],
+                    input: "",
+                    saveButtonTriggered: false
+                });
             }, err => {
                 this.setState({ hasRequestError: true });
                 this.setTimeOutForSaveButtonTriggered();
