@@ -10,6 +10,7 @@ class Environments extends Component {
         this.state = {
             envs: reduxState.envs,
             envsFromDB: reduxState.envsFromDB,
+            allEnvs: reduxState.allEnvs,
             input: '',
             hasRequestError: false,
             saveButtonTriggered: false
@@ -19,17 +20,17 @@ class Environments extends Component {
 
             this.setState({
                 envs: reduxState.envs,
-                envsFromDB: reduxState.envsFromDB
+                envsFromDB: reduxState.envsFromDB,
+                allEnvs: this.mergeObjectArraysByKey(Object.keys(reduxState.envs)
+                    .map(env => reduxState.envs[env]), reduxState.envsFromDB, "name")
             });
         });
     }
 
     getEnvironmentCards() {
         const onlineEnvs = Object.keys(this.state.envs).map(env => this.state.envs[env]);
-        const offlineEnvs = this.state.envsFromDB;
-        const allEnvs = this.mergeObjectArraysByKey(onlineEnvs, offlineEnvs, "name");
         return (
-            allEnvs.map(env => (<EnvironmentCard
+            this.state.allEnvs.map(env => (<EnvironmentCard
                 singleEnv={env}
                 deleteEnv={() => this.delete(env.name)}
                 onlineEnvs={onlineEnvs}
@@ -47,18 +48,20 @@ class Environments extends Component {
     }
 
     save() {
-        this.setState({ saveButtonTriggered: true });
-        this.props.gimletClient.saveEnvToDB(this.state.input)
-            .then(data => {
-                this.setState({
-                    envsFromDB: [...this.state.envsFromDB, { name: this.state.input }],
-                    input: "",
-                    saveButtonTriggered: false
-                });
-            }, err => {
-                this.setState({ hasRequestError: true });
-                this.setTimeOutForSaveButtonTriggered();
-            })
+        if (!this.state.allEnvs.some(env => env.name === this.state.input)) {
+            this.setState({ saveButtonTriggered: true });
+            this.props.gimletClient.saveEnvToDB(this.state.input)
+                .then(data => {
+                    this.setState({
+                        allEnvs: [...this.state.allEnvs, { name: this.state.input }],
+                        input: "",
+                        saveButtonTriggered: false
+                    });
+                }, err => {
+                    this.setState({ hasRequestError: true });
+                    this.setTimeOutForSaveButtonTriggered();
+                })
+        }
     }
 
     delete(envName) {
