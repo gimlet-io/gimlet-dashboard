@@ -35,9 +35,9 @@ export default class GimletClient {
 
   saveEnvConfig = (owner, name, env, configName, config) => this.postWithAxios(`/api/repo/${owner}/${name}/env/${env}/config/${configName}`, JSON.stringify(config));
 
-  saveEnvToDB = (envName) => this.post("/api/saveEnvToDB", JSON.stringify(envName));
+  saveEnvToDB = (envName) => this.postWithAxios("/api/saveEnvToDB", JSON.stringify(envName));
 
-  deleteEnvFromDB = (envName) => this.post("/api/deleteEnvFromDB",JSON.stringify(envName));
+  deleteEnvFromDB = (envName) => this.post("/api/deleteEnvFromDB", JSON.stringify(envName));
 
   deploy = (artifactId, env, app) => this.post('/api/deploy', JSON.stringify({ env, app, artifactId }));
 

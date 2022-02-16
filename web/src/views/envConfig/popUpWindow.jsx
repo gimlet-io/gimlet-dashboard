@@ -1,7 +1,6 @@
 import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/solid'
 
 const PopUpWindow = ({ hasAPIResponded, isError, errorMessage, isTimedOut }) => {
-
     const backgroundColor = () => {
         return !hasAPIResponded ? "bg-gray-600" : isError || isTimedOut ? "bg-red-600" : "bg-green-600"
     }
