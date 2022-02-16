@@ -1,6 +1,6 @@
 const EnvironmentCard = ({ onlineEnvs, singleEnv, deleteEnv }) => {
     return (
-        <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-fullpx-4 py-5 sm:px-6 focus:outline-none'>
+        <div className='bg-white overflow-hidden shadow rounded-lg my-4 w-full px-4 py-5 sm:px-6 focus:outline-none'>
             <div className='flex justify-between'>
                 <div className="inline-flex">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 pr-1">
