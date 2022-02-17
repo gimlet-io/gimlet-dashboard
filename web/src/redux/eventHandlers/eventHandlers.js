@@ -46,7 +46,7 @@ export function envsFromDB(state, envsFromDB) {
 }
 
 export function getAllEnvs(state, allEnvs) {
-  state.allEnvs =   allEnvs.offlineEnvs.filter(arrayOneElem =>!allEnvs.onlineEnvs.find(arrayTwoElem =>arrayOneElem["name"] === arrayTwoElem["name"])).concat(allEnvs.onlineEnvs);
+  state.allEnvs = allEnvs.onlineEnvs.filter(onlineEnv =>!allEnvs.offlineEnvs.find(offlineEnv => onlineEnv["name"] === offlineEnv["name"])).concat(allEnvs.offlineEnvs);
   return state;
 }
 

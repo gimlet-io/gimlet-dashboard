@@ -47,10 +47,6 @@ export default class APIBackend extends Component {
       this.props.gimletClient.getEnvsFromDB()
       .then(data => this.props.store.dispatch({ type: ACTION_TYPE_ENVSFROMDB, payload: data }), () => {/* Generic error handler deals with it */
       });
-      this.props.gimletClient.getAllEnvs()
-      .then(data => this.props.store.dispatch({ type: ACTION_TYPE_GETALLENVS, payload: data }), () => {/* Generic error handler deals with it */
-      });
-
   }
 
   render() {

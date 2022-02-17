@@ -1,6 +1,9 @@
 import { Component } from 'react';
 import EnvironmentCard from './EnvironmentCard';
 import EnvironmentsPopUpWindow from './EnvironmentsPopUpWindow';
+import {
+    ACTION_TYPE_GETALLENVS
+} from "../../redux/redux";
 
 class Environments extends Component {
     constructor(props) {
@@ -25,6 +28,17 @@ class Environments extends Component {
                 allEnvs: reduxState.allEnvs
             });
         });
+    }
+
+    componentDidMount() {
+        this.props.gimletClient.getAllEnvs()
+            .then(data => {
+                this.props.store.dispatch({
+                    type: ACTION_TYPE_GETALLENVS,
+                    payload: data
+                });
+            }, () => {/* Generic error handler deals with it */
+            });
     }
 
     getEnvironmentCards() {
