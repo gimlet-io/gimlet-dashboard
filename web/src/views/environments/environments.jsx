@@ -4,6 +4,7 @@ import EnvironmentsPopUpWindow from './environmentPopUpWindow.jsx';
 import {
     ACTION_TYPE_ENVS
 } from "../../redux/redux";
+import AddEnvMenu from './addEnvMenu.jsx';
 
 class Environments extends Component {
     constructor(props) {
@@ -132,7 +133,12 @@ class Environments extends Component {
                                 <EnvironmentsPopUpWindow
                                     hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
-                            <div onClick={() => this.setState({ envAddingMenuIsOpen: !this.state.envAddingMenuIsOpen })}>Add environment</div>
+                            <div onClick={() => this.setState({ addEnvMenuIsOpen: !this.state.addEnvMenuIsOpen })}>Add environment</div>
+                            {this.state.addEnvMenuIsOpen &&
+                                <AddEnvMenu
+                                    addEnvMenuIsOpen={this.state.addEnvMenuIsOpen}
+                                    buttonTriggered={this.state.buttonTriggered}
+                                    input={this.state.input} />}
                         </div>
                     </div>
                 </main>
