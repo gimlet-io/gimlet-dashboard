@@ -18,7 +18,7 @@ class Environments extends Component {
             hasRequestError: false,
             saveButtonTriggered: false,
             hasSameEnvNameError: false,
-            envAddingMenuIsOpen: false
+            addEnvMenuIsOpen: false
         };
         this.props.store.subscribe(() => {
             let reduxState = this.props.store.getState();
