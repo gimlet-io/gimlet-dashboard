@@ -4,7 +4,6 @@ import EnvironmentsPopUpWindow from './environmentPopUpWindow.jsx';
 import {
     ACTION_TYPE_ENVS
 } from "../../redux/redux";
-import AddEnvMenu from './addEnvMenu.jsx';
 
 class Environments extends Component {
     constructor(props) {
@@ -120,25 +119,23 @@ class Environments extends Component {
                 <main>
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div className="px-4 py-8 sm:px-0">
-                            <input
-                                onChange={e => this.setState({ input: e.target.value })}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" value={this.state.input} placeholder="Please enter an environment name" />
-                            <button
-                                disabled={this.state.input === "" || this.state.saveButtonTriggered}
-                                onClick={() => this.save()}
-                                className={(this.state.input === "" || this.state.saveButtonTriggered ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700') + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}>
-                                Save environment
-                            </button>
                             {(this.state.hasRequestError || this.state.hasSameEnvNameError) &&
                                 <EnvironmentsPopUpWindow
                                     hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
                             <div onClick={() => this.setState({ addEnvMenuIsOpen: !this.state.addEnvMenuIsOpen })}>Add environment</div>
                             {this.state.addEnvMenuIsOpen &&
-                                <AddEnvMenu
-                                    addEnvMenuIsOpen={this.state.addEnvMenuIsOpen}
-                                    saveButtonTriggered={this.state.saveButtonTriggered}
-                                    input={this.state.input} />}
+                                <>
+                                    <input
+                                        onChange={e => this.setState({ input: e.target.value })}
+                                        className="shadow appearance-none border rounded w-full my-4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" value={this.state.input} placeholder="Please enter an environment name" />
+                                    <button
+                                        disabled={this.state.input === "" || this.state.saveButtonTriggered}
+                                        onClick={() => this.save()}
+                                        className={(this.state.input === "" || this.statesaveButtonTriggered ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700') + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}>
+                                        Save
+                                    </button>
+                                </>}
                         </div>
                     </div>
                 </main>
