@@ -51,7 +51,7 @@ class Environments extends Component {
         )
     }
 
-    setTimeOutForSaveButtonTriggered() {
+    setTimeOutForButtonTriggered() {
         setTimeout(() => {
             this.setState({
                 saveButtonTriggered: false,
@@ -73,21 +73,21 @@ class Environments extends Component {
                     });
                 }, () => {
                     this.setState({ hasRequestError: true });
-                    this.setTimeOutForSaveButtonTriggered();
+                    this.setTimeOutForButtonTriggered();
                 })
         } else {
             this.setState({ hasSameEnvNameError: true });
-            this.setTimeOutForSaveButtonTriggered();
+            this.setTimeOutForButtonTriggered();
         }
     }
 
     delete(envName) {
         this.props.gimletClient.deleteEnvFromDB(envName)
             .then(() => {
-                console.log("JÓ MINDEN");
-            }, () => {
-                console.log("BAJ VAN");
                 this.setState({ allEnvs: this.state.allEnvs.filter(env => env.name !== envName) });
+            }, () => {
+                this.setState({ hasRequestError: true });
+                this.setTimeOutForButtonTriggered();
             });
     }
 
@@ -119,10 +119,9 @@ class Environments extends Component {
                                 className={(this.state.input === "" || this.state.saveButtonTriggered ? 'cursor-not-allowed bg-gray-500 hover:bg-gray-700 ' : 'bg-green-500 hover:bg-green-700 ') + `text-white font-bold my-2 py-2 px-4 rounded`}>
                                 Save environment
                             </button>
-                            {this.state.saveButtonTriggered &&
+                            {(this.state.hasRequestError || this.state.hasSameEnvNameError) &&
                                 <EnvironmentsPopUpWindow
-                                    hasRequestError={this.state.hasRequestError}
-                                    hasSameEnvNameError={this.state.hasSameEnvNameError} />}
+                                    hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
                         </div>
                     </div>
