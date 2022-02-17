@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import EnvironmentCard from './environmentCard.jsx';
-import EnvironmentsPopUpWindow from './environmentsPopUpWindow.jsx';
+import EnvironmentsPopUpWindow from './environmentPopUpWindow.jsx';
 import {
     ACTION_TYPE_GETALLENVS
 } from "../../redux/redux";
