@@ -46,10 +46,18 @@ class Environments extends Component {
             this.state.allEnvs.map(env => (<EnvironmentCard
                 singleEnv={env}
                 deleteEnv={() => this.delete(env.name)}
-                onlineEnvs={this.state.envs}
+                isOnline={this.isOnline(this.state.envs, env)}
             />))
         )
     }
+
+    isOnline(onlineEnvs, singleEnv) {
+        return Object.keys(onlineEnvs)
+            .map(env => onlineEnvs[env])
+            .some(onlineEnv => {
+                return onlineEnv.name === singleEnv.name
+            })
+    };
 
     setTimeOutForButtonTriggered() {
         setTimeout(() => {
