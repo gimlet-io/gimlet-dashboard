@@ -131,6 +131,7 @@ class Environments extends Component {
                                 <EnvironmentsPopUpWindow
                                     hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
+                            <div>Add environment</div>
                         </div>
                     </div>
                 </main>
