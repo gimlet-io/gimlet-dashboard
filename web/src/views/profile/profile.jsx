@@ -120,7 +120,7 @@ function integrateGimletD() {
   return (
     // eslint-disable-next-line
     <a
-      href="https://gimlet.io/gimlet-dash/configuration/#gimletd-integration"
+      href="https://gimlet.io/docs/configuring-gimletd/"
       target="_blank"
       className="relative block w-full border-2 border-gray-300
               border-dashed rounded-lg p-12 text-center hover:border-gray-400

@@ -16,7 +16,12 @@ const EnvironmentCard = ({ onlineEnvs, singleEnv, deleteEnv }) => {
                 </div>
                 {!isOnline(onlineEnvs, singleEnv) &&
                     <div className="inline-flex">
-                        <a className="cursor-pointer text-gray-500 hover:text-gray-700 mr-4" href="https://gimlet.io/docs/installing-gimlet-agent/">Install agent...</a>
+                        <a className="cursor-pointer text-gray-500 hover:text-gray-700 mr-4"
+                            target="_blank"
+                            rel="noreferrer"
+                            href="https://gimlet.io/docs/installing-gimlet-agent">
+                            Install agent...
+                        </a>
                         <svg xmlns="http://www.w3.org/2000/svg" onClick={deleteEnv} class="cursor-pointer h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
