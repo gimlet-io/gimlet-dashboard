@@ -13,7 +13,8 @@ class Environments extends Component {
             allEnvs: reduxState.allEnvs,
             input: '',
             hasRequestError: false,
-            saveButtonTriggered: false
+            saveButtonTriggered: false,
+            hasSameEnvNameError: false
         };
         this.props.store.subscribe(() => {
             let reduxState = this.props.store.getState();
@@ -37,33 +38,43 @@ class Environments extends Component {
     }
 
     setTimeOutForSaveButtonTriggered() {
-        setTimeout(() => { this.setState({ saveButtonTriggered: false, hasRequestError: false }) }, 3000);
+        setTimeout(() => {
+            this.setState({
+                saveButtonTriggered: false,
+                hasRequestError: false,
+                hasSameEnvNameError: false
+            })
+        }, 3000);
     }
 
     save() {
         this.setState({ saveButtonTriggered: true });
         if (!this.state.allEnvs.some(env => env.name === this.state.input)) {
             this.props.gimletClient.saveEnvToDB(this.state.input)
-                .then(data => {
+                .then(() => {
                     this.setState({
                         allEnvs: [...this.state.allEnvs, { name: this.state.input }],
                         input: "",
                         saveButtonTriggered: false
                     });
-                }, err => {
+                }, () => {
                     this.setState({ hasRequestError: true });
                     this.setTimeOutForSaveButtonTriggered();
                 })
         } else {
-            this.setState({
-            });
-            this.setState({ hasRequestError: true });
+            this.setState({ hasSameEnvNameError: true });
             this.setTimeOutForSaveButtonTriggered();
         }
     }
 
     delete(envName) {
-        this.props.gimletClient.deleteEnvFromDB(envName);
+        this.props.gimletClient.deleteEnvFromDB(envName)
+            .then(() => {
+                console.log("JÓ MINDEN");
+            }, () => {
+                console.log("BAJ VAN");
+                this.setState({ allEnvs: this.state.allEnvs.filter(env => env.name !== envName) });
+            });
     }
 
     render() {
@@ -96,7 +107,8 @@ class Environments extends Component {
                             </button>
                             {this.state.saveButtonTriggered &&
                                 <EnvironmentsPopUpWindow
-                                    hasRequestError={this.state.hasRequestError} />}
+                                    hasRequestError={this.state.hasRequestError}
+                                    hasSameEnvNameError={this.state.hasSameEnvNameError} />}
                             {this.getEnvironmentCards()}
                         </div>
                     </div>
