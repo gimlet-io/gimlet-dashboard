@@ -116,7 +116,7 @@ class Environments extends Component {
                             <button
                                 disabled={this.state.input === "" || this.state.saveButtonTriggered}
                                 onClick={() => this.save()}
-                                className={(this.state.input === "" || this.state.saveButtonTriggered ? 'cursor-not-allowed bg-gray-500 hover:bg-gray-700 ' : 'bg-green-500 hover:bg-green-700 ') + `text-white font-bold my-2 py-2 px-4 rounded`}>
+                                className={(this.state.input === "" || this.state.saveButtonTriggered ? 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700' : `bg-gray-600 cursor-default`) + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}>
                                 Save environment
                             </button>
                             {(this.state.hasRequestError || this.state.hasSameEnvNameError) &&
