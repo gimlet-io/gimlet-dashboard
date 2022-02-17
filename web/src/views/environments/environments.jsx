@@ -137,7 +137,7 @@ class Environments extends Component {
                             {this.state.addEnvMenuIsOpen &&
                                 <AddEnvMenu
                                     addEnvMenuIsOpen={this.state.addEnvMenuIsOpen}
-                                    buttonTriggered={this.state.buttonTriggered}
+                                    saveButtonTriggered={this.state.saveButtonTriggered}
                                     input={this.state.input} />}
                         </div>
                     </div>
