@@ -16,7 +16,8 @@ class Environments extends Component {
             input: '',
             hasRequestError: false,
             saveButtonTriggered: false,
-            hasSameEnvNameError: false
+            hasSameEnvNameError: false,
+            envAddingMenuIsOpen: false
         };
         this.props.store.subscribe(() => {
             let reduxState = this.props.store.getState();
@@ -131,7 +132,7 @@ class Environments extends Component {
                                 <EnvironmentsPopUpWindow
                                     hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
-                            <div>Add environment</div>
+                            <div onClick={() => this.setState({ envAddingMenuIsOpen: !this.state.envAddingMenuIsOpen })}>Add environment</div>
                         </div>
                     </div>
                 </main>
