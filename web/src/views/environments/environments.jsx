@@ -120,7 +120,7 @@ class Environments extends Component {
                         <div className="px-4 py-8 sm:px-0">
                             <input
                                 onChange={e => this.setState({ input: e.target.value })}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" value={this.state.input} placeholder="Please enter an environment name" />
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="environment" type="text" value={this.state.input} placeholder="Please enter an environment name" />
                             <button
                                 disabled={this.state.input === "" || this.state.saveButtonTriggered}
                                 onClick={() => this.save()}
