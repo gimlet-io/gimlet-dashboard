@@ -20,8 +20,6 @@ export const ACTION_TYPE_CLEAR_DEPLOY_STATUS = 'clearDeployStatus';
 export const ACTION_TYPE_GITOPS_REPO = 'gitopsRepo';
 export const ACTION_TYPE_GIT_REPOS = 'gitRepos';
 export const ACTION_TYPE_AGENTS = 'agents';
-export const ACTION_TYPE_ENVSFROMDB = "envsFromDB";
-export const ACTION_TYPE_GETALLENVS = "getAllEnvs";
 
 export const EVENT_AGENT_CONNECTED = 'agentConnected';
 export const EVENT_AGENT_DISCONNECTED = 'agentDisconnected';
@@ -76,10 +74,6 @@ export function rootReducer(state = initialState, action) {
       return eventHandlers.user(state, action.payload)
     case ACTION_TYPE_APPLICATION:
       return eventHandlers.application(state, action.payload)
-    case ACTION_TYPE_ENVSFROMDB:
-      return eventHandlers.envsFromDB(state, action.payload)
-    case ACTION_TYPE_GETALLENVS:
-      return eventHandlers.getAllEnvs(state, action.payload)
     case ACTION_TYPE_GIMLETD:
       return eventHandlers.gimletd(state, action.payload)
     case ACTION_TYPE_CHARTSCHEMA:

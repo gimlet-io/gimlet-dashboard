@@ -24,9 +24,11 @@ export function agents(state, event) {
 }
 
 export function envsUpdated(state, envs) {
-  envs.forEach((env) => {
+  envs.envs.forEach((env) => {
     state.envs[env.name] = env;
   });
+  state.envsFromDB = envs.envsFromDB;
+  state.allEnvs = envs.envs.filter(env =>!envs.envsFromDB.find(envFromDB => env["name"] === envFromDB["name"])).concat(envs.envsFromDB);
   return state;
 }
 
@@ -37,16 +39,6 @@ export function user(state, user) {
 
 export function application(state, application) {
   state.application = { name: application.appName, appSettingsURL: application.appSettingsURL, installationURL: application.installationURL };
-  return state;
-}
-
-export function envsFromDB(state, envsFromDB) {
-  state.envsFromDB = envsFromDB;
-  return state;
-}
-
-export function getAllEnvs(state, allEnvs) {
-  state.allEnvs = allEnvs.onlineEnvs.filter(onlineEnv =>!allEnvs.offlineEnvs.find(offlineEnv => onlineEnv["name"] === offlineEnv["name"])).concat(allEnvs.offlineEnvs);
   return state;
 }
 

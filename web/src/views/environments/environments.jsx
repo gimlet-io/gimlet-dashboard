@@ -2,7 +2,7 @@ import { Component } from 'react';
 import EnvironmentCard from './environmentCard.jsx';
 import EnvironmentsPopUpWindow from './environmentPopUpWindow.jsx';
 import {
-    ACTION_TYPE_GETALLENVS
+    ACTION_TYPE_ENVS
 } from "../../redux/redux";
 
 class Environments extends Component {
@@ -31,10 +31,10 @@ class Environments extends Component {
     }
 
     componentDidMount() {
-        this.props.gimletClient.getAllEnvs()
+        this.props.gimletClient.getEnvs()
             .then(data => {
                 this.props.store.dispatch({
-                    type: ACTION_TYPE_GETALLENVS,
+                    type: ACTION_TYPE_ENVS,
                     payload: data
                 });
             }, () => {/* Generic error handler deals with it */

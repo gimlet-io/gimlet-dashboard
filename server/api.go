@@ -59,7 +59,18 @@ func envs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	envString, err := json.Marshal(envs)
+	db := r.Context().Value("store").(*store.Store)
+	envsFromDB, err := db.GetAllEnvironment()
+	if err != nil {
+		logrus.Errorf("cannot get all environments from database: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	allEnvs := map[string]interface{}{}
+	allEnvs["envs"] = envs
+	allEnvs["envsFromDB"] = envsFromDB
+
+	allEnvsString, err := json.Marshal(allEnvs)
 	if err != nil {
 		logrus.Errorf("cannot serialize envs: %s", err)
 		http.Error(w, http.StatusText(500), 500)
@@ -67,7 +78,7 @@ func envs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.Write(envString)
+	w.Write(allEnvsString)
 
 	time.Sleep(50 * time.Millisecond) // there is a race condition in local dev: the refetch arrives sooner
 	go agentHub.ForceStateSend()
@@ -216,24 +227,6 @@ func application(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func envsFromDB(w http.ResponseWriter, r *http.Request) {
-	db := r.Context().Value("store").(*store.Store)
-
-	envsFromDB, err := db.GetAllEnvironment()
-	if err != nil {
-		logrus.Errorf("cannot get all environments from database: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	}
-	envsFromDBString, err := json.Marshal(envsFromDB)
-	if err != nil {
-		logrus.Errorf("cannot serialize environments from database: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(envsFromDBString))
-}
-
 func saveEnvToDB(w http.ResponseWriter, r *http.Request) {
 	var envNameToSave string
 	err := json.NewDecoder(r.Body).Decode(&envNameToSave)
@@ -278,35 +271,4 @@ func deleteEnvFromDB(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(envNameToDelete))
-}
-
-func getAllEnvs(w http.ResponseWriter, r *http.Request) {
-	agentHub, _ := r.Context().Value("agentHub").(*streaming.AgentHub)
-	onlineEnvs := []*api.Env{}
-	for _, a := range agentHub.Agents {
-		onlineEnvs = append(onlineEnvs, &api.Env{
-			Name: a.Name,
-		})
-	}
-
-	db := r.Context().Value("store").(*store.Store)
-	offlineEnvs, err := db.GetAllEnvironment()
-	if err != nil {
-		logrus.Errorf("cannot get all environments from database: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	}
-
-	envs := map[string]interface{}{}
-	envs["onlineEnvs"] = onlineEnvs
-	envs["offlineEnvs"] = offlineEnvs
-
-	envsString, err := json.Marshal(envs)
-	if err != nil {
-		logrus.Errorf("cannot serialize envs: %s", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(envsString))
 }
