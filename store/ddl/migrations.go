@@ -155,6 +155,16 @@ UNIQUE(login)
 			stmt: `ALTER TABLE users ADD COLUMN name TEXT default '';`,
 		},
 		{
+			name: createTableEnvironments,
+			stmt: `
+CREATE TABLE IF NOT EXISTS environments (
+id         	SERIAL,
+name        TEXT,
+UNIQUE(name)
+);
+`,
+		},
+		{
 			name: createTableCommits,
 			stmt: `
 CREATE TABLE IF NOT EXISTS commits (
