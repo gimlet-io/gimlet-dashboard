@@ -8,6 +8,7 @@ import (
 
 	"github.com/gimlet-io/gimlet-dashboard/agent"
 	"github.com/gimlet-io/gimlet-dashboard/api"
+	"github.com/gimlet-io/gimlet-dashboard/model"
 	"github.com/gimlet-io/gimlet-dashboard/server/streaming"
 	"github.com/gimlet-io/gimlet-dashboard/store"
 	"github.com/sirupsen/logrus"
@@ -50,6 +51,15 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	clientHub, _ := r.Context().Value("clientHub").(*streaming.ClientHub)
 	broadcastAgentConnectedEvent(clientHub, a)
+
+	db := r.Context().Value("store").(*store.Store)
+	envToSave := &model.Environment{
+		Name: name,
+	}
+	err := db.CreateEnvironment(envToSave)
+	if err != nil {
+		log.Debugf("cannot create environment to database: %s", err)
+	}
 
 	for {
 		select {
