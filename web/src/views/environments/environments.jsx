@@ -123,7 +123,11 @@ class Environments extends Component {
                                 <EnvironmentsPopUpWindow
                                     hasRequestError={this.state.hasRequestError} />}
                             {this.getEnvironmentCards()}
-                            <div onClick={() => this.setState({ addEnvMenuIsOpen: !this.state.addEnvMenuIsOpen })} className="inline-block cursor-pointer select-none">Add environment</div>
+                            <h1 onClick={() =>
+                                this.setState({ addEnvMenuIsOpen: !this.state.addEnvMenuIsOpen })}
+                                className="inline-block cursor-pointer select-none">
+                                Add environment
+                            </h1>
                             {this.state.addEnvMenuIsOpen &&
                                 <>
                                     <input
