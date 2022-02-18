@@ -16,7 +16,7 @@ const EnvironmentCard = ({ isOnline, singleEnv, deleteEnv }) => {
                 </div>
                 {!isOnline &&
                     <div className="inline-flex">
-                        <a className="cursor-pointer text-gray-500 hover:text-gray-700 mr-4"
+                        <a className="cursor-pointer text-gray-500 hover:text-gray-700 mr-2"
                             target="_blank"
                             rel="noreferrer"
                             href="https://gimlet.io/docs/installing-gimlet-agent">
