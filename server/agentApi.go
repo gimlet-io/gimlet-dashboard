@@ -53,12 +53,25 @@ func register(w http.ResponseWriter, r *http.Request) {
 	broadcastAgentConnectedEvent(clientHub, a)
 
 	db := r.Context().Value("store").(*store.Store)
-	envToSave := &model.Environment{
-		Name: name,
-	}
-	err := db.CreateEnvironment(envToSave)
+	envsFromDB, err := db.GetEnvironments()
 	if err != nil {
-		log.Debugf("cannot create environment to database: %s", err)
+		log.Debugf("cannot get all environments from database: %s", err)
+	}
+	agentInDB := false
+	for _, env := range envsFromDB {
+		if env.Name == name {
+			agentInDB = true
+			break
+		}
+	}
+	if (len(envsFromDB)) == 0 || !agentInDB {
+		envToSave := &model.Environment{
+			Name: name,
+		}
+		err := db.CreateEnvironment(envToSave)
+		if err != nil {
+			log.Debugf("cannot create environment to database: %s", err)
+		}
 	}
 
 	for {
