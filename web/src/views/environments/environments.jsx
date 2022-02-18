@@ -13,7 +13,7 @@ class Environments extends Component {
         this.state = {
             envs: reduxState.envs,
             envsFromDB: reduxState.envsFromDB,
-            input: '',
+            input: "",
             hasRequestError: false,
             saveButtonTriggered: false,
             hasSameEnvNameError: false,
@@ -135,7 +135,7 @@ class Environments extends Component {
                                             <button
                                                 disabled={this.state.input === "" || this.state.saveButtonTriggered}
                                                 onClick={() => this.save()}
-                                                className={(this.state.input === "" || this.state.saveButtonTriggered ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700') + ` inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150`}>
+                                                className={(this.state.input === "" || this.state.saveButtonTriggered ? "bg-gray-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-indigo active:bg-green-700") + " inline-flex items-center px-6 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white transition ease-in-out duration-150"}>
                                                 Create
                                             </button>
                                         </span>
