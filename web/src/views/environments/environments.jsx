@@ -28,15 +28,17 @@ class Environments extends Component {
         });
     }
 
-    componentDidMount() {
-        this.props.gimletClient.getEnvs()
-            .then(data => {
-                this.props.store.dispatch({
-                    type: ACTION_TYPE_ENVS,
-                    payload: data
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.envsFromDB.length !== this.state.envsFromDB.length) {
+            this.props.gimletClient.getEnvs()
+                .then(data => {
+                    this.props.store.dispatch({
+                        type: ACTION_TYPE_ENVS,
+                        payload: data
+                    });
+                }, () => {/* Generic error handler deals with it */
                 });
-            }, () => {/* Generic error handler deals with it */
-            });
+        }
     }
 
     getEnvironmentCards() {
