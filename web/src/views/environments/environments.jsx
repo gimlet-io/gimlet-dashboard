@@ -13,7 +13,6 @@ class Environments extends Component {
         this.state = {
             envs: reduxState.envs,
             envsFromDB: reduxState.envsFromDB,
-            allEnvs: reduxState.allEnvs,
             input: '',
             hasRequestError: false,
             saveButtonTriggered: false,
@@ -24,8 +23,7 @@ class Environments extends Component {
 
             this.setState({
                 envs: reduxState.envs,
-                envsFromDB: reduxState.envsFromDB,
-                allEnvs: reduxState.allEnvs
+                envsFromDB: reduxState.envsFromDB
             });
         });
     }
@@ -43,7 +41,7 @@ class Environments extends Component {
 
     getEnvironmentCards() {
         return (
-            this.state.allEnvs.map(env => (<EnvironmentCard
+            this.state.envsFromDB.map(env => (<EnvironmentCard
                 singleEnv={env}
                 deleteEnv={() => this.delete(env.name)}
                 isOnline={this.isOnline(this.state.envs, env)}
@@ -71,11 +69,11 @@ class Environments extends Component {
 
     save() {
         this.setState({ saveButtonTriggered: true });
-        if (!this.state.allEnvs.some(env => env.name === this.state.input)) {
+        if (!this.state.envsFromDB.some(env => env.name === this.state.input)) {
             this.props.gimletClient.saveEnvToDB(this.state.input)
                 .then(() => {
                     this.setState({
-                        allEnvs: [...this.state.allEnvs, { name: this.state.input }],
+                        envsFromDB: [...this.state.envsFromDB, { name: this.state.input }],
                         input: "",
                         saveButtonTriggered: false
                     });
@@ -92,7 +90,7 @@ class Environments extends Component {
     delete(envName) {
         this.props.gimletClient.deleteEnvFromDB(envName)
             .then(() => {
-                this.setState({ allEnvs: this.state.allEnvs.filter(env => env.name !== envName) });
+                this.setState({ envsFromDB: this.state.envsFromDB.filter(env => env.name !== envName) });
             }, () => {
                 this.setState({ hasRequestError: true });
                 this.setTimeOutForButtonTriggered();

@@ -23,12 +23,11 @@ export function agents(state, event) {
   return state;
 }
 
-export function envsUpdated(state, envs) {
-  envs.envs.forEach((env) => {
+export function envsUpdated(state, allEnvs) {
+  allEnvs.envs.forEach((env) => {
     state.envs[env.name] = env;
   });
-  state.envsFromDB = envs.envsFromDB;
-  state.allEnvs = envs.envs.filter(env =>!envs.envsFromDB.find(envFromDB => env["name"] === envFromDB["name"])).concat(envs.envsFromDB);
+  state.envsFromDB = allEnvs.envsFromDB;
   return state;
 }
 
