@@ -42,13 +42,23 @@ class Environments extends Component {
     }
 
     getEnvironmentCards() {
+        const { envs, envsFromDB } = this.state;
+        const envsArray = Object.keys(envs).map(env => envs[env]);
+        const sortedEnvArrayByStatus = this.sortingEnvByStatus(envsArray, envsFromDB)
+
         return (
-            this.state.envsFromDB.map(env => (<EnvironmentCard
+            sortedEnvArrayByStatus.map(env => (<EnvironmentCard
                 singleEnv={env}
                 deleteEnv={() => this.delete(env.name)}
                 isOnline={this.isOnline(this.state.envs, env)}
             />))
         )
+    }
+
+    sortingEnvByStatus(envs, envsFromDB) {
+        return envs.concat(envsFromDB
+            .filter(env => !envs
+                .some(envFromDB => env.name === envFromDB.name)));
     }
 
     isOnline(onlineEnvs, singleEnv) {
