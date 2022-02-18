@@ -10,7 +10,7 @@ func (db *Store) CreateEnvironment(environment *model.Environment) error {
 	return meddler.Insert(db, "environments", environment)
 }
 
-func (db *Store) GetAllEnvironment() ([]*model.Environment, error) {
+func (db *Store) GetEnvironments() ([]*model.Environment, error) {
 	stmt := sql.Stmt(db.driver, sql.SelectEnvironment)
 	data := []*model.Environment{}
 	err := meddler.QueryAll(db, &data, stmt)

@@ -60,7 +60,7 @@ func envs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := r.Context().Value("store").(*store.Store)
-	envsFromDB, err := db.GetAllEnvironment()
+	envsFromDB, err := db.GetEnvironments()
 	if err != nil {
 		logrus.Errorf("cannot get all environments from database: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

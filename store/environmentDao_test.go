@@ -27,9 +27,9 @@ func TestEnvironmentCreateAndGetAll(t *testing.T) {
 	errCreateEnvProd := s.CreateEnvironment(&environmentProd)
 	assert.Nil(t, errCreateEnvProd)
 
-	envArray, err := s.GetAllEnvironment()
+	envArray, err := s.GetEnvironments()
 	if err != nil {
-		t.Errorf("Cannot get all environments: %s", err)
+		t.Errorf("Cannot get environments: %s", err)
 	}
 
 	assert.Equal(t, 2, len(envArray))
@@ -52,7 +52,7 @@ func TestEnvironmentDelete(t *testing.T) {
 
 	s.DeleteEnvironment("staging")
 
-	data, _ := s.GetAllEnvironment()
+	data, _ := s.GetEnvironments()
 
 	assert.Equal(t, 0, len(data))
 }
